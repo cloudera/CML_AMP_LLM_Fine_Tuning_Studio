@@ -122,6 +122,20 @@
       "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
       "slots": null,
       "prompt_template": "<TABLE>: {context}\n<QUESTION>: {question}\n<SQL>: {answer}"
+    },
+    {
+      "id": "7ee0f633-faf0-4827-b4cf-2eab4795fc53",
+      "name": "PREBUILT: instruct",
+      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "slots": null,
+      "prompt_template": "<Instruction>: {instruction}\n<Input>: {input}\n<Response>: {response}\n"
+    },
+    {
+      "id": "d1a4bb2b-e5c0-4fd7-abd3-0f53c5c00d17",
+      "name": "PREBUILT: toxic",
+      "dataset_id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
+      "slots": null,
+      "prompt_template": "<Toxic>: {en_toxic_comment}\n<Neutral>: {en_neutral_comment}"
     }
   ],
   "adapters": [

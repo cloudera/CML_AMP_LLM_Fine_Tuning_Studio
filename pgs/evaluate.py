@@ -10,6 +10,10 @@ import time
 from peft.peft_model import PeftModel
 import torch
 
+# Used for development testing.
+DEVICE="cpu" # Local mac testing
+# DEVICE="cuda:0" # AMP application deployed
+
 
 # TODO: fix this:
 # /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
@@ -31,7 +35,7 @@ if model_idx is not None:
     current_model_metadata = current_models[model_idx]
 
     with st.spinner("Loading model..."):
-        CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto').to("cpu")
+        CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto').to(DEVICE)
 
     st.subheader("Adapters")
     model_adapters: List[AdapterMetadata] = get_state().adapters
@@ -117,7 +121,7 @@ def evaluate_fragment():
         with st.spinner("Generating text..."):
             tokenizer = AutoTokenizer.from_pretrained(current_model_metadata.huggingface_model_name)
 
-        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to("cpu")
+        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to(DEVICE)
         loaded_adapters = list(CURRENT_MODEL.peft_config.keys())
 
         CURRENT_MODEL.disable_adapters()
@@ -125,11 +129,16 @@ def evaluate_fragment():
         with torch.cuda.amp.autocast():
             model_out = CURRENT_MODEL.generate(
                 **input_tokens,
-                max_length=512
+                max_new_tokens=50,
+                repetition_penalty=1.1,
+                num_beams=1,
+                temperature=0.7,
+                top_p=1.0,
+                top_k=50,
+                do_sample=True,
                 )
                  
-        print(model_out)
-        tok_out = tokenizer.decode(model_out[0], skip_special_tokens=True)[len(st.session_state.input_prompt):]
+        tok_out = tokenizer.decode(model_out[0], skip_special_tokens=False)[len(st.session_state.input_prompt):]
         print(tok_out)
 
         CURRENT_MODEL.enable_adapters()
@@ -137,18 +146,24 @@ def evaluate_fragment():
         with torch.cuda.amp.autocast():
             model_out = CURRENT_MODEL.generate(
                 **input_tokens,
-                max_length=512
+                max_new_tokens=50,
+                repetition_penalty=1.1,
+                num_beams=1,
+                temperature=0.7,
+                top_p=1.0,
+                top_k=50,
+                do_sample=True,
                 )    
-        tok_out2 = tokenizer.decode(model_out[0], skip_special_tokens=True)[len(st.session_state.input_prompt):]
+        tok_out2 = tokenizer.decode(model_out[0], skip_special_tokens=False)[len(st.session_state.input_prompt):]
         print(tok_out2)
 
         st.session_state.base_output = tok_out
         st.session_state.base_output2 = tok_out2
 
         cont.text(f"Base [model: {current_model_metadata.name}]")
-        cont.text_area(f"Base [model: {current_model_metadata.name}]", disabled=True, key="base_output", label_visibility="collapsed")
+        cont.text_area(f"Base [model: {current_model_metadata.name}]", disabled=True, key="base_output", label_visibility="collapsed", height=200)
         cont.text(f"Base+Adapter [adapter: {model_adapters[model_adapter_idx].name}]")
-        cont.text_area(f"Base+Adapter [adapter: {model_adapters[model_adapter_idx].name}]", key="base_output2", disabled=True, label_visibility="collapsed")
+        cont.text_area(f"Base+Adapter [adapter: {model_adapters[model_adapter_idx].name}]", key="base_output2", disabled=True, label_visibility="collapsed", height=200)
 
 
 if model_idx is not None and model_adapter_idx is not None:
