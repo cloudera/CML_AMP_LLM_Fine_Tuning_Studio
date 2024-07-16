@@ -11,8 +11,8 @@ from peft.peft_model import PeftModel
 import torch
 
 # Used for development testing.
-DEVICE="cpu" # Local mac testing
-# DEVICE="cuda:0" # AMP application deployed
+# DEVICE="cpu" # Local mac testing
+DEVICE="cuda:0" # AMP application deployed
 
 
 # TODO: fix this:
