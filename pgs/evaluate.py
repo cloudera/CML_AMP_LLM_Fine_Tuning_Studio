@@ -10,10 +10,6 @@ import time
 from peft.peft_model import PeftModel
 import torch
 
-# Used for development testing.
-DEVICE="cpu" # Local mac testing
-# DEVICE="cuda:0" # AMP application deployed
-
 
 # TODO: fix this:
 # /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
@@ -35,7 +31,8 @@ if model_idx is not None:
     current_model_metadata = current_models[model_idx]
 
     with st.spinner("Loading model..."):
-        CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto').to(DEVICE)
+        # CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto').to("cpu")
+        CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto')
 
     st.subheader("Adapters")
     model_adapters: List[AdapterMetadata] = get_state().adapters
@@ -126,8 +123,8 @@ def evaluate_fragment():
         with st.spinner("Generating text..."):
             tokenizer = AutoTokenizer.from_pretrained(current_model_metadata.huggingface_model_name)
 
-        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to(DEVICE)
-        loaded_adapters = list(CURRENT_MODEL.peft_config.keys())
+        # input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to("cpu")
+        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt")
 
         CURRENT_MODEL.disable_adapters()
 
