@@ -11,8 +11,8 @@ from peft.peft_model import PeftModel
 import torch
 
 # Used for development testing.
-# DEVICE="cpu" # Local mac testing
-DEVICE="cuda:0" # AMP application deployed
+DEVICE="cpu" # Local mac testing
+# DEVICE="cuda:0" # AMP application deployed
 
 
 # TODO: fix this:
@@ -71,38 +71,43 @@ def update_text_area():
     prompt_idx = st.session_state.input_prompt_idx
 
     if prompt_idx is not None:
-        st.session_state.input_prompt = prompts[prompt_idx].prompt_template
+        st.session_state.input_prompt_template = prompts[prompt_idx].prompt_template
     else:
-        st.session_state.input_prompt = None
+        st.session_state.input_prompt_template = None
 
 # TODO: extend this out to both prompt templates and actual input prompts.
 # The button should generate the prompt, the dropdown should allow you
 # to set a prompt template
 def generate_random():
     prompts = get_state().prompts
+    prompt_template = st.session_state.input_prompt_template
     prompt_idx = st.session_state.input_prompt_idx
 
-    if prompt_idx is not None:
+    if prompt_template is not None and prompt_idx is not None:
         dataset = load_dataset(get_app().datasets.get_dataset(prompts[prompt_idx].dataset_id).huggingface_name)
-        prompt_template = prompts[prompt_idx].prompt_template
         if "train" in dataset:
             dataset = dataset["train"]
         idx = random.randint(0, len(dataset)-1)
         prompt_string = prompt_template.format(**dataset[idx])
         st.session_state.input_prompt = prompt_string
-    else:
-        st.session_state.input_prompt = None
+
 
 @st.experimental_fragment
 def prompt_fragment():
     cont = st.container(border=True)
 
-    cont.subheader("Prompt")
     prompts = get_state().prompts
-    prompt_idx = cont.selectbox("Import Prompt Template", range(len(prompts)), key="input_prompt_idx", format_func=lambda x: f"{prompts[x].name} [dataset: {get_app().datasets.get_dataset(prompts[x].dataset_id).name}]", index=None, on_change=update_text_area)
-    cont.text_area("Test Prompt", height=200, key="input_prompt")
+  
+    c1, c2 = cont.columns([2, 3])
+    c1.subheader("Prompt Template")
+    prompt_idx = c2.selectbox("Import Prompt Template", range(len(prompts)), key="input_prompt_idx", format_func=lambda x: f"{prompts[x].name} [dataset: {get_app().datasets.get_dataset(prompts[x].dataset_id).name}]", index=None, on_change=update_text_area)
+    cont.text_area("Prompt Template", height=200, key="input_prompt_template")
 
-    gen_random = cont.button("Generate Random Prompt from Dataset", on_click=generate_random)
+    c1, c2 = cont.columns([2, 3])
+    c1.subheader("Input Prompt")
+
+    gen_random = c2.button("Generate Random Prompt from Dataset and Template", on_click=generate_random, use_container_width=True)
+    cont.text_area("Input Prompt", height=200, key="input_prompt")
 
 
 if model_idx is not None and model_adapter_idx is not None:

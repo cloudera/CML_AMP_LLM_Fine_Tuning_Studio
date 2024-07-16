@@ -96,27 +96,6 @@
   "jobs": [],
   "prompts": [
     {
-      "id": "1c6a7f46-d3cd-4f46-8d8f-ee5fd924be9f",
-      "name": "SQL training",
-      "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
-      "slots": null,
-      "prompt_template": "[Q]: {question}\n[C]: {context}\n[A]: {answer}"
-    },
-    {
-      "id": "7ff18fa1-4ca1-443c-903f-a211823b2030",
-      "name": "gen-instruction",
-      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
-      "slots": null,
-      "prompt_template": "You are an instructor that is helping create an instruction.\n\n\n[INSTRUCTION]: {instruction}\n[INPUT]: {input}\n\n###\n\n[RESPONSE]: {response}\n"
-    },
-    {
-      "id": "b65ca0e6-c693-456e-b657-f3805c971fbb",
-      "name": "better instruct template",
-      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
-      "slots": null,
-      "prompt_template": "you are an instructor.\n\n[INST]: {instruction}\n[RESPONSE]: {response}"
-    },
-    {
       "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
       "name": "PREBUILT: philschmid/sql-create-context-copy",
       "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
