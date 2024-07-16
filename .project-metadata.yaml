@@ -22,14 +22,14 @@ runtimes:
     edition: Nvidia GPU
 
 tasks:
-  - type: run_session
-    name: Validate GPU Availibility in this workspace
-    script: bin/check_gpu_resources.py
-    short_summary: Check for GPU availibility. 
-    long_summary: Check GPUs are enabled on this workspace and are currently schedulable.
-    kernel: python3
-    cpu: 2
-    memory: 4
+  # - type: run_session
+  #   name: Validate GPU Availibility in this workspace
+  #   script: bin/check_gpu_resources.py
+  #   short_summary: Check for GPU availibility. 
+  #   long_summary: Check GPUs are enabled on this workspace and are currently schedulable.
+  #   kernel: python3
+  #   cpu: 2
+  #   memory: 4
 
   - type: run_session
     name: Install Dependencies
@@ -39,15 +39,15 @@ tasks:
     cpu: 2
     memory: 8
   
-  - type: run_session
-    name: Validate GPU CUDA Capability
-    script: bin/check_gpu_capability.py
-    short_summary: Check for GPU capability. 
-    long_summary: Check GPU device supports the CUDA capabilities required.
-    kernel: python3
-    cpu: 2
-    memory: 4
-    gpu: 1
+  # - type: run_session
+  #   name: Validate GPU CUDA Capability
+  #   script: bin/check_gpu_capability.py
+  #   short_summary: Check for GPU capability. 
+  #   long_summary: Check GPU device supports the CUDA capabilities required.
+  #   kernel: python3
+  #   cpu: 2
+  #   memory: 4
+  #   gpu: 1
 
   # - type: create_job
   #   name: Job for distributed fine-tuning on Instruction Dataset
@@ -69,6 +69,6 @@ tasks:
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
     memory: 16
-    # gpu: 1
+    gpu: 1
     environment_variables:
       TASK_TYPE: START_APPLICATION
