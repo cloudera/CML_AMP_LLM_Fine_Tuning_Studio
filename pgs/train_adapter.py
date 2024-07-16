@@ -13,17 +13,18 @@ import os
 from ft.app import get_app
 from ft.state import get_state
 import json
+import torch
 
 DATA_TEXT_FIELD="prediction"
 
 NUM_EPOCHS = 1.0
 
 
-st.header("Model")
+st.subheader("Model")
 current_models = get_state().models
 model_idx = st.selectbox("Models", range(len(current_models)), format_func=lambda x: current_models[x].name, index=None)
 
-st.header("Dataset")
+st.subheader("Dataset")
 current_datasets = get_state().datasets
 dataset_idx = st.selectbox("Dataset", range(len(current_datasets)), format_func=lambda x: current_datasets[x].name, index=None)
 
@@ -32,7 +33,7 @@ prompt_idx = None
 if dataset_idx is not None:
     dataset = current_datasets[dataset_idx]
 
-    st.header("Prompt Template")
+    st.subheader("Prompt Template")
     current_prompts = get_state().prompts
     current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
     prompt_idx = st.selectbox("Prompts", range(len(current_prompts)), format_func=lambda x: current_prompts[x].name, index=None)
@@ -42,16 +43,21 @@ if dataset_idx is not None:
     
 start_job_button = None 
 
-if dataset_idx is not None and model_idx is not None and prompt_idx is not None:
 
-    st.header("Fine Tuning Job")
+st.subheader("Train Adapter")
+adapter_name = st.text_input("Adapter Name", placeholder="human-friendly adapter name for future reference")
 
-    advanced_expander = st.expander("Advanced Options")
-    c1, c2 = advanced_expander.columns([1,1])
-    c1.text_area("LoRA Config", json.dumps(json.load(open(".app/configs/default_lora_config.json")), indent=2), height=200)
-    c2.text_area("BitsAndBytes Config", json.dumps(json.load(open(".app/configs/default_bnb_config.json")), indent=2), height=200)
+adapter_location = st.text_input("Output Location", value="data/adapters/")
 
-    start_job_button = st.button("Start Job", type="primary", use_container_width=True)
+advanced_expander = st.expander("Advanced Options")
+c1, c2 = advanced_expander.columns([1,1])
+c1.text_area("LoRA Config", json.dumps(json.load(open(".app/configs/default_lora_config.json")), indent=2), height=200)
+c2.text_area("BitsAndBytes Config", json.dumps(json.load(open(".app/configs/default_bnb_config.json")), indent=2), height=200)
+
+button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name is not ""
+start_job_button = st.button("Start Job", type="primary", use_container_width=True, disabled=not button_enabled)
+
+
 
 # if st.button("Fine Tune Model"):
 #     with st.spinner("Mapping Prompt Template to Dataset"):

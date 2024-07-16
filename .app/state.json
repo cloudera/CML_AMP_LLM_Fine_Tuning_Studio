@@ -136,10 +136,10 @@
     },
     {
       "id": "4ff47f49-2e72-4457-99ac-964927e1b05c",
-      "name": "bloom1b1-lora-detox",
+      "name": "bloom1b1-lora-toxic",
       "type": "local",
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
-      "location": "data/adapters/bloom1b1-lora-detox",
+      "location": "data/adapters/bloom1b1-lora-toxic",
       "huggingface_name": null
     }
   ]
