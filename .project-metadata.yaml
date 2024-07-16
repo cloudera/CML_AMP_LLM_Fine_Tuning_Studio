@@ -1,0 +1,74 @@
+name: Fine-Tuning Application
+description: |
+  This AMP demonstrates how PEFT and other fine-tuning optimization techniques can be used for efficient and effective customization of an existing LLM to perform new tasks.
+author: Cloudera Inc.
+specification_version: 1.0
+prototype_version: 1.0
+date: "2023-07-22"
+
+environment_variables:
+  FINE_TUNING_APP_STATE_LOCATION:
+    default: ".app/state.json"
+    description: >-
+      The location of the FT app's state, which is a session store that saves app information across browser sessions.
+  CUSTOM_LORA_ADAPTERS_DIR:
+    default: "data/adapters/"
+    description: >-
+      The directory containing the reproduced LoRA adapters created by the fine-tuning jobs in this project. Also the location to look for any custom LoRA adapters.
+
+runtimes:
+  - editor: PBJ Workbench
+    kernel: Python 3.9
+    edition: Nvidia GPU
+
+tasks:
+  - type: run_session
+    name: Validate GPU Availibility in this workspace
+    script: amp_0_session-configuration-validation/check_gpu_resources.py
+    short_summary: Check for GPU availibility. 
+    long_summary: Check GPUs are enabled on this workspace and are currently schedulable.
+    kernel: python3
+    cpu: 2
+    memory: 4
+
+  - type: run_session
+    name: Install Dependencies
+    script: bin/install-dependencies.py
+    short_summary: Install Dependencies
+    kernel: python3
+    cpu: 2
+    memory: 8
+  
+  - type: run_session
+    name: Validate GPU CUDA Capability
+    script: amp_2_session-resource-validation/check_gpu_capability.py
+    short_summary: Check for GPU capability. 
+    long_summary: Check GPU device supports the CUDA capabilities required.
+    kernel: python3
+    cpu: 2
+    memory: 4
+    gpu: 1
+
+  # - type: create_job
+  #   name: Job for distributed fine-tuning on Instruction Dataset
+  #   short_summary: Create Job for fine-tuning on Instruction Dataset
+  #   entity_label: fine_tune_instruct
+  #   script: amp_3_job_fine_tune/job-instruction.py
+  #   arguments: None
+  #   long_summary: Create job to fine-tune an LLM on a subset of the teknium/GPTeacher-General-Instruct dataset. This job will not be automatically launched during AMP startup. A sample LoRA adapter fine-tuned with this job script and dataset is included in the git repository.
+  #   cpu: 2
+  #   memory: 8
+  #   gpu: 1
+  #   environment:
+  #     TASK_TYPE: CREATE/RUN_JOB
+  
+  - type: start_application
+    name: LLM Fine Tuning Application
+    subdomain: cml-llm-ft-app
+    script: bin/run-app.py
+    long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
+    cpu: 2
+    memory: 16
+    # gpu: 1
+    environment_variables:
+      TASK_TYPE: START_APPLICATION

@@ -1,0 +1,107 @@
+{
+  "datasets": [
+    {
+      "id": "441509f4-137b-40ce-a303-bbd2a63f1e69",
+      "type": "huggingface",
+      "name": "Clinton/Text-to-sql-v1",
+      "description": "",
+      "huggingface_name": "Clinton/Text-to-sql-v1",
+      "location": null,
+      "features": [
+        "instruction",
+        "input",
+        "response",
+        "source",
+        "text"
+      ]
+    },
+    {
+      "id": "ea5b3d2f-c2b6-4b73-8989-e5175b4efb03",
+      "type": "huggingface",
+      "name": "hakurei/open-instruct-v1",
+      "description": "",
+      "huggingface_name": "hakurei/open-instruct-v1",
+      "location": null,
+      "features": [
+        "output",
+        "instruction",
+        "input"
+      ]
+    },
+    {
+      "id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
+      "type": "huggingface",
+      "name": "philschmid/sql-create-context-copy",
+      "description": "",
+      "huggingface_name": "philschmid/sql-create-context-copy",
+      "location": null,
+      "features": [
+        "question",
+        "answer",
+        "context"
+      ]
+    },
+    {
+      "id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "type": "huggingface",
+      "name": "teknium/GPTeacher-General-Instruct",
+      "description": "",
+      "huggingface_name": "teknium/GPTeacher-General-Instruct",
+      "location": null,
+      "features": [
+        "instruction",
+        "response",
+        "input"
+      ]
+    },
+    {
+      "id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
+      "type": "huggingface",
+      "name": "s-nlp/paradetox",
+      "description": "",
+      "huggingface_name": "s-nlp/paradetox",
+      "location": null,
+      "features": [
+        "en_toxic_comment",
+        "en_neutral_comment"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "6f00234b-ebf3-43ea-9a06-2e379d1908da",
+      "type": "huggingface",
+      "name": "distilbert/distilgpt2",
+      "huggingface_model_name": "distilbert/distilgpt2"
+    },
+    {
+      "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
+      "type": "huggingface",
+      "name": "Qwen/Qwen2-0.5B",
+      "huggingface_model_name": "Qwen/Qwen2-0.5B"
+    },
+    {
+      "id": "275d8d87-6e07-4f68-acf4-031dd2ce5a96",
+      "type": "huggingface",
+      "name": "EleutherAI/pythia-160m",
+      "huggingface_model_name": "EleutherAI/pythia-160m"
+    }
+  ],
+  "jobs": [],
+  "prompts": [
+    {
+      "id": "1c6a7f46-d3cd-4f46-8d8f-ee5fd924be9f",
+      "name": "SQL training",
+      "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
+      "slots": null,
+      "prompt_template": "[Q]: {question}\n[C]: {context}\n[A]: {answer}"
+    },
+    {
+      "id": "7ff18fa1-4ca1-443c-903f-a211823b2030",
+      "name": "gen-instruction",
+      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "slots": null,
+      "prompt_template": "You are an instructor that is helping create an instruction.\n\n\n[INSTRUCTION]: {instruction}\n[INPUT]: {input}\n\n###\n\n[RESPONSE]: {response}\n"
+    }
+  ]
+}
