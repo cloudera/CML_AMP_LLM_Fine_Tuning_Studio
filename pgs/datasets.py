@@ -16,7 +16,7 @@ with st.container(border=True):
     import_hf_tab.subheader("Import Huggingface Dataset")
     c1, c2 = import_hf_tab.columns([4, 1])
     import_hf_dataset_name = c1.text_input('Dataset Name', placeholder="huggingface/dataset", label_visibility='collapsed')
-    import_hf_dataset = c2.button("Import Dataset")
+    import_hf_dataset = c2.button("Import Dataset", use_container_width=True)
 
     if import_hf_dataset:
         with st.spinner("Loading Dataset..."):

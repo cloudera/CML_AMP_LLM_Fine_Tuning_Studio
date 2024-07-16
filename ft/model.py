@@ -43,12 +43,16 @@ class ModelMetadata(BaseModel):
 
 
 class ImportModelRequest(BaseModel):
-    pass 
+    type: ModelType
+    """
+    Type of model. This type affects the
+    """
 
-
-class ImportHuggingfaceModelRequest(ImportModelRequest):
-    name: str 
+    huggingface_name: Optional[str] 
     """
     Name of the huggingface model. This is the full huggingface
     model name used to identify the model on HF hub.
-    """
+    """ 
+
+class ImportModelResponse(BaseModel):
+    model: Optional[ModelMetadata]

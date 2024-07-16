@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional 
 
 
-class PEFTAdapterType(Enum):
+class AdapterType(Enum):
     """
     Type of PEFT adapter.
     """
@@ -23,16 +23,21 @@ class PEFTAdapterType(Enum):
 
 
 
-class PEFTAdapterMetadata(BaseModel):
+class AdapterMetadata(BaseModel):
 
     id: str
     """
     Unique ID of the PEFT adapter.
     """
 
-    type: PEFTAdapterType
+    name: str 
     """
-    Type of PEFT adapter.
+    Human friendly name of the adapter for tracking.
+    """
+
+    type: AdapterType
+    """
+    Type of model adapter.
     """
 
     model_id: str 
@@ -54,7 +59,7 @@ class PEFTAdapterMetadata(BaseModel):
     in the local directory which can then be used to load an adapter.
     """
 
-    huggingface_name: Optional[str]
+    huggingface_name: Optional[str] = None
     """
     Huggingface PEFT adapter name (identifier used to find
     the adapter on HF hub).

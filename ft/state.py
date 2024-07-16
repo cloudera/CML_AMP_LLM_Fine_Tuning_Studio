@@ -4,6 +4,7 @@ from ft.dataset import DatasetMetadata
 from ft.job import FineTuningJobMetadata
 from ft.model import ModelMetadata
 from ft.prompt import PromptMetadata
+from ft.adapter import AdapterMetadata
 import json
 from typing import Dict 
 import os
@@ -34,6 +35,7 @@ class AppState(BaseModel):
     models: List[ModelMetadata]
     jobs: List[FineTuningJobMetadata]
     prompts: List[PromptMetadata]
+    adapters: List[AdapterMetadata]
 
 
 def get_state_location():

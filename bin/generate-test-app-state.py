@@ -3,7 +3,7 @@ import json
 from ft.state import AppState
 from ft.dataset import *
 from ft.prompt import *
-from ft.peft_adapter import *
+from ft.adapter import *
 from datasets import load_dataset
 from ft.model import *
 

@@ -69,12 +69,6 @@
   ],
   "models": [
     {
-      "id": "6f00234b-ebf3-43ea-9a06-2e379d1908da",
-      "type": "huggingface",
-      "name": "distilbert/distilgpt2",
-      "huggingface_model_name": "distilbert/distilgpt2"
-    },
-    {
       "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
       "type": "huggingface",
       "name": "Qwen/Qwen2-0.5B",
@@ -85,6 +79,18 @@
       "type": "huggingface",
       "name": "EleutherAI/pythia-160m",
       "huggingface_model_name": "EleutherAI/pythia-160m"
+    },
+    {
+      "id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "type": "huggingface",
+      "name": "bigscience/bloom-1b1",
+      "huggingface_model_name": "bigscience/bloom-1b1"
+    },
+    {
+      "id": "1ea746bb-dd7c-4072-a93b-c409af07820e",
+      "type": "huggingface",
+      "name": "distilbert/distilgpt2",
+      "huggingface_model_name": "distilbert/distilgpt2"
     }
   ],
   "jobs": [],
@@ -102,6 +108,39 @@
       "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
       "slots": null,
       "prompt_template": "You are an instructor that is helping create an instruction.\n\n\n[INSTRUCTION]: {instruction}\n[INPUT]: {input}\n\n###\n\n[RESPONSE]: {response}\n"
+    },
+    {
+      "id": "b65ca0e6-c693-456e-b657-f3805c971fbb",
+      "name": "better instruct template",
+      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "slots": null,
+      "prompt_template": "you are an instructor.\n\n[INST]: {instruction}\n[RESPONSE]: {response}"
+    }
+  ],
+  "adapters": [
+    {
+      "id": "e3fe6f50-5be2-4960-bc7b-612843cdf5bd",
+      "name": "bloom1b1-lora-instruct",
+      "type": "local",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom1b1-lora-instruct",
+      "huggingface_name": null
+    },
+    {
+      "id": "64e8a578-7067-4cb9-8bd0-efd0da901bfe",
+      "name": "bloom1b1-lora-sql",
+      "type": "local",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom1b1-lora-sql",
+      "huggingface_name": null
+    },
+    {
+      "id": "4ff47f49-2e72-4457-99ac-964927e1b05c",
+      "name": "bloom1b1-lora-detox",
+      "type": "local",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom1b1-lora-detox",
+      "huggingface_name": null
     }
   ]
 }

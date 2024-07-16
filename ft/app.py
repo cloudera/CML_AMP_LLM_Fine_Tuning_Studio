@@ -34,6 +34,7 @@ from ft.managers import (
 )
 from ft.state import AppState
 from ft.dataset import ImportDatasetRequest, ImportDatasetResponse, DatasetType, DatasetMetadata
+from ft.model import ImportModelRequest, ImportModelResponse, ModelMetadata
 from datasets import load_dataset
 
 
@@ -58,7 +59,7 @@ class FineTuningAppProps:
                  state_location: str):
         self.state_location = state_location 
         self.datasets_manager = datasets_manager
-        self.models_manager = models_manager, 
+        self.models_manager = models_manager
         self.jobs_manager = jobs_manager
 
 
@@ -133,6 +134,30 @@ class FineTuningApp():
         prompts = list(filter(lambda x: not x.id == id, prompts))
         update_state({"prompts": prompts})
 
+    def import_model(self, request: ImportModelRequest) -> ImportDatasetResponse:
+        """
+        Add a dataset to the App based on the request.
+        """
+        import_response: ImportModelResponse = self.models.import_model(request)
+
+        # If we've successfully imported a new dataset, then make sure we update
+        # the app's dataset state with this data.
+        if import_response.model is not None:
+            state: AppState = get_state()
+            lmodels: List[ModelMetadata] = state.models
+            lmodels.append(import_response.model)
+            update_state({"models": lmodels})
+
+        return import_response
+
+
+    def remove_model(self, id: str):
+        """
+        TODO: abstract this out to the model manager
+        """
+        models = self.models.list_models()
+        models = list(filter(lambda x: not x.id == id, models))
+        update_state({"models": models})
 
 
 

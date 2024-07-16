@@ -24,7 +24,7 @@ runtimes:
 tasks:
   - type: run_session
     name: Validate GPU Availibility in this workspace
-    script: amp_0_session-configuration-validation/check_gpu_resources.py
+    script: bin/check_gpu_resources.py
     short_summary: Check for GPU availibility. 
     long_summary: Check GPUs are enabled on this workspace and are currently schedulable.
     kernel: python3
@@ -41,7 +41,7 @@ tasks:
   
   - type: run_session
     name: Validate GPU CUDA Capability
-    script: amp_2_session-resource-validation/check_gpu_capability.py
+    script: bin/check_gpu_capability.py
     short_summary: Check for GPU capability. 
     long_summary: Check GPU device supports the CUDA capabilities required.
     kernel: python3

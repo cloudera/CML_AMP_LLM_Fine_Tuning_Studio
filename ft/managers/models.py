@@ -1,23 +1,37 @@
 from abc import ABC, abstractmethod
-from ft.model import ModelMetadata, ImportModelRequest
+from ft.model import ModelMetadata, ImportModelRequest, ImportModelResponse, ModelType
 from typing import List 
+from ft.state import get_state
+from uuid import uuid4
 
 class ModelsManagerBase(ABC):
     def __init__(self):
         return
 
     @abstractmethod
-    def list_models() -> List[ModelMetadata]:
+    def list_models(self) -> List[ModelMetadata]:
         pass 
 
     @abstractmethod
-    def import_model(request: ImportModelRequest):
+    def import_model(self, request: ImportModelRequest):
         pass
-
 
 class ModelsManagerSimple(ModelsManagerBase):
-    def list_models() -> List[ModelMetadata]:
-        pass
+    def list_models(self) -> List[ModelMetadata]:
+        return get_state().models
 
-    def import_model(request: ImportModelRequest):
-        return super().import_model()
+    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
+
+        if request.type == ModelType.HUGGINGFACE:
+            return ImportModelResponse(
+                model=ModelMetadata(
+                    id=str(uuid4()),
+                    type=ModelType.HUGGINGFACE,
+                    name=request.huggingface_name,
+                    huggingface_model_name=request.huggingface_name
+                )
+            )
+        else:
+            # TODO: errror handling
+            raise ValueError()
+    
