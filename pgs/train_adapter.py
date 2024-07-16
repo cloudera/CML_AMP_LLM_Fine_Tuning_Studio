@@ -54,7 +54,7 @@ c1, c2 = advanced_expander.columns([1,1])
 c1.text_area("LoRA Config", json.dumps(json.load(open(".app/configs/default_lora_config.json")), indent=2), height=200)
 c2.text_area("BitsAndBytes Config", json.dumps(json.load(open(".app/configs/default_bnb_config.json")), indent=2), height=200)
 
-button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name is not ""
+button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
 start_job_button = st.button("Start Job", type="primary", use_container_width=True, disabled=not button_enabled)
 
 

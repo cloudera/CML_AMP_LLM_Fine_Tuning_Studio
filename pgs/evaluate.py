@@ -10,6 +10,10 @@ import time
 from peft.peft_model import PeftModel
 import torch
 
+
+# TODO: fix this:
+# /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
+
 st.title("Local Evaluation")
 
 CURRENT_MODEL = None
@@ -49,11 +53,13 @@ if model_idx is not None:
             # This is a regular AutoModelForCausalLM, we should use PeftModel.from_pretrained for this first adapter load
             else:
                 # TODO: these arguments don't look right. This needs to be fixed.
-                CURRENT_MODEL = PeftModel.from_pretrained(model=CURRENT_MODEL, model_id=loc, adapter_name=adapter.id)
+                raise ValueError("Not supported!")
 
 
     model_adapter_idx = st.selectbox("Choose an Adapter", range(len(model_adapters)), format_func=lambda x: model_adapters[x].name, index=None)
-    model_adapter = model_adapters[model_adapter_idx]
+
+    if model_adapter_idx is not None:
+        model_adapter = model_adapters[model_adapter_idx]
 
     
 def update_text_area():
@@ -65,6 +71,9 @@ def update_text_area():
     else:
         st.session_state.input_prompt = None
 
+# TODO: extend this out to both prompt templates and actual input prompts.
+# The button should generate the prompt, the dropdown should allow you
+# to set a prompt template
 def generate_random():
     prompts = get_state().prompts
     prompt_idx = st.session_state.input_prompt_idx
@@ -108,28 +117,30 @@ def evaluate_fragment():
         with st.spinner("Generating text..."):
             tokenizer = AutoTokenizer.from_pretrained(current_model_metadata.huggingface_model_name)
 
-        tok_out = tokenizer(st.session_state.input_prompt, return_tensors="pt").to("cpu")
+        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to("cpu")
         loaded_adapters = list(CURRENT_MODEL.peft_config.keys())
-        print(loaded_adapters)
-        print(tok_out)
 
-        with CURRENT_MODEL.disable_adapter():
-            with torch.cuda.amp.autocast():
-                model_out = CURRENT_MODEL.generate(
-                    **tok_out,
-                    max_length=512
-                    )        
+        CURRENT_MODEL.disable_adapters()
+
+        with torch.cuda.amp.autocast():
+            model_out = CURRENT_MODEL.generate(
+                **input_tokens,
+                max_length=512
+                )
+                 
         print(model_out)
         tok_out = tokenizer.decode(model_out[0], skip_special_tokens=True)[len(st.session_state.input_prompt):]
         print(tok_out)
 
+        CURRENT_MODEL.enable_adapters()
         CURRENT_MODEL.set_adapter(model_adapter.id)
         with torch.cuda.amp.autocast():
             model_out = CURRENT_MODEL.generate(
-                **tok_out,
+                **input_tokens,
                 max_length=512
                 )    
         tok_out2 = tokenizer.decode(model_out[0], skip_special_tokens=True)[len(st.session_state.input_prompt):]
+        print(tok_out2)
 
         st.session_state.base_output = tok_out
         st.session_state.base_output2 = tok_out2

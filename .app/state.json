@@ -115,6 +115,13 @@
       "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
       "slots": null,
       "prompt_template": "you are an instructor.\n\n[INST]: {instruction}\n[RESPONSE]: {response}"
+    },
+    {
+      "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
+      "name": "PREBUILT: philschmid/sql-create-context-copy",
+      "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
+      "slots": null,
+      "prompt_template": "<TABLE>: {context}\n<QUESTION>: {question}\n<SQL>: {answer}"
     }
   ],
   "adapters": [
