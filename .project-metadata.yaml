@@ -61,6 +61,19 @@ tasks:
   #   gpu: 1
   #   environment:
   #     TASK_TYPE: CREATE/RUN_JOB
+
+- type: create_job
+    name: Finetuning_Base_Jobs
+    short_summary: Create Template Job for creating finetuning tasks
+    entity_label: fine_tune_job_template
+    script: ft/fine_tune.py
+    arguments: None
+    long_summary: Create Template Job for creating finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
+    cpu: 2
+    memory: 8
+    gpu: 1
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
   
   - type: start_application
     name: LLM Fine Tuning Application

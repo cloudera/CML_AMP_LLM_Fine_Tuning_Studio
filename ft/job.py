@@ -5,12 +5,22 @@ from transformers import BitsAndBytesConfig
 
 
 class FineTuningJobMetadata(BaseModel):
-    job_id: str 
+    job_id: str
     """
     Unique job identifier of the job. For some job implementations (local
     fine tuning with the AMP), this job ID does not specifically have a
     CML counterpart or significance in the CDP ecosystem.
     """
+
+    cml_job_id: str
+    """
+    CML identifier for the created CML job.
+    """
+
+    base_model_id: str
+    dataset_id: str
+    prompt_id: str
+    num_workers: int
 
 
 class LocalFineTuningWorkerProps(BaseModel):
@@ -106,6 +116,8 @@ class StartFineTuningJobRequest(BaseModel):
     """
 
 
+class StartFineTuningJobResponse(BaseModel):
+    job: Optional[LocalFineTuningJobMetadata]
 
     
 

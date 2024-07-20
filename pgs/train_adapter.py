@@ -12,6 +12,7 @@ import ft.fine_tune
 import os
 from ft.app import get_app
 from ft.state import get_state
+from ft.job import StartFineTuningJobRequest, LocalFineTuningJobMetadata, StartFineTuningJobResponse
 import json
 import torch
 
@@ -51,13 +52,25 @@ adapter_location = st.text_input("Output Location", value="data/adapters/")
 
 advanced_expander = st.expander("Advanced Options")
 c1, c2 = advanced_expander.columns([1,1])
-c1.text_area("LoRA Config", json.dumps(json.load(open(".app/configs/default_lora_config.json")), indent=2), height=200)
-c2.text_area("BitsAndBytes Config", json.dumps(json.load(open(".app/configs/default_bnb_config.json")), indent=2), height=200)
+lora_config = c1.text_area("LoRA Config", json.dumps(json.load(open(".app/configs/default_lora_config.json")), indent=2), height=200)
+bnb_config = c2.text_area("BitsAndBytes Config", json.dumps(json.load(open(".app/configs/default_bnb_config.json")), indent=2), height=200)
 
 button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
 start_job_button = st.button("Start Job", type="primary", use_container_width=True, disabled=not button_enabled)
 
-
+if start_job_button:
+    model = current_models[model_idx]
+    dataset = current_datasets[dataset_idx]
+    prompt = current_prompts[prompt_idx]
+    bnb_config_dict = json.loads(bnb_config)
+    get_app().launch_ft_job(StartFineTuningJobRequest(
+        job_name=adapter_name,
+        base_model_id=model.id,
+        dataset_id=dataset.id,
+        prompt_id=prompt.id,
+        num_workers=1,
+        bits_and_bytes_config=bnb_config_dict
+    ))
 
 # TODO: start up a job
 
