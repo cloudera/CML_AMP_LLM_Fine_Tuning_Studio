@@ -35,7 +35,7 @@ from ft.managers import (
 from ft.state import AppState
 from ft.dataset import ImportDatasetRequest, ImportDatasetResponse, DatasetType, DatasetMetadata
 from ft.model import ImportModelRequest, ImportModelResponse, ModelMetadata
-from ft.job import StartFineTuningJobRequest, StartFineTuningJobResponse, LocalFineTuningJobMetadata
+from ft.job import StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningJobMetadata
 from datasets import load_dataset
 
 
@@ -168,7 +168,7 @@ class FineTuningApp():
 
         if job_launch_response.job is not None:
             state: AppState = get_state()
-            jobs: List[LocalFineTuningJobMetadata] = state.jobs
+            jobs: List[FineTuningJobMetadata] = state.jobs
             jobs.append(job_launch_response.job)
             update_state({"jobs": jobs})
 

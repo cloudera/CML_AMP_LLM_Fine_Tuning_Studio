@@ -12,7 +12,7 @@ import ft.fine_tune
 import os
 from ft.app import get_app
 from ft.state import get_state
-from ft.job import StartFineTuningJobRequest, LocalFineTuningJobMetadata, StartFineTuningJobResponse
+from ft.job import StartFineTuningJobRequest, FineTuningJobMetadata, StartFineTuningJobResponse
 import json
 import torch
 
@@ -69,7 +69,8 @@ if start_job_button:
         dataset_id=dataset.id,
         prompt_id=prompt.id,
         num_workers=1,
-        bits_and_bytes_config=BitsAndBytesConfig(**bnb_config_dict)
+        bits_and_bytes_config=BitsAndBytesConfig(**bnb_config_dict),
+        auto_add_adapter=True,
     ))
 
 # TODO: start up a job

@@ -24,7 +24,7 @@ class PromptMetadata(BaseModel):
     in the list of slots.
     """
 
-    slots: Optional[List[str]]
+    slots: Optional[List[str]] = None
     """
     List of slots in this prompt template.
     """

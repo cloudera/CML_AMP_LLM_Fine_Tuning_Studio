@@ -22,29 +22,29 @@ class DatasetMetadata(BaseModel):
     the correct format)
     """
 
-    name: Optional[str]
+    name: Optional[str] = None
     """
     Human-readable name for the dataset.
     """
 
-    description: Optional[str]
+    description: Optional[str] = None
     """
     Description of the dataset.
     """
 
-    huggingface_name: Optional[str] 
+    huggingface_name: Optional[str] = None
     """
     Canonical huggingface dataset name (can be used to find
     huggingface hub)
     """
 
-    location: Optional[str]
+    location: Optional[str] = None
     """
     Project-relative location of the dataset that is
     loaded into the app's state.
     """
 
-    features: Optional[List[str]]
+    features: Optional[List[str]] = None
     """
     List of features in the dataset. As of now, these features
     are automatically loaded in every time there is a new dataset
@@ -62,18 +62,18 @@ class ImportDatasetRequest(BaseModel):
     Type of dataset to import.
     """
 
-    huggingface_name: Optional[str] 
+    huggingface_name: Optional[str] = None 
     """
     Name of the huggingface dataset. This is the full huggingface
     dataset name used to identify the dataset on HF hub.
     """
 
-    location: Optional[str]
+    location: Optional[str] = None
     """
     Project-relative location of the dataset to import.
     """
 
 
 class ImportDatasetResponse(BaseModel):
-    dataset: Optional[DatasetMetadata]
+    dataset: Optional[DatasetMetadata] = None
     

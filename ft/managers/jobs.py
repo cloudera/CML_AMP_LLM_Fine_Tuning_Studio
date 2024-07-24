@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from uuid import uuid4
+from typing import List
 
-from ft.job import FineTuningJobMetadata, LocalFineTuningJobMetadata, StartFineTuningJobRequest, StartFineTuningJobResponse
-from ft.state import get_state
+from ft.job import FineTuningJobMetadata, StartFineTuningJobRequest, StartFineTuningJobResponse
+from ft.state import get_state, AppState, update_state
+from ft.adapter import AdapterMetadata, AdapterType
 import cmlapi
 import os
 import json
@@ -32,8 +34,6 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
         # TODO: Also needs error handling/autrebuild of base job
         self.cml_api_client = cmlapi.default_client()
         self.project_id = os.getenv("CDSW_PROJECT_ID")
-        self.ft_base_job_id = self.cml_api_client.list_jobs(self.project_id, 
-                                      search_filter='{"name":"Finetuning_Base_Job"}').jobs[0].id
         
     
     def list_fine_tuning_jobs():
@@ -58,9 +58,11 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
 
         # Shortcut: lookup the template job created by the amp
         #  Use the template job to create any new jobs
+        ft_base_job_id = self.cml_api_client.list_jobs(self.project_id, 
+            search_filter='{"name":"Finetuning_Base_Job"}').jobs[0].id
         template_job = self.cml_api_client.get_job(
             project_id = self.project_id,
-            job_id = self.ft_base_job_id
+            job_id = ft_base_job_id
         )
 
         arg_list = []
@@ -136,7 +138,7 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             job_id = created_job.id
         )
 
-        metadata = LocalFineTuningJobMetadata(
+        metadata = FineTuningJobMetadata(
             out_dir = out_dir,
             start_time=launched_job.scheduling_at,
             job_id = job_id,
@@ -146,6 +148,21 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             num_workers = 1,
             cml_job_id = created_job.id
         )
+
+        if request.auto_add_adapter == True:
+            adapter_metadata: AdapterMetadata = AdapterMetadata(
+                id=str(uuid4()),
+                name=request.adapter_name,
+                type=AdapterType.LOCAL,
+                model_id=request.base_model_id,
+                location=out_dir,
+                job_id=job_id
+            )
+
+            state: AppState = get_state()
+            adapters: List[AdapterMetadata] = state.adapters
+            adapters.append(adapter_metadata)
+            update_state({"adapters": adapters})
 
         return StartFineTuningJobResponse(
             job=metadata

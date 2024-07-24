@@ -6,7 +6,6 @@
       "name": "Clinton/Text-to-sql-v1",
       "description": "",
       "huggingface_name": "Clinton/Text-to-sql-v1",
-      "location": null,
       "features": [
         "instruction",
         "input",
@@ -21,7 +20,6 @@
       "name": "hakurei/open-instruct-v1",
       "description": "",
       "huggingface_name": "hakurei/open-instruct-v1",
-      "location": null,
       "features": [
         "output",
         "instruction",
@@ -34,7 +32,6 @@
       "name": "philschmid/sql-create-context-copy",
       "description": "",
       "huggingface_name": "philschmid/sql-create-context-copy",
-      "location": null,
       "features": [
         "question",
         "answer",
@@ -47,7 +44,6 @@
       "name": "teknium/GPTeacher-General-Instruct",
       "description": "",
       "huggingface_name": "teknium/GPTeacher-General-Instruct",
-      "location": null,
       "features": [
         "instruction",
         "response",
@@ -60,7 +56,6 @@
       "name": "s-nlp/paradetox",
       "description": "",
       "huggingface_name": "s-nlp/paradetox",
-      "location": null,
       "features": [
         "en_toxic_comment",
         "en_neutral_comment"
@@ -99,21 +94,18 @@
       "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
       "name": "PREBUILT: philschmid/sql-create-context-copy",
       "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
-      "slots": null,
       "prompt_template": "<TABLE>: {context}\n<QUESTION>: {question}\n<SQL>: {answer}"
     },
     {
       "id": "7ee0f633-faf0-4827-b4cf-2eab4795fc53",
       "name": "PREBUILT: instruct",
       "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
-      "slots": null,
       "prompt_template": "<Instruction>: {instruction}\n<Input>: {input}\n<Response>: {response}\n"
     },
     {
       "id": "d1a4bb2b-e5c0-4fd7-abd3-0f53c5c00d17",
       "name": "PREBUILT: toxic",
       "dataset_id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
-      "slots": null,
       "prompt_template": "<Toxic>: {en_toxic_comment}\n<Neutral>: {en_neutral_comment}"
     }
   ],
@@ -123,24 +115,21 @@
       "name": "bloom1b1-lora-instruct",
       "type": "local",
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
-      "location": "data/adapters/bloom1b1-lora-instruct",
-      "huggingface_name": null
+      "location": "data/adapters/bloom1b1-lora-instruct"
     },
     {
       "id": "64e8a578-7067-4cb9-8bd0-efd0da901bfe",
       "name": "bloom1b1-lora-sql",
       "type": "local",
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
-      "location": "data/adapters/bloom1b1-lora-sql",
-      "huggingface_name": null
+      "location": "data/adapters/bloom1b1-lora-sql"
     },
     {
       "id": "4ff47f49-2e72-4457-99ac-964927e1b05c",
       "name": "bloom1b1-lora-toxic",
       "type": "local",
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
-      "location": "data/adapters/bloom1b1-lora-toxic",
-      "huggingface_name": null
+      "location": "data/adapters/bloom1b1-lora-toxic"
     }
   ]
 }

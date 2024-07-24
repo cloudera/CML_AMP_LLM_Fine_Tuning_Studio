@@ -46,7 +46,7 @@ class AdapterMetadata(BaseModel):
     model ID in the FT app. 
     """
     
-    location: Optional[str]
+    location: Optional[str] = None
     """
     Project-relative directory where the PEFT adapter data is stored.
     
@@ -63,4 +63,10 @@ class AdapterMetadata(BaseModel):
     """
     Huggingface PEFT adapter name (identifier used to find
     the adapter on HF hub).
+    """
+
+    job_id: Optional[str] = None
+    """
+    Job ID of the job that was used to train/create this adapter. This is
+    used to determine if an adapter is completely trained or not.
     """
