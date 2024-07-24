@@ -53,7 +53,7 @@ tasks:
     name: Finetuning_Base_Jobs
     short_summary: Create Template Job for creating finetuning tasks
     entity_label: fine_tune_job_template
-    script: ft/fine_tune_base_script
+    script: ft/fine_tune_base_script.py
     arguments: None
     long_summary: Create Template Job for creating finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
     cpu: 2
