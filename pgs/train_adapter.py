@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np 
 import time
 import datasets
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from trl import SFTConfig, SFTTrainer
 from setfit.trainer import TrainerCallback, TrainerState
 from peft import LoraConfig
@@ -69,7 +69,7 @@ if start_job_button:
         dataset_id=dataset.id,
         prompt_id=prompt.id,
         num_workers=1,
-        bits_and_bytes_config=bnb_config_dict
+        bits_and_bytes_config=BitsAndBytesConfig(**bnb_config_dict)
     ))
 
 # TODO: start up a job

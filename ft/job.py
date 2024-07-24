@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from ft.model import ModelMetadata
 from typing import Optional 
 from transformers import BitsAndBytesConfig
+from datetime import datetime
 
 
 class FineTuningJobMetadata(BaseModel):
@@ -36,7 +37,7 @@ class LocalFineTuningJobMetadata(FineTuningJobMetadata):
     Project-relative output directory of the fine-tuning job. 
     """
 
-    start_time: int
+    start_time: datetime
     """
     Unix epoch start time (milliseconds) of the job run
     """

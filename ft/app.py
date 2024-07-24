@@ -164,7 +164,7 @@ class FineTuningApp():
         """
         Create and launch a job for finetuning
         """
-        job_launch_response: StartFineTuningJobRequest = self.jobs.start_fine_tuning_job(request)
+        job_launch_response: StartFineTuningJobResponse = self.jobs.start_fine_tuning_job(request)
 
         if job_launch_response.job is not None:
             state: AppState = get_state()
