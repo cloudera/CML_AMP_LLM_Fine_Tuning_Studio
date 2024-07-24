@@ -164,6 +164,8 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             adapters.append(adapter_metadata)
             update_state({"adapters": adapters})
 
+            metadata.adapter_id = adapter_metadata.id
+
         return StartFineTuningJobResponse(
             job=metadata
         )

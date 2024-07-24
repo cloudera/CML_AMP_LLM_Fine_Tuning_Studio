@@ -55,7 +55,7 @@ class FineTuningJobMetadata(BaseModel):
     Number of workers to use for this fine-tuning job. 
     """
 
-    adapter_id: str
+    adapter_id: Optional[str] = None
     """
     Adapter ID of the adapter that this job is training.
     """
