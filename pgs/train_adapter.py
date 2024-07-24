@@ -64,7 +64,7 @@ if start_job_button:
     prompt = current_prompts[prompt_idx]
     bnb_config_dict = json.loads(bnb_config)
     get_app().launch_ft_job(StartFineTuningJobRequest(
-        job_name=adapter_name,
+        adapter_name=adapter_name,
         base_model_id=model.id,
         dataset_id=dataset.id,
         prompt_id=prompt.id,

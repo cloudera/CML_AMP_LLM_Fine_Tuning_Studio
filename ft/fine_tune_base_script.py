@@ -22,6 +22,7 @@ parser.add_argument("--trainerarguments", help="Path of the trainer arguments js
 parser.add_argument("--basemodel", help="huggingface basemodel to use")
 parser.add_argument("--dataset", help="huggingface dataset to use")
 parser.add_argument("--experimentid", help="uuid to use for experiment tracking")
+parser.add_argument("--out_dir", help="uuid to use for experiment tracking")
 
 
 args = parser.parse_args(arg_string.split())
@@ -90,4 +91,4 @@ prompt_text = Path(args.prompttemplate).read_text()
 dataset = load_dataset(args.dataset)
 mapped_dataset = map_dataset_with_prompt_template(dataset, prompt_text)
 
-finetuner.train(mapped_dataset, DATA_TEXT_FIELD, f"adapters/test_alex")
+finetuner.train(mapped_dataset, DATA_TEXT_FIELD, f"{args.out_dir}")

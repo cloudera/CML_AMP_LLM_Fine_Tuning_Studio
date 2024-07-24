@@ -77,12 +77,9 @@ class LocalFineTuningJobMetadata(FineTuningJobMetadata):
 
 class StartFineTuningJobRequest(BaseModel):
     
-    job_name: str
+    adapter_name: str
     """
-    Human-friendly identifier for the job to run. There
-    is no need to have a unique job name for local fine tuning
-    jobs because the job id will be automatically generated 
-    and will be unique.
+    Human-friendly identifier for the name of the adapter.
     """
 
     base_model_id: str 

@@ -49,8 +49,8 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
         The CML Job itself does not run the finetuning work, it will launch a CML Worker(s) to allow
         more flexibility of parameters like cpu,mem,gpu
         """
-        new_job_id = str(uuid4())
-        job_dir = ".app/job_runs/%s" % new_job_id
+        job_id = str(uuid4())
+        job_dir = ".app/job_runs/%s" % job_id
 
         
         pathlib.Path(job_dir).mkdir(parents=True, exist_ok=True)
@@ -101,13 +101,17 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
         arg_list.append("%s/%s" % (job_dir, "job.config"))
 
         arg_list.append("--experimentid")
-        arg_list.append(new_job_id)
+        arg_list.append(job_id)
+
+        out_dir = os.path.join(os.getenv("CUSTOM_LORA_ADAPTERS_DIR"), job_id)
+        arg_list.append("--out_dir")
+        arg_list.append(out_dir)
 
 
         # TODO: Support more args here: output-dir, bnb config, trainerconfig, loraconfig, model, dataset, prompt_config, cpu, mem, gpu
         job_instance = cmlapi.models.create_job_request.CreateJobRequest(
             project_id = self.project_id,
-            name = new_job_id,
+            name = job_id,
             script = template_job.script,
             runtime_identifier = template_job.runtime_identifier,
             cpu = 2,
@@ -132,11 +136,10 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             job_id = created_job.id
         )
 
-
         metadata = LocalFineTuningJobMetadata(
-            out_dir = "notimplemented",
+            out_dir = out_dir,
             start_time=launched_job.scheduling_at,
-            job_id = new_job_id,
+            job_id = job_id,
             base_model_id = request.base_model_id,
             dataset_id = request.dataset_id,
             prompt_id = request.prompt_id,
