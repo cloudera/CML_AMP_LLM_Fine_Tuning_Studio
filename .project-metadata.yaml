@@ -49,20 +49,7 @@ tasks:
   #   memory: 4
   #   gpu: 1
 
-  # - type: create_job
-  #   name: Job for distributed fine-tuning on Instruction Dataset
-  #   short_summary: Create Job for fine-tuning on Instruction Dataset
-  #   entity_label: fine_tune_instruct
-  #   script: amp_3_job_fine_tune/job-instruction.py
-  #   arguments: None
-  #   long_summary: Create job to fine-tune an LLM on a subset of the teknium/GPTeacher-General-Instruct dataset. This job will not be automatically launched during AMP startup. A sample LoRA adapter fine-tuned with this job script and dataset is included in the git repository.
-  #   cpu: 2
-  #   memory: 8
-  #   gpu: 1
-  #   environment:
-  #     TASK_TYPE: CREATE/RUN_JOB
-
-- type: create_job
+  - type: create_job
     name: Finetuning_Base_Jobs
     short_summary: Create Template Job for creating finetuning tasks
     entity_label: fine_tune_job_template
