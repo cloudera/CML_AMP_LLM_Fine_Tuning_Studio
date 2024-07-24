@@ -6,6 +6,7 @@ from ft.prompt import *
 from ft.adapter import *
 from datasets import load_dataset
 from ft.model import *
+from ft.job import *
 
 
 OUTPUT_FILE = ".app/state.json"
@@ -38,7 +39,6 @@ TRAINING_PROMPTS = {
 """<INSTRUCTION>: {instruction}
 <INPUT>: {input}
 <OUTPUT>: {output}"""
-
 }
 
 
@@ -70,7 +70,8 @@ for model_name in AVAILABLE_MODELS:
         name=model_name,
         huggingface_model_name=model_name
     ))
-    
+
+
 
 state: AppState = AppState(
     datasets=datasets,
@@ -78,6 +79,7 @@ state: AppState = AppState(
     jobs=[],
     prompts=[]
 )
+
 
 with open(OUTPUT_FILE, "w") as fout:
     fout.write(state.model_dump_json(indent=2))

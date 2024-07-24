@@ -9,6 +9,7 @@ import bitsandbytes as bnb
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, DataCollatorForLanguageModeling
 from peft import get_peft_model 
 from trl import SFTTrainer
+import mlflow
 import datasets
 
 
@@ -27,7 +28,9 @@ class AMPFineTuner:
 
     # Load basemodel from huggingface
     # Default: bigscience/bloom-1b1
-    def __init__(self, base_model, auth_token = ""):
+    def __init__(self, base_model, auth_token = "", ft_job_uuid="", bnb_config=BitsAndBytesConfig()):
+
+        mlflow.set_experiment(ft_job_uuid)
 
         # Load the base model and tokenizer
         print("Load the base model and tokenizer...\n")
@@ -35,14 +38,6 @@ class AMPFineTuner:
 
         self.tokenizer.pad_token = self.tokenizer.eos_token
         compute_dtype = getattr(torch, "float16")
-
-        # Configuration to load the model in 4bit quantized mode
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=compute_dtype,
-            bnb_4bit_use_double_quant=True,
-        )
             
         self.model = AutoModelForCausalLM.from_pretrained(
             base_model, 
@@ -65,7 +60,7 @@ class AMPFineTuner:
                 logging_steps=1,
                 lr_scheduler_type="constant",
                 disable_tqdm=True,
-                report_to='tensorboard',
+                report_to='mlflow',
         )
 
 
@@ -99,6 +94,7 @@ class AMPFineTuner:
             data_collator=DataCollatorForLanguageModeling(self.tokenizer, mlm=False),
             callbacks=callbacks
         )
+        
         print("Begin Training....")
         trainer.train()
         print("Training Complete!")

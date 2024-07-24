@@ -14,7 +14,7 @@ import torch
 # TODO: fix this:
 # /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
 
-st.title("Local Evaluation")
+st.title("Local Adapter Comparison")
 
 CURRENT_MODEL = None
 

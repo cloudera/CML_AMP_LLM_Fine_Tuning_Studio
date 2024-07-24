@@ -28,10 +28,12 @@ pg = st.navigation([
     st.Page("pgs/home.py", title="Home", icon=":material/home:"),
     st.Page("pgs/datasets.py", title="Datasets", icon=":material/database:"),
     st.Page("pgs/models.py", title="Models and Adapters", icon=":material/neurology:"),
-    st.Page("pgs/prompts.py", title="Prompts", icon=":material/chat:"),
+    st.Page("pgs/prompts.py", title="Training Prompts", icon=":material/chat:"),
     st.Page("pgs/train_adapter.py", title="Train a New Adapter", icon=":material/forward:"),
-    st.Page("pgs/jobs.py", title="Training Jobs", icon=":material/subscriptions:"),
-    st.Page("pgs/evaluate.py", title="Local Evaluation", icon=":material/difference:")
+    st.Page("pgs/jobs.py", title="Training Job Tracking (CML Experiments / MLFlow)", icon=":material/subscriptions:"),
+    st.Page("pgs/evaluate.py", title="Local Adapter Comparison", icon=":material/difference:"),
+    st.Page("pgs/export.py", title="Export to CML Model Registry", icon=":material/difference:"),
+    st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference", icon=":material/difference:"),
 ])
 pg.run()
 
