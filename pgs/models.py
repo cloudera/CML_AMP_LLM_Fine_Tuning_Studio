@@ -1,53 +1,81 @@
 import streamlit as st
 from ft.state import get_state
 from ft.app import get_app
-from ft.model import *
-from ft.adapter import *
-from typing import List, Dict, Optional
-
-st.subheader("Import Models")
+from ft.model import ModelMetadata, ModelType, ImportModelRequest
+from ft.adapter import AdapterMetadata, AdapterType
+from typing import List
 
 
-with st.container():
-    upload_ct = st.container(border=True)
-    import_hf_tab, upload_tab = upload_ct.tabs(["Huggingface", "Local"])
+def display_header():
+    with st.container(border=True):
+        col1, col2 = st.columns([1, 13])
+        with col1:
+            col1.image("./resources/images/neurology_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+        with col2:
+            col2.subheader('Base Models & Adapters', divider="orange")
+            st.write("Import foundational LLM models from Hugging Face or local sources to align with your fine-tuning job specific requirements.")
 
-    c1, c2 = import_hf_tab.columns([4, 1])
-    import_hf_dataset_name = c1.text_input('Model Name', placeholder="huggingface/model", label_visibility='collapsed')
-    import_hf_dataset = c2.button("Import", type="primary", use_container_width=True)
+def display_import_section():
+    st.write("\n")
+    st.markdown('''
+    <style>
+    .katex-html {
+        text-align: left;
+    }
+    </style>''', unsafe_allow_html=True)
+    st.latex(r'\textsf{\large Import Models}')
+
+    with st.container(border=True):
+        upload_ct = st.container()
+        import_hf_tab, upload_tab = upload_ct.tabs(["**Huggingface**", "**Local**"])
+
+        with import_hf_tab:
+            display_huggingface_import()
+        with upload_tab:
+            st.info("Feature coming soon")
+
+def display_huggingface_import():
+    col1, col2 = st.columns([4, 1])
+    import_hf_dataset_name = col1.text_input('Model Name', placeholder="huggingface/model", label_visibility='collapsed')
+    import_hf_dataset = col2.button("Import", type="primary", use_container_width=True)
 
     if import_hf_dataset:
-        with st.spinner("Loading Model..."):
-            get_app().import_model(ImportModelRequest(
-                type=ModelType.HUGGINGFACE,
-                huggingface_name=import_hf_dataset_name
-            ))
+        if import_hf_dataset_name:
+            with st.spinner("Loading Model..."):
+                get_app().import_model(ImportModelRequest(
+                    type=ModelType.HUGGINGFACE,
+                    huggingface_name=import_hf_dataset_name
+                ))
+        else:
+            st.error("Please enter a model name.")
 
-    upload_tab.info("Feature coming soon")
+def display_models_section():
+    st.latex(r'\textsf{\large Available Models}')
+    models: List[ModelMetadata] = get_state().models
+    adapters: List[AdapterMetadata] = get_state().adapters
 
-st.markdown("---")
+    with st.container(border=True):
+        tab1, tab2 = st.tabs(["**Huggingface Models**", "**Local Models**"])
+        with tab1:
+            display_models([model for model in models if model.type == ModelType.HUGGINGFACE], adapters)
+        with tab2:
+            display_models([model for model in models if model.type != ModelType.HUGGINGFACE], adapters)
 
-st.subheader("Available Models")
+def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata]):
+    if not models:
+        st.info("No models available.")
+        return
 
-models: List[ModelMetadata] = get_state().models
-adapters: List[AdapterMetadata] = get_state().adapters
-
-cont = st.container(border=False)
-
-tab1, tab2 = st.tabs(["Huggingface Models", "Local Models"])
-
-def display_models(models):
-    cont = st.container(border=False)
+    cont = st.container()
     for i, model in enumerate(models):
         if i % 2 == 0:
             col1, col2 = cont.columns(2)
         st.write("\n")
-    
+
         ds_cont = col1 if i % 2 == 0 else col2
-        
         with ds_cont.container(border=True):
-            c1, c2 = st.columns([5, 1])
-            c1.subheader(model.name)
+            c1, c2 = st.columns([4, 1])
+            c1.markdown(f"**{model.name}**")
             c1.caption(model.id)
 
             remove = c2.button("Remove", type="primary", key=f"{model.id}_remove", use_container_width=True)
@@ -56,36 +84,28 @@ def display_models(models):
                 get_app().remove_model(model.id)
                 st.rerun()
 
-            model_adapters = list(filter(lambda x: x.model_id == model.id, adapters))
+            model_adapters = [adapter for adapter in adapters if adapter.model_id == model.id]
             expander = ds_cont.expander("Adapters")
-            
-            for model_adapter in model_adapters:
-                cc = expander.container(border=True)
-
-                cc1, cc2 = expander.columns([5, 1])
-                cc1.text(model_adapter.name)
-                if model_adapter.type == AdapterType.LOCAL:
-                    cc1.caption(model_adapter.location)
-
-                remove = cc2.button("Remove", type="primary", key=f"{model_adapter.id}_remove", use_container_width=True)
-
-                if remove: 
-                    st.toast("You can't do that yet.")
+            for adapter in model_adapters:
+                display_adapter(adapter, expander)
 
             add_adapter_button = expander.button("Add Adapter", type="primary", key=f"{model.id}_add_adapter", use_container_width=True)
             if add_adapter_button:
-                st.toast("You can't do that yet.")
+                st.toast("You can't do that yet.", icon=":material/info:")
 
-with tab1:
-    huggingface_models = [model for model in models if model.type == ModelType.HUGGINGFACE]
-    if not huggingface_models:
-        st.info("No Huggingface models available.")
-    else:
-        display_models(huggingface_models)
+def display_adapter(adapter: AdapterMetadata, container):
+    with container.container(border=True):
+        c1, c2 = container.columns([4, 1])
+        c1.text(adapter.name)
+        if adapter.type == AdapterType.LOCAL:
+            c1.caption(adapter.location)
 
-with tab2:
-    custom_models = [model for model in models if model.type != ModelType.HUGGINGFACE]
-    if not custom_models:
-        st.info("No Local models available.")
-    else:
-        display_models(custom_models)
+        remove = c2.button("Remove", type="secondary", key=f"{adapter.id}_remove", use_container_width=True)
+
+        if remove:
+            st.toast("You can't do that yet.", icon=":material/info:")
+
+display_header()
+display_import_section()
+st.markdown("---")
+display_models_section()

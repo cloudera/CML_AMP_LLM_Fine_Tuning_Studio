@@ -5,11 +5,16 @@ from st_aggrid import JsCode
 from st_aggrid.grid_options_builder import GridOptionsBuilder
 import pandas as pd
 import os
-st.set_page_config(layout="wide")
-st.title("Training Job Tracking (CML Experiments / MLFlow)")
 
-#st.image(image = "images/cml-experiment-image.png", caption = "Link or possibly iframe of CML experiments output")
+with st.container(border=True):
+    col1, col2 = st.columns([1,13])
+    with col1:
+        col1.image("./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+    with col2:
+        col2.subheader('Monitor Training Jobs', divider='orange')
+        st.write("Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
 
+st.write("\n\n")
 
 current_jobs = get_state().jobs
 
@@ -103,3 +108,5 @@ gridoptions=gd.build()
 
 # Display the grid with sdisplay_df (merged and filtered dataframe)
 grid_return = AgGrid(display_df, gridOptions=gridoptions, enable_enterprise_modules=False, allow_unsafe_jscode=True, height=500, theme='alpine')
+
+
