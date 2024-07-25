@@ -1,137 +1,86 @@
 import streamlit as st
 
-# Uncomment the following line if you want to include a markdown file at the top of your app
-# st.markdown(open("pgs/home.md").read())
+def load_markdown_file(file_path):
+    with open(file_path, "r") as file:
+        return file.read()
 
-with st.container(border=True):
-    col1, col2 = st.columns([1,8])
-    with col1:
-        col1.image("./resources/images/diapason-tuner-svgrepo-com.svg", use_column_width=True)
-    with col2:
-        col2.subheader('LLM Finetuning Studio', divider='rainbow')
-        col2.write('The LLM Fine Tuning Studio, updated in July 2024, features a new Streamlit-based UI and integrates with Cloudera Machine Learning (CML) components. It supports custom datasets, BitsAndBytes, LoRA configurations, and distributed training.')
+def create_homepage_header():
+    with st.container(border=True):
+        col1, col2 = st.columns([1, 13])
+        with col1:
+            col1.image("./resources/images/architecture_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+        with col2:
+            col2.subheader('LLM Finetuning Studio', divider='orange')
+            col2.write(
+                'The LLM Fine Tuning Studio, updated in July 2024, features a new Streamlit-based UI and integrates with Cloudera Machine Learning (CML) components. '
+                'It supports custom datasets, BitsAndBytes, LoRA configurations, and distributed training.'
+            )
 
+def create_tile(container, image_path, button_text, page_path, description):
+    tile = container.container(height=200)
+    if tile.button(button_text, type="primary", use_container_width=True):
+        st.switch_page(page_path)
+    tile.write("\n")
+    c1, c2 = tile.columns([1, 5])
+    with c1:
+        c1.image(image_path)
+    with c2:
+        c2.markdown(description)
+
+def create_tab(tab_name, tiles):
+    with tab_name:
+        col1, col2, col3 = st.columns(3)
+        if tiles[0]:
+            tiles[0](col1)
+        if tiles[1]:
+            tiles[1](col2)
+        if tiles[2]:
+            tiles[2](col3)
+
+
+create_homepage_header()
 st.write("\n")  
 
-# Initialize session state if not already done
-if 'selected_tab' not in st.session_state:
-    st.session_state.selected_tab = 'Datasets'
+tab1, tab2, tab3, tab4 = st.tabs(["**Datasets**", "**Models & Prompts**", "**Experiments**", "**Model Management**"])
 
-# Function to change the selected tab
-def select_tab(tab_name):
-    st.session_state.selected_tab = tab_name
+create_tab(tab1, [
+    lambda container: create_tile(container, "./resources/images/publish_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png", 
+                                    "Import Datasets", "pgs/datasets.py", 
+                                    'Import datasets from Hugging Face or upload your own preprocessed dataset from local sources for fine-tuning.'),
+    lambda container: create_tile(container, "./resources/images/data_object_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png", 
+                                    "View Datasets", "pgs/view_datasets.py", 
+                                    'Explore and organize imported datasets from Hugging Face or custom sources. Gain insights into the structure and content of each dataset.'),
+    lambda container: None  # Add a third tile here if needed
+])
 
-tab1, tab2, tab3, tab4 = st.tabs(["Datasets", "Models & Prompts", "Experiments", "Model Management"])
+create_tab(tab2, [
+    lambda container: create_tile(container, "./resources/images/neurology_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png", 
+                                    "Import Models & Adapters", "pgs/models.py", 
+                                    'Import foundational LLM models from Hugging Face or local sources to align with your fine-tuning job specific requirements.'),
+    lambda container: create_tile(container, "./resources/images/chat_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png", 
+                                    "Create Prompts", "pgs/prompts.py", 
+                                    'Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.'),
+    lambda container: None  # Add a third tile here if needed
+])
 
-with tab1:
-    tab1Col1, tab1Col2, tab1Col3 = st.columns(3)
+create_tab(tab3, [
+    lambda container: create_tile(container, "./resources/images/forward_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png", 
+                                    "Finetune your model", "pgs/train_adapter.py", 
+                                    'Finetune your model using the imported datasets and models, leveraging advanced techniques to improve performance.'),
+    lambda container: create_tile(container, "./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png", 
+                                    "Monitor Finetuning Jobs", "pgs/jobs.py", 
+                                    'Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.'),
+    lambda container: create_tile(container, "./resources/images/difference_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png", 
+                                    "View Evaluation Results", "pgs/evaluate.py", 
+                                    'View the evaluation results of your fine-tuning jobs and analyze the performance metrics for improvement.'),
+])
 
-    with tab1Col1:
-        tile = st.container(height=200)
-        if tile.button("Import Datasets", type="primary", use_container_width=True):
-            st.switch_page("pgs/datasets.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/file-import-arrow-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import the datasets from either available datsets on huggingface or upload your own preprocessed dataset from local.')
-
-    with tab1Col2:
-        tile = st.container(height=200)
-        if tile.button("View Datasets", type="primary", use_container_width=True):
-            st.switch_page("pgs/view_datasets.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/grid-view-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Explore and organize imported datasets from Hugging Face or custom sources. Gain insights into the structure and content of each dataset.')
-            
-
-
-with tab2:
-    tab2Col1, tab2Col2, tab2Col3 = st.columns(3)
-
-    with tab2Col1:
-        tile = st.container(height=200)
-        if tile.button("Import Models & Adapaters", type="primary", use_container_width=True):
-            st.switch_page("pgs/models.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/data-exploration-data-center-model-management-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import foundational LLM models from Hugging Face or local sources to align with your finetuning job specific requirements.')
-        
-    with tab2Col2:
-        tile = st.container(height=200)
-        if tile.button("Create Prompts", type="primary", use_container_width=True):
-            st.switch_page("pgs/prompts.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/system-edit-line-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Generate tailored prompts for your fine-tuning tasks on the specified datasets and models.')
-
-with tab3:
-    tab3Col1, tab3Col2, tab3Col3 = st.columns(3)
-
-    with tab3Col1:
-        tile = st.container(height=200)
-        if tile.button("Finetune your model", type="primary", use_container_width=True):
-            st.switch_page("pgs/train_adapter.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/diapason-tuner-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import the datsets from either available datsets on huggingface or upload your own preprocessed dataset from local.')
-
-    with tab3Col2:
-        tile = st.container(height=200)
-        if tile.button("Monitor Finetuning Jobs", type="primary", use_container_width=True):
-            st.switch_page("pgs/jobs.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/tree-view-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import the datsets from either available datsets on huggingface or upload your own preprocessed dataset from local.')
-    
-    with tab3Col3:
-        tile = st.container(height=200)
-        if tile.button("View Evaluation Results", type="primary", use_container_width=True):
-            st.switch_page("pgs/evaluate.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/scale-balanced-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import the datsets from either available datsets on huggingface or upload your own preprocessed dataset from local.')
-
-with tab4:
-    tab4Col1, tab4Col2, tab4Col3 = st.columns(3)
-
-    with tab4Col1:
-        tile = st.container(height=200)
-        if tile.button("Export to CML Model Registry", type="primary", use_container_width=True):
-            st.switch_page("pgs/export.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/object-connection-1087-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import the datsets from either available datsets on huggingface or upload your own preprocessed dataset from local.')
-        
-    with tab4Col2:
-        tile = st.container(height=200)
-        if tile.button("Deploy to Cloudera AI Inference", type="primary", use_container_width=True):
-            st.switch_page("pgs/deploy.py")
-        tile.write("\n")
-        c1, c2 = tile.columns([1,4])
-        with c1:
-            c1.image("./resources/images/model-alt-svgrepo-com.svg", use_column_width=True)
-        with c2:
-            c2.caption('Import the datsets from either available datsets on huggingface or upload your own preprocessed dataset from local.')
+create_tab(tab4, [
+    lambda container: create_tile(container, "./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png", 
+                                    "Export to CML Model Registry", "pgs/export.py", 
+                                    'Export your fine-tuned models to the Cloudera Model Registry for easy access and deployment.'),
+    lambda container: create_tile(container, "./resources/images/deployed_code_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png", 
+                                    "Deploy to Cloudera AI Inference", "pgs/deploy.py", 
+                                    'Deploy your models to Cloudera AI Inference for production use and real-world application deployment.'),
+    lambda container: None  # Add a third tile here if needed
+])

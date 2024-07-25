@@ -8,79 +8,98 @@ from datasets import load_dataset
 import random
 from uuid import uuid4
 from ft.prompt import PromptMetadata
+from typing import List
 
-st.subheader("Create Prompts")
+def display_header():
+    with st.container(border=True):
+        col1, col2 = st.columns([1, 13])
+        with col1:
+            col1.image("./resources/images/chat_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+        with col2:
+            col2.subheader('Prompts', divider='orange')
+            col2.write('Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.')
+    st.write("\n")
 
-loaded_dataset = None
+def display_create_prompt():
+    loaded_dataset = None
 
-with st.container(border=True):
-    new_prompt_name = st.text_input("Prompt Name", placeholder="Enter a human-friendly prompt name")
+    with st.container(border=True):
+        new_prompt_name = st.text_input("Prompt Name", placeholder="Enter a human-friendly prompt name")
 
-    # dataset = st.selectbox("Dataset", [f"{X.name}" for X in get_state().datasets], index=None)
+        datasets = get_state().datasets
+        dataset_idx = st.selectbox("Dataset", range(len(datasets)), format_func=lambda x: datasets[x].name, index=None)
 
-    datasets = get_state().datasets
-    dataset_idx = st.selectbox("Dataset", range(len(datasets)), format_func=lambda x: datasets[x].name, index=None)
-    
+        if dataset_idx is not None:
+            dataset = datasets[dataset_idx]
+            st.code("Dataset Columns: \n * " + '\n * '.join(dataset.features))
 
-    if dataset_idx is not None:
-        dataset = datasets[dataset_idx]
+            c1, c2 = st.columns([1, 1])
+            prompt_template_header = c1.button("Enter Prompt Template", use_container_width=True)
+            generate_example_button = c2.button("Generate Prompt Example", type="primary", use_container_width=True)
 
-        st.text("Dataset Columns: \n * " + '\n * '.join(dataset.features))
+            cc1, cc2 = st.columns([1, 1])
+            prompt_template = cc1.text_area("Prompt Template", height=300, label_visibility="collapsed")
 
-        c1, c2 = st.columns([1, 1])
-        prompt_template_header = c1.subheader("Enter Prompt Template")
-        generate_example_button = c2.button("Generate Prompt Example", type="primary", use_container_width=True)
+            prompt_output = None 
+            if generate_example_button:
+                with st.spinner("Loading Dataset..."):
+                    loaded_dataset = load_dataset(dataset.huggingface_name)
 
-        cc1, cc2 = st.columns([1, 1])
-        prompt_template = cc1.text_area("Prompt Template", height=300, label_visibility="collapsed")
+                dataset_size = len(loaded_dataset["train"])
+                idx_random = random.randint(0, dataset_size - 1)
+                dataset_idx = loaded_dataset["train"][idx_random]
+                prompt_output = prompt_template.format(**dataset_idx)
 
-        prompt_output = None 
-        if generate_example_button:
-            with st.spinner("Loading Dataset..."):
+            cc2.text_area("Example Prompt", value=prompt_output, height=300, disabled=True, label_visibility="collapsed")
 
-                # Assuming that the HF dataset will be cached from here
-                loaded_dataset = load_dataset(dataset.huggingface_name)
+            create_prompt = st.button("Create Prompt", type="primary", use_container_width=True)
 
-            dataset_size = len(loaded_dataset["train"])
-            idx_random = random.randint(0, dataset_size-1)
+            if create_prompt:
+                add_prompt(new_prompt_name, dataset.id, prompt_template)
 
-            dataset_idx = loaded_dataset["train"][idx_random]
-            prompt_output = prompt_template.format(**dataset_idx)
-                
-        cc2.text_area("Example Prompt", value=prompt_output, height=300, disabled=True, label_visibility="collapsed")
+def add_prompt(name, dataset_id, template):
+    get_app().add_prompt(PromptMetadata(
+        id=str(uuid4()),
+        name=name,
+        dataset_id=dataset_id,
+        slots=None,
+        prompt_template=template
+    ))
 
-        create_prompt = st.button("Create Prompt", type="primary")
+def display_available_prompts():
+    prompts: List[PromptMetadata] = get_state().prompts
 
-        if create_prompt:
-            get_app().add_prompt(PromptMetadata(
-                id=str(uuid4()),
-                name=new_prompt_name,
-                dataset_id=dataset.id,
-                slots=None,
-                prompt_template=prompt_template
-            ))
+    if not prompts:
+        st.info("No prompts available.")
+        return
 
+    cont = st.container(border=False)
 
-st.markdown("---")
-st.subheader("Available Prompts")
+    for prompt in prompts:
+        display_prompt(prompt, cont)
 
-prompts: List[PromptMetadata] = get_state().prompts
+def display_prompt(prompt: PromptMetadata, container):
+    with container.container(border=True):
+        c1, c2 = st.columns([4, 1])
+        c1.markdown(f"**{prompt.name}**")
+        c1.caption(prompt.id)
+        remove = c2.button("Remove", type="primary", key=f"{prompt.id}_remove_button", use_container_width=True)
 
-cont = st.container(border=False)
+        c1, c2 = st.columns([4, 1])
+        c1.code(prompt.prompt_template)
 
-for prompt in prompts:
-    p_c = cont.container(border=True)
-    c1, c2 = p_c.columns([4,1])
-    c1.markdown(f"**{prompt.name}**")
-    c1.caption(prompt.id)
-    remove = c2.button("Remove", type="primary", key=f"{prompt.id}_remove_button", use_container_width=True)
+        c2.text("Dataset:")
+        c2.caption(get_app().datasets.get_dataset(prompt.dataset_id).name)
 
-    c1, c2 = p_c.columns([4,1])
-    c1.text_area("Template", key=f"{prompt.id}_prompt_template", value=prompt.prompt_template, height=100, disabled=True, label_visibility="collapsed")
+        if remove:
+            get_app().remove_prompt(prompt.id)
+            st.rerun()
 
-    c2.text("Dataset:")
-    c2.caption(get_app().datasets.get_dataset(prompt.dataset_id).name)
+display_header()
+create_prompt_tab, available_prompts_tab = st.tabs(["**Create Prompt**", "**Available Prompts**"])
 
-    if remove:
-        get_app().remove_prompt(prompt.id)
-        st.rerun()
+with create_prompt_tab:
+    display_create_prompt()
+
+with available_prompts_tab:
+    display_available_prompts()
