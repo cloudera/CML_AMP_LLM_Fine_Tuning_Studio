@@ -14,3 +14,4 @@ pydantic>=2.8.2
 setfit==1.0.3
 huggingface_hub==0.23.5
 mlflow==2.14.3
+streamlit-aggrid
