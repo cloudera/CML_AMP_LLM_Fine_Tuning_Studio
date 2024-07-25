@@ -23,7 +23,14 @@ class StartEvaluationRequest(BaseModel):
 class EvaluationResponse(BaseModel):
 
     metrics: Dict[str, float]  # [str, Any] ?
+    """
+    Metrics calculated during evaluation.
+    """
+
     csv: pd.DataFrame
+    """
+    A CSV representation of the results of the evaluation
+    """
 
     class Config:
         arbitrary_types_allowed = True
@@ -43,5 +50,4 @@ if __name__ == "__main__":
     'ari_grade_level/v1/p90': 19.9}
     csv = pd.DataFrame([{'text': 'This is a toxic comment', 'toxicity': metrics['toxicity/v1/mean']}])
     print(EvaluationResponse(metrics=metrics, csv=csv))
-        
         
