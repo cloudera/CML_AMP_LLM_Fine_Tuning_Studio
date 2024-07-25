@@ -7,6 +7,9 @@ class ModelLogger():
 
     def __init__(self) -> None:
         
+        MLFLOW_TRACKING_URI="cml://localhost"   # this doesn't works somehow. Hence we need to start local mlflow server by running "mlflow server"
+        mlflow.set_tracking_uri("http://localhost:5000") # when running local mlflow server
+        mlflow.set_experiment("Evaluate MLFLOW")   # Name of MLFLOW experiment, this should be parameterized
         # Paramterize them
         self.config = GenerationConfig(
             do_sample=True,
