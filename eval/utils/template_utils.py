@@ -27,11 +27,11 @@ def merge_columns_toxic(example):
 
 
 # Hardcoding this for demo
-def fetch_eval_column_name_and_merge_function(dataset_id):
-    if dataset_id == "6e8c9e5a-3168-44bb-b6ee-72f59132f77e":
+def fetch_eval_column_name_and_merge_function(dataset_name):
+    if dataset_name == "philschmid/sql-create-context-copy":
         return "answer", merge_columns_sql
-    if dataset_id == "a674cd4a-cbcf-490b-ba21-8db2ef689edd":
+    if dataset_name == "teknium/GPTeacher-General-Instruct":
         return "response", merge_columns_instruct
-    if dataset_id == "24e91769-1d0e-4eb8-8ac2-50032598d66f":
+    if dataset_name == "s-nlp/paradetox":
         return "en_neutral_comment", merge_columns_toxic
     raise ValueError("Other dataset not supported yet")

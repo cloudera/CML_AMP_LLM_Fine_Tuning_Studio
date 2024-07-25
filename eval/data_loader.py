@@ -23,9 +23,10 @@ class Dataloader():
             raise ValueError(f"Dataset {dataset_name} not found in the available datasets.")
         dataset = load_dataset(dataset_name, cache_dir=get_unique_cache_dir())
         eval_df = pd.DataFrame(dataset["train"])
-        eval_column_name, template_function = fetch_eval_column_name_and_merge_function(dataset_id)
+        eval_column_name, template_function = fetch_eval_column_name_and_merge_function(dataset_name)
         eval_df = eval_df.sample(n=total_examples)
         eval_df['model_input'] = eval_df.apply(lambda x: template_function(x), axis=1)
+        print(eval_df)
         return eval_df, eval_column_name
 
 
