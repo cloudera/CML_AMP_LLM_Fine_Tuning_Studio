@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from ft.dataset import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
-from typing import List 
+from typing import List
 from datasets import load_dataset
 from ft.state import get_state
 from uuid import uuid4
@@ -14,7 +14,7 @@ class DatasetsManagerBase(ABC):
 
     def __init__(self):
         return
-    
+
     @abstractmethod
     def list_datasets(self) -> List[DatasetMetadata]:
         pass
@@ -26,7 +26,6 @@ class DatasetsManagerBase(ABC):
     @abstractmethod
     def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
         pass
-
 
 
 class DatasetsManagerSimple(DatasetsManagerBase):
@@ -60,7 +59,7 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         )
 
         if request.type == DatasetType.HUGGINGFACE:
-            
+
             # Load the dataset into memory.
             loaded_dataset = load_dataset(request.huggingface_name)
 
@@ -71,13 +70,13 @@ class DatasetsManagerSimple(DatasetsManagerBase):
 
             # Extract out the fields.
             features = loaded_dataset.column_names
-            metadata.features = features    
+            metadata.features = features
             metadata.huggingface_name = request.huggingface_name
             metadata.name = request.huggingface_name
 
         else:
             raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
-        
+
         return ImportDatasetResponse(
             dataset=metadata
         )

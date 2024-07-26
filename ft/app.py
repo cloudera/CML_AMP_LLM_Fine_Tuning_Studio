@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List
 from pydantic import BaseModel
-import json 
+import json
 from typing import Dict
 from ft.state import get_state, update_state
 from ft.prompt import PromptMetadata
 import os
-
-
 
 
 '''
@@ -29,15 +27,15 @@ fine tuning jobs, etc.
 '''
 
 from ft.managers import (
-    ModelsManagerBase, 
-    FineTuningJobsManagerBase, 
+    ModelsManagerBase,
+    FineTuningJobsManagerBase,
     DatasetsManagerBase
 )
 from ft.state import AppState
 from ft.dataset import ImportDatasetRequest, ImportDatasetResponse, DatasetType, DatasetMetadata
 from ft.model import (
-    ImportModelRequest, 
-    ImportModelResponse, 
+    ImportModelRequest,
+    ImportModelResponse,
     ModelMetadata,
     ExportModelRequest,
     ExportModelResponse,
@@ -51,7 +49,7 @@ from datasets import load_dataset
 class FineTuningAppProps:
     state_location: str
     """
-    Project-relative location of the app state. The app state contains a 
+    Project-relative location of the app state. The app state contains a
     representation of the current state of an app and is intended to be used
     as a session store that can persist across browser sessions. This is GLOBAL
     to the project, so extra care is needed if multiple people are sharing
@@ -62,22 +60,21 @@ class FineTuningAppProps:
     jobs_manager: FineTuningJobsManagerBase
     datasets_manager: DatasetsManagerBase
 
-    def __init__(self, 
-                 datasets_manager: DatasetsManagerBase, 
-                 models_manager: ModelsManagerBase, 
-                 jobs_manager: FineTuningJobsManagerBase, 
+    def __init__(self,
+                 datasets_manager: DatasetsManagerBase,
+                 models_manager: ModelsManagerBase,
+                 jobs_manager: FineTuningJobsManagerBase,
                  state_location: str = os.getenv("FINE_TUNING_APP_STATE_LOCATION")):
-        self.state_location = state_location 
+        self.state_location = state_location
         self.datasets_manager = datasets_manager
         self.models_manager = models_manager
         self.jobs_manager = jobs_manager
 
 
-
 class FineTuningApp():
     """
     This class acts as a backend API surface for the
-    FT AMP application. Ideally all frontend requests should 
+    FT AMP application. Ideally all frontend requests should
     interact directly with methods found in this class, but occasionally
     lower-level operations can be performed directly by the variety
     of sub-managers for each component (models, datasets, etc.). By design,
@@ -85,14 +82,14 @@ class FineTuningApp():
     classes directly if you know what you're doing.
     """
 
-    state_location: str 
+    state_location: str
     """
     Location of the state file for the application.
     """
 
     models: ModelsManagerBase
     """
-    Adapter for managing the models related to 
+    Adapter for managing the models related to
     the Fine Tuning App.
     """
 
@@ -115,7 +112,6 @@ class FineTuningApp():
         self.datasets = props.datasets_manager
         return
 
-    
     def add_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
         """
         Add a dataset to the App based on the request.
@@ -131,14 +127,12 @@ class FineTuningApp():
             update_state({"datasets": datasets})
 
         return import_response
-    
 
     def remove_dataset(self, id: str):
         datasets = self.datasets.list_datasets()
         datasets = list(filter(lambda x: not x.id == id, datasets))
         update_state({"datasets": datasets})
 
-    
     def add_prompt(self, prompt: PromptMetadata):
         """
         TODO: abstract this out similar to datasets above. Maybe have
@@ -169,14 +163,14 @@ class FineTuningApp():
             update_state({"models": lmodels})
 
         return import_response
-    
+
     def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
         """
         Export a model and log metadata if appropriate
         """
         export_response: ExportModelResponse = self.models.export_model(request)
 
-        # If we've successfully exported a model to model registry, add 
+        # If we've successfully exported a model to model registry, add
         # this registered model to the app's metadata
         if export_response.registered_model is not None and request.type == ExportType.MODEL_REGISTRY:
             state: AppState = get_state()
@@ -185,8 +179,6 @@ class FineTuningApp():
             update_state({"registered_models": registered_models})
 
         return export_response
-
-
 
     def remove_model(self, id: str):
         """
@@ -211,19 +203,16 @@ class FineTuningApp():
         return job_launch_response
 
 
-
-
-INSTANCE: FineTuningApp = None 
+INSTANCE: FineTuningApp = None
 """
-This FT AMP follows a singleton pattern for the application logic wrapper 
-(includes all logic for loading datasets/models, starting/viewing FT jobs, 
+This FT AMP follows a singleton pattern for the application logic wrapper
+(includes all logic for loading datasets/models, starting/viewing FT jobs,
 and evaluating models).
 
 THIS IS NOT MEANT TO BE SET MANUALLY. Please use the create_app() method
 to create the app ONCE per browser session, and subsequently use get_app()
 to get a reference to the application.
 """
-
 
 
 def create_app(props: FineTuningAppProps):

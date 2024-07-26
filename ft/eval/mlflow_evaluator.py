@@ -1,7 +1,8 @@
 import mlflow
 
+
 class ModelEvaluator():
-    
+
     def __init__(self) -> None:
         pass
 
@@ -17,6 +18,3 @@ class ModelEvaluator():
                 evaluator_config={"col_mapping": {"inputs": "model_input"}}
             )
         return results
-        
-    
-

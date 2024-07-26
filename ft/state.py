@@ -40,27 +40,26 @@ class AppState(BaseModel):
     """
     All available models associated with the application
     """
-    
+
     jobs: Optional[List[FineTuningJobMetadata]] = None
     """
     All available fine tuning jobs associated with the application
     """
-    
+
     prompts: Optional[List[PromptMetadata]] = None
     """
     All available prompts associated with the application
     """
-    
+
     adapters: Optional[List[AdapterMetadata]] = None
     """
     All available model adapters associated with the application
     """
-    
+
     registered_models: Optional[List[RegisteredModelMetadata]] = None
     """
     All available CML registered models associated with the application
     """
-    
 
 
 def get_state_location():
@@ -77,9 +76,9 @@ def get_state():
     Get the application's current state. This is a project-specific
     state, NOT a browser session specific state.
 
-    This method gurantees to re-read the state of the app from the 
+    This method gurantees to re-read the state of the app from the
     state file every time this method is called.
-    
+
     Currently, it's the responsibility of an App's adapters to update
     state data in the state file.
     """
@@ -103,9 +102,9 @@ def write_state(state: AppState):
 
 def update_state(state_update: Dict):
     """
-    Update the app's current state with any updated 
+    Update the app's current state with any updated
     state dict. This is used primarily in the App's wrapper
-    functions that dispatch requests to adapters. This is to make 
+    functions that dispatch requests to adapters. This is to make
     sure that state management is properly used.
     """
 

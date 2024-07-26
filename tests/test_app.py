@@ -1,7 +1,7 @@
 from typing import List
 from unittest.mock import patch
 from uuid import uuid4
-import pytest 
+import pytest
 
 
 from ft.managers.models import ModelsManagerBase, ModelsManagerSimple
@@ -25,13 +25,17 @@ from ft.model import (
 
 from ft.state import AppState
 
+
 class MockModelManager(ModelsManagerBase):
     def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
         pass
+
     def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
         pass
+
     def list_models(self) -> List[ModelMetadata]:
         pass
+
 
 class TestAppModels():
 
@@ -44,9 +48,6 @@ class TestAppModels():
             adapters=[],
             registered_models=[]
         )
-    
-    
-
 
     @patch("ft.app.update_state")
     @patch("ft.app.get_state")
@@ -68,10 +69,9 @@ class TestAppModels():
             model_id=str(uuid4())
         ))
 
-        assert response.registered_model is None 
+        assert response.registered_model is None
         get_state.assert_not_called()
         update_state.assert_not_called()
-
 
     @patch("ft.app.update_state")
     @patch("ft.app.get_state")
@@ -98,10 +98,9 @@ class TestAppModels():
             model_id=str(uuid4())
         ))
 
-        assert response.registered_model is not None 
+        assert response.registered_model is not None
         get_state.assert_not_called()
         update_state.assert_not_called()
-
 
     @patch("ft.app.update_state")
     @patch("ft.app.get_state")
@@ -133,7 +132,7 @@ class TestAppModels():
             model_id=model_uuid
         ))
 
-        assert response.registered_model is not None 
+        assert response.registered_model is not None
         get_state.assert_called_once()
         update_state.assert_called_once()
         update_state.assert_called_with({
@@ -144,5 +143,3 @@ class TestAppModels():
                 )
             ]
         })
-        
-    
