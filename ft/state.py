@@ -2,11 +2,11 @@ from pydantic import BaseModel
 from typing import List
 from ft.dataset import DatasetMetadata
 from ft.job import FineTuningJobMetadata
-from ft.model import ModelMetadata
+from ft.model import ModelMetadata, RegisteredModelMetadata
 from ft.prompt import PromptMetadata
 from ft.adapter import AdapterMetadata
 import json
-from typing import Dict 
+from typing import Dict, Optional
 import os
 
 
@@ -31,11 +31,36 @@ class AppState(BaseModel):
     will directly read again from the project state file.
     """
 
-    datasets: List[DatasetMetadata]
-    models: List[ModelMetadata]
-    jobs: List[FineTuningJobMetadata]
-    prompts: List[PromptMetadata]
-    adapters: List[AdapterMetadata]
+    datasets: Optional[List[DatasetMetadata]]
+    """
+    All available datasets associated with the application
+    """
+
+    models: Optional[List[ModelMetadata]]
+    """
+    All available models associated with the application
+    """
+    
+    jobs: Optional[List[FineTuningJobMetadata]]
+    """
+    All available fine tuning jobs associated with the application
+    """
+    
+    prompts: Optional[List[PromptMetadata]]
+    """
+    All available prompts associated with the application
+    """
+    
+    adapters: Optional[List[AdapterMetadata]]
+    """
+    All available model adapters associated with the application
+    """
+    
+    registered_models: Optional[List[RegisteredModelMetadata]]
+    """
+    All available CML registered models associated with the application
+    """
+    
 
 
 def get_state_location():

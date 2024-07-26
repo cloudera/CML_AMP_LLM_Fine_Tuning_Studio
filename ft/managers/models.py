@@ -1,5 +1,12 @@
 from abc import ABC, abstractmethod
-from ft.model import ModelMetadata, ImportModelRequest, ImportModelResponse, ModelType
+from ft.model import (
+    ModelMetadata, 
+    ImportModelRequest, 
+    ImportModelResponse, 
+    ModelType, 
+    ExportModelRequest,
+    ExportModelResponse
+    )
 from typing import List 
 from ft.state import get_state
 from uuid import uuid4
@@ -13,7 +20,11 @@ class ModelsManagerBase(ABC):
         pass 
 
     @abstractmethod
-    def import_model(self, request: ImportModelRequest):
+    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
+        pass
+
+    @abstractmethod
+    def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
         pass
 
 class ModelsManagerSimple(ModelsManagerBase):
@@ -32,6 +43,10 @@ class ModelsManagerSimple(ModelsManagerBase):
                 )
             )
         else:
-            # TODO: errror handling
-            raise ValueError()
+            print("ERROR: cannot import model of this type.")
+            return ImportModelResponse()
+        
+
+    def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
+        pass
     
