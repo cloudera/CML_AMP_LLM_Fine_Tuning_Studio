@@ -19,8 +19,11 @@ st.set_page_config(
 def apply_custom_css_for_tab():
     css = '''
     <style>
+        h3 {
+            font-size: 1.4rem;  /* Adjust the font size as needed */
+        }
         .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-        font-size:1rem;
+            font-size: 0.9rem;
         }
     </style>
     '''
@@ -69,6 +72,7 @@ pg = st.navigation([
     st.Page("pgs/train_adapter.py", title="Train a New Adapter"),
     st.Page("pgs/jobs.py", title="Training Job Tracking"),
     st.Page("pgs/evaluate.py", title="Local Adapater Comparison"),
+    st.Page("pgs/mlflow.py", title="Run MLFlow Evaluation"),   
     st.Page("pgs/export.py", title="Export to CML Model Registry"),
     st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),    
 ], position="hidden")
@@ -76,10 +80,10 @@ pg = st.navigation([
 pg.run()
 
 with st.sidebar:
-    
+    st.subheader("")
     st.markdown("**Navigation**")
     st.page_link("pgs/home.py", label="Home", icon=":material/home:")
-    st.write("\n")
+    st.subheader("")
 
     st.markdown("**Datasets**")
     st.page_link("pgs/datasets.py", label="Import Datasets", icon=":material/publish:")
@@ -95,6 +99,7 @@ with st.sidebar:
     st.page_link("pgs/train_adapter.py", label="Train a New Adapter", icon=":material/forward:")
     st.page_link("pgs/jobs.py", label="Monitor Training Jobs", icon=":material/subscriptions:")
     st.page_link("pgs/evaluate.py", label="Local Adapter Comparison", icon=":material/difference:")
+    st.page_link("pgs/mlflow.py", label="Run MLFlow Evaluation", icon=":material/model_training:")
     st.write("\n")
 
     st.markdown("**Model Management**")

@@ -5,34 +5,24 @@ from ft.model import ModelMetadata, ModelType, ImportModelRequest
 from ft.adapter import AdapterMetadata, AdapterType
 from typing import List
 
-
 def display_header():
     with st.container(border=True):
-        col1, col2 = st.columns([1, 13])
+        col1, col2 = st.columns([1, 17])
         with col1:
             col1.image("./resources/images/neurology_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
         with col2:
-            col2.subheader('Base Models & Adapters', divider="orange")
-            st.write("Import foundational LLM models from Hugging Face or local sources to align with your fine-tuning job specific requirements.")
+            col2.subheader('Base Models & Adapters', divider='red')
+            st.caption("Import foundational LLM models from Hugging Face or local sources to align with your fine-tuning job specific requirements.")
 
 def display_import_section():
-    st.write("\n")
-    st.markdown('''
-    <style>
-    .katex-html {
-        text-align: left;
-    }
-    </style>''', unsafe_allow_html=True)
-    st.latex(r'\textsf{\large Import Models}')
-
     with st.container(border=True):
         upload_ct = st.container()
-        import_hf_tab, upload_tab = upload_ct.tabs(["**Huggingface**", "**Local**"])
+        import_hf_tab, upload_tab = upload_ct.tabs(["Huggingface", "Local"])
 
         with import_hf_tab:
             display_huggingface_import()
         with upload_tab:
-            st.info("Feature coming soon")
+            st.info("Feature coming soon", icon=":material/info:")
 
 def display_huggingface_import():
     col1, col2 = st.columns([4, 1])
@@ -42,20 +32,23 @@ def display_huggingface_import():
     if import_hf_dataset:
         if import_hf_dataset_name:
             with st.spinner("Loading Model..."):
-                get_app().import_model(ImportModelRequest(
-                    type=ModelType.HUGGINGFACE,
-                    huggingface_name=import_hf_dataset_name
-                ))
+                try:
+                    get_app().import_model(ImportModelRequest(
+                        type=ModelType.HUGGINGFACE,
+                        huggingface_name=import_hf_dataset_name
+                    ))
+                    st.success("Model imported successfully. Please check **View Models** page!", icon=":material/check:")
+                except Exception as e:
+                    st.error(f"Error importing model: {str(e)}", icon=":material/error:")
         else:
-            st.error("Please enter a model name.")
+            st.error("Please enter a model name.", icon=":material/info:")
 
 def display_models_section():
-    st.latex(r'\textsf{\large Available Models}')
     models: List[ModelMetadata] = get_state().models
     adapters: List[AdapterMetadata] = get_state().adapters
 
     with st.container(border=True):
-        tab1, tab2 = st.tabs(["**Huggingface Models**", "**Local Models**"])
+        tab1, tab2 = st.tabs(["Huggingface Models", "Local Models"])
         with tab1:
             display_models([model for model in models if model.type == ModelType.HUGGINGFACE], adapters)
         with tab2:
@@ -63,7 +56,7 @@ def display_models_section():
 
 def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata]):
     if not models:
-        st.info("No models available.")
+        st.info("No models available.", icon=":material/info:")
         return
 
     cont = st.container()
@@ -72,8 +65,9 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
             col1, col2 = cont.columns(2)
         st.write("\n")
 
-        ds_cont = col1 if i % 2 == 0 else col2
-        with ds_cont.container(border=True):
+        s_cont = col1 if i % 2 == 0 else col2
+        ds_cont = s_cont.container(border=True)
+        with ds_cont:
             c1, c2 = st.columns([4, 1])
             c1.markdown(f"**{model.name}**")
             c1.caption(model.id)
@@ -86,15 +80,18 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
 
             model_adapters = [adapter for adapter in adapters if adapter.model_id == model.id]
             expander = ds_cont.expander("Adapters")
+
+            if not model_adapters:
+                expander.info("No available adpater to display. Please go to **Train a new Adapater** page.", icon=":material/info:")
             for adapter in model_adapters:
                 display_adapter(adapter, expander)
 
-            add_adapter_button = expander.button("Add Adapter", type="primary", key=f"{model.id}_add_adapter", use_container_width=True)
-            if add_adapter_button:
-                st.toast("You can't do that yet.", icon=":material/info:")
+            # add_adapter_button = expander.button("Add Adapter", type="primary", key=f"{model.id}_add_adapter", use_container_width=True)
+            # if add_adapter_button:
+            #     st.toast("You can't do that yet.", icon=":material/info:")
 
 def display_adapter(adapter: AdapterMetadata, container):
-    with container.container(border=True):
+    with container:
         c1, c2 = container.columns([4, 1])
         c1.text(adapter.name)
         if adapter.type == AdapterType.LOCAL:
@@ -106,6 +103,10 @@ def display_adapter(adapter: AdapterMetadata, container):
             st.toast("You can't do that yet.", icon=":material/info:")
 
 display_header()
-display_import_section()
-st.markdown("---")
-display_models_section()
+import_tab, view_tab = st.tabs(["**Import Models**", "**View Models**"])
+
+with import_tab:
+    display_import_section()
+
+with view_tab:
+    display_models_section()
