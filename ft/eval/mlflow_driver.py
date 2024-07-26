@@ -1,7 +1,7 @@
 from eval.mlflow_evaluator import ModelEvaluator
 from eval.mlflow_logger import ModelLogger
 from eval.data_loader import Dataloader
-from eval.make_peft_pipeline import fetch_pipeline
+from ft.pipeline import fetch_pipeline
 import pandas as pd
 from eval.eval_job import StartEvaluationRequest, EvaluationResponse
 
