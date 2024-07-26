@@ -163,3 +163,13 @@ cython_debug/
 
 # Local history files
 .history/
+
+# Runtime Files
+
+.Rprofile
+.app/job_runs/
+.bash_history
+.jupyter/
+.local/
+.vscode-server/
+.wget-hsts

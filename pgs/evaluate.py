@@ -15,12 +15,12 @@ import torch
 # /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
 
 with st.container(border=True):
-    col1, col2 = st.columns([1,13])
+    col1, col2 = st.columns([1,17])
     with col1:
         col1.image("./resources/images/difference_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
     with col2:
-        col2.subheader('Local Adapater Comparison', divider='orange')
-        st.write("View the evaluation results of your fine-tuning jobs and analyze the performance metrics for improvement.")
+        col2.subheader('Local Adapater Comparison', divider='red')
+        st.caption("Compare your fine-tuned model performance with base model and gain valuable insights.")
 
 
 st.write("\n")

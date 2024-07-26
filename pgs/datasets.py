@@ -5,12 +5,12 @@ from ft.consts import HF_LOGO
 
 def create_header():
     with st.container(border=True):
-        col1, col2 = st.columns([1, 13])
+        col1, col2 = st.columns([1, 17])
         with col1:
             col1.image("./resources/images/publish_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
         with col2:
-            col2.subheader('Import Datasets', divider='orange')
-            st.write("Import the datasets from either available datasets on Hugging Face or upload your own preprocessed dataset from local.")
+            col2.subheader('Import Datasets', divider='red')
+            st.caption("Import the datasets from either available datasets on Hugging Face or upload your own preprocessed dataset from local.")
 
 def handle_database_import():
     with st.container():
@@ -26,18 +26,21 @@ def handle_database_import():
                     if import_hf_dataset_name:
                         try:
                             get_app().add_dataset(ImportDatasetRequest(type=DatasetType.HUGGINGFACE, huggingface_name=import_hf_dataset_name, location=None))
-                            st.success("Dataset Loaded!")
+                            st.success("Dataset Loaded. Please go to **View Dataset** tab!", icon=":material/check:")
+                            st.toast("Dataset has been loaded successfully!", icon=":material/check:")
                         except Exception as e:
-                            st.error(f"Failed to load dataset: {str(e)}")
+                            st.error(f"Failed to load dataset: **{str(e)}**", icon=":material/error:")
+                            st.toast(f"Failed to load dataset: **{str(e)}**", icon=":material/error:")
                     else:
                         st.error("Dataset name cannot be empty!")
         with upload_tab:
-            with st.container():
-                data_file = st.file_uploader("Upload a dataset", type=["csv", "txt", "json"], disabled=True)
+            upload_tab.info("Feature not available yet.", icon=":material/info:")
+            # with st.container():
+            #     data_file = st.file_uploader("Upload a dataset", type=["csv", "txt", "json"], disabled=True)
 
-                if data_file:
-                    st.warning("Custom dataset uploads not yet supported.")
-                    # Add data handling logic here if needed
+            #     if data_file:
+            #         st.warning("Custom dataset uploads not yet supported.")
+            #         # Add data handling logic here if needed
 
 
 
