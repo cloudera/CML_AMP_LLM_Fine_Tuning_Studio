@@ -5,6 +5,7 @@ import json
 from typing import Dict
 from ft.state import get_state, update_state
 from ft.prompt import PromptMetadata
+import os
 
 
 
@@ -34,7 +35,15 @@ from ft.managers import (
 )
 from ft.state import AppState
 from ft.dataset import ImportDatasetRequest, ImportDatasetResponse, DatasetType, DatasetMetadata
-from ft.model import ImportModelRequest, ImportModelResponse, ModelMetadata
+from ft.model import (
+    ImportModelRequest, 
+    ImportModelResponse, 
+    ModelMetadata,
+    ExportModelRequest,
+    ExportModelResponse,
+    ExportType,
+    RegisteredModelMetadata
+)
 from ft.job import StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningJobMetadata
 from datasets import load_dataset
 
@@ -57,7 +66,7 @@ class FineTuningAppProps:
                  datasets_manager: DatasetsManagerBase, 
                  models_manager: ModelsManagerBase, 
                  jobs_manager: FineTuningJobsManagerBase, 
-                 state_location: str):
+                 state_location: str = os.getenv("FINE_TUNING_APP_STATE_LOCATION")):
         self.state_location = state_location 
         self.datasets_manager = datasets_manager
         self.models_manager = models_manager
@@ -66,6 +75,16 @@ class FineTuningAppProps:
 
 
 class FineTuningApp():
+    """
+    This class acts as a backend API surface for the
+    FT AMP application. Ideally all frontend requests should 
+    interact directly with methods found in this class, but occasionally
+    lower-level operations can be performed directly by the variety
+    of sub-managers for each component (models, datasets, etc.). By design,
+    this app class also handles app state management, so only call sub-manager
+    classes directly if you know what you're doing.
+    """
+
     state_location: str 
     """
     Location of the state file for the application.
@@ -150,6 +169,23 @@ class FineTuningApp():
             update_state({"models": lmodels})
 
         return import_response
+    
+    def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
+        """
+        Export a model and log metadata if appropriate
+        """
+        export_response: ExportModelResponse = self.models.export_model(request)
+
+        # If we've successfully exported a model to model registry, add 
+        # this registered model to the app's metadata
+        if export_response.registered_model is not None and request.type == ExportType.MODEL_REGISTRY:
+            state: AppState = get_state()
+            registered_models: List[RegisteredModelMetadata] = state.registered_models
+            registered_models.append(export_response.registered_model)
+            update_state({"registered_models": registered_models})
+
+        return export_response
+
 
 
     def remove_model(self, id: str):
