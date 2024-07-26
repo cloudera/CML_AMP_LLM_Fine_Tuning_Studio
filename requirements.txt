@@ -8,8 +8,8 @@ trl==0.9.6
 transformers==4.42.4
 peft==0.11.1
 gradio==3.36.1
-torch==2.0.1
-torchvision==0.15.2
+torch==2.4.0
+torchvision==0.19.0
 streamlit==1.37.0
 pydantic>=2.8.2
 setfit==1.0.3
