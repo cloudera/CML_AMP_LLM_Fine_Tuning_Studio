@@ -31,32 +31,32 @@ class AppState(BaseModel):
     will directly read again from the project state file.
     """
 
-    datasets: Optional[List[DatasetMetadata]]
+    datasets: Optional[List[DatasetMetadata]] = None
     """
     All available datasets associated with the application
     """
 
-    models: Optional[List[ModelMetadata]]
+    models: Optional[List[ModelMetadata]] = None
     """
     All available models associated with the application
     """
     
-    jobs: Optional[List[FineTuningJobMetadata]]
+    jobs: Optional[List[FineTuningJobMetadata]] = None
     """
     All available fine tuning jobs associated with the application
     """
     
-    prompts: Optional[List[PromptMetadata]]
+    prompts: Optional[List[PromptMetadata]] = None
     """
     All available prompts associated with the application
     """
     
-    adapters: Optional[List[AdapterMetadata]]
+    adapters: Optional[List[AdapterMetadata]] = None
     """
     All available model adapters associated with the application
     """
     
-    registered_models: Optional[List[RegisteredModelMetadata]]
+    registered_models: Optional[List[RegisteredModelMetadata]] = None
     """
     All available CML registered models associated with the application
     """
