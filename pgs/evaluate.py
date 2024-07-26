@@ -97,7 +97,7 @@ def generate_random():
         st.session_state.input_prompt = prompt_string
 
 
-@st.experimental_fragment
+@st.fragment
 def prompt_fragment():
     cont = st.container(border=True)
 
@@ -114,7 +114,7 @@ if model_idx is not None and model_adapter_idx is not None:
     prompt_fragment()
     
 
-@st.experimental_fragment
+@st.fragment
 def evaluate_fragment():
     cont = st.container(border=True)
     expander = cont.expander("Advanced options")
