@@ -1,7 +1,7 @@
-from eval.mlflow_driver import driver
+from ft.eval.mlflow_driver import driver
 import pandas as pd
 from glob import glob
-from eval.eval_job import StartEvaluationRequest
+from ft.eval.eval_job import StartEvaluationRequest
 
 
 request = StartEvaluationRequest(
