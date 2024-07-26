@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 from enum import Enum
-from typing import Optional 
+from typing import Optional
 
 
 class AdapterType(Enum):
     """
     Type of PEFT adapter.
     """
-    
+
     LOCAL = "local"
     """
     Local PEFT adapter imported from project
@@ -22,7 +22,6 @@ class AdapterType(Enum):
     """
 
 
-
 class AdapterMetadata(BaseModel):
 
     id: str
@@ -30,7 +29,7 @@ class AdapterMetadata(BaseModel):
     Unique ID of the PEFT adapter.
     """
 
-    name: str 
+    name: str
     """
     Human friendly name of the adapter for tracking.
     """
@@ -40,17 +39,17 @@ class AdapterMetadata(BaseModel):
     Type of model adapter.
     """
 
-    model_id: str 
+    model_id: str
     """
     Corresponding model ID that this adapter is designed for. This is the
-    model ID in the FT app. 
+    model ID in the FT app.
     """
-    
+
     location: Optional[str] = None
     """
     Project-relative directory where the PEFT adapter data is stored.
-    
-    When training with HF/TRL libraries, a typical output directory 
+
+    When training with HF/TRL libraries, a typical output directory
     for PEFT adapters will contain files like:
     * adapter_config.json
     * adapter_model.bin

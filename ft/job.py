@@ -1,12 +1,13 @@
 from pydantic import BaseModel
 from ft.model import ModelMetadata
-from typing import Optional 
+from typing import Optional
 from transformers import BitsAndBytesConfig
 from datetime import datetime
-from enum import Enum 
+from enum import Enum
+
 
 class FineTuningWorkerProps(BaseModel):
-    num_cpu: int = 2 
+    num_cpu: int = 2
     num_memory: int = 8
     num_gpu: int = 1
 
@@ -33,7 +34,7 @@ class FineTuningJobMetadata(BaseModel):
 
     base_model_id: str
     """
-    The model ID of the base model that should be used as a 
+    The model ID of the base model that should be used as a
     base for the fine tuning job.
     """
 
@@ -45,14 +46,14 @@ class FineTuningJobMetadata(BaseModel):
 
     prompt_id: str
     """
-    The prompt that will be used for training. This is 
+    The prompt that will be used for training. This is
     tied to the dataset for now, but that won't necessarily
     be a many-to-one relationship in the future.
     """
 
     num_workers: int
     """
-    Number of workers to use for this fine-tuning job. 
+    Number of workers to use for this fine-tuning job.
     """
 
     adapter_id: Optional[str] = None
@@ -67,34 +68,34 @@ class FineTuningJobMetadata(BaseModel):
 
 
 class StartFineTuningJobRequest(BaseModel):
-    
+
     adapter_name: str
     """
     Human-friendly identifier for the name of the adapter.
     """
 
-    base_model_id: str 
+    base_model_id: str
     """
-    The model ID of the base model that should be used as a 
+    The model ID of the base model that should be used as a
     base for the fine tuning job.
     """
 
-    dataset_id: str 
+    dataset_id: str
     """
     The dataset that will be used to perform the training.
     This dataset ID is the App-specific ID.
     """
 
-    prompt_id: str 
+    prompt_id: str
     """
-    The prompt that will be used for training. This is 
+    The prompt that will be used for training. This is
     tied to the dataset for now, but that won't necessarily
     be a many-to-one relationship in the future.
     """
 
-    num_workers: int 
+    num_workers: int
     """
-    Number of workers to use for this fine-tuning job. 
+    Number of workers to use for this fine-tuning job.
     """
 
     bits_and_bytes_config: Optional[BitsAndBytesConfig] = None
@@ -104,7 +105,7 @@ class StartFineTuningJobRequest(BaseModel):
     enabled.
     """
 
-    auto_add_adapter: bool = True 
+    auto_add_adapter: bool = True
     """
     Automatically add the trained job as an adapter to the app.
     """
@@ -112,7 +113,3 @@ class StartFineTuningJobRequest(BaseModel):
 
 class StartFineTuningJobResponse(BaseModel):
     job: Optional[FineTuningJobMetadata] = None
-
-    
-
-

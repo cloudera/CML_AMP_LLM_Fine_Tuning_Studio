@@ -90,7 +90,7 @@ def load_adapted_hf_generation_pipeline(
         task,
         model=model,
         tokenizer=tokenizer,
-        batch_size=batch_size,  
+        batch_size=batch_size,
         generation_config=config,
         framework="pt",
     )

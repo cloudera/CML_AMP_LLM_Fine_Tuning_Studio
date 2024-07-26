@@ -7,11 +7,11 @@ from eval.eval_job import StartEvaluationRequest, EvaluationResponse
 
 
 def driver(StartEvaluationRequest):
-        
-    dataset_name = StartEvaluationRequest.dataset_name 
-    base_model_name = StartEvaluationRequest.base_model_name 
-    adapter_name = StartEvaluationRequest.adapter_path 
-    device="gpu"
+
+    dataset_name = StartEvaluationRequest.dataset_name
+    base_model_name = StartEvaluationRequest.base_model_name
+    adapter_name = StartEvaluationRequest.adapter_path
+    device = "gpu"
 
     dataloader = Dataloader()
     logger = ModelLogger()
@@ -29,7 +29,5 @@ def driver(StartEvaluationRequest):
     results = evaluator.evaluate_model(model_info, eval_dataset, eval_column_name)
 
     results_df = pd.DataFrame(results.tables['eval_results_table'])
-    response = EvaluationResponse(metrics = results.metrics, csv = results_df)
+    response = EvaluationResponse(metrics=results.metrics, csv=results_df)
     return response
-
-

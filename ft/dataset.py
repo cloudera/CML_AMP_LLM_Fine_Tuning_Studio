@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from enum import Enum 
+from enum import Enum
 from typing import Optional, List
 
 
@@ -16,9 +16,9 @@ class DatasetMetadata(BaseModel):
 
     type: DatasetType
     """
-    Type of dataset. Can either be pulled from 
+    Type of dataset. Can either be pulled from
     huggingface, or can be uploaded into Projects
-    folder manually (so long as the dataset is in 
+    folder manually (so long as the dataset is in
     the correct format)
     """
 
@@ -62,7 +62,7 @@ class ImportDatasetRequest(BaseModel):
     Type of dataset to import.
     """
 
-    huggingface_name: Optional[str] = None 
+    huggingface_name: Optional[str] = None
     """
     Name of the huggingface dataset. This is the full huggingface
     dataset name used to identify the dataset on HF hub.
@@ -76,4 +76,3 @@ class ImportDatasetRequest(BaseModel):
 
 class ImportDatasetResponse(BaseModel):
     dataset: Optional[DatasetMetadata] = None
-    
