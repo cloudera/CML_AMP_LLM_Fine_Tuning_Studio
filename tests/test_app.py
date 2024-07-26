@@ -4,6 +4,7 @@ from uuid import uuid4
 import pytest
 
 
+from ft.dataset import DatasetMetadata, ImportDatasetRequest, ImportDatasetResponse, DatasetType
 from ft.managers.models import ModelsManagerBase, ModelsManagerSimple
 from ft.managers.datasets import DatasetsManagerBase, DatasetsManagerSimple
 from ft.managers.jobs import FineTuningJobsManagerBase, FineTuningJobsManagerSimple
@@ -23,6 +24,8 @@ from ft.model import (
     RegisteredModelMetadata
 )
 
+from ft.prompt import PromptMetadata
+
 from ft.state import AppState
 
 
@@ -37,17 +40,90 @@ class MockModelManager(ModelsManagerBase):
         pass
 
 
-class TestAppModels():
+class MockDatasetManager(DatasetsManagerBase):
+    def list_datasets(self) -> List[DatasetMetadata]:
+        return super().list_datasets()
 
-    def mock_app_state_empty(self):
-        return AppState(
-            datasets=[],
-            models=[],
-            jobs=[],
-            prompts=[],
-            adapters=[],
-            registered_models=[]
-        )
+    def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
+        return super().import_dataset(request)
+
+    def get_dataset(self, id: str) -> DatasetMetadata:
+        return super().get_dataset(id)
+
+
+class TestAppDatasets():
+
+    @patch("ft.app.update_state")
+    @patch("ft.app.get_state")
+    def test_remove_dataset_no_prompts(self, get_state, update_state):
+        datasets: List[DatasetMetadata] = [
+            DatasetMetadata(
+                id=str(uuid4()),
+                type=DatasetType.HUGGINGFACE
+            )
+        ]
+
+        class MockDatasetManagerConstant(MockDatasetManager):
+            def list_datasets(self) -> List[DatasetMetadata]:
+                return datasets
+
+        app = FineTuningApp(FineTuningAppProps(
+            MockDatasetManagerConstant(),
+            ModelsManagerSimple(),
+            FineTuningJobsManagerSimple()
+        ))
+
+        app.remove_dataset(datasets[0].id)
+        update_state.assert_any_call({"datasets": []})
+        update_state.assert_any_call({"prompts": []})
+
+    @patch("ft.app.update_state")
+    @patch("ft.app.get_state")
+    def test_remove_dataset_associated_prompt(self, get_state, update_state):
+        datasets: List[DatasetMetadata] = [
+            DatasetMetadata(
+                id=str(uuid4()),
+                type=DatasetType.HUGGINGFACE
+            ),
+            DatasetMetadata(
+                id=str(uuid4()),
+                type=DatasetType.HUGGINGFACE
+            )
+        ]
+
+        prompts: List[PromptMetadata] = [
+            PromptMetadata(
+                id=str(uuid4()),
+                name="",
+                dataset_id=datasets[0].id,
+                prompt_template=""
+            ),
+            PromptMetadata(
+                id=str(uuid4()),
+                name="",
+                dataset_id=datasets[1].id,
+                prompt_template=""
+            )
+        ]
+
+        class MockDatasetManagerConstant(MockDatasetManager):
+            def list_datasets(self) -> List[DatasetMetadata]:
+                return datasets
+
+        app = FineTuningApp(FineTuningAppProps(
+            MockDatasetManagerConstant(),
+            ModelsManagerSimple(),
+            FineTuningJobsManagerSimple()
+        ))
+
+        get_state.return_value = AppState(prompts=prompts)
+
+        app.remove_dataset(datasets[0].id)
+        update_state.assert_any_call({"datasets": [datasets[1]]})
+        update_state.assert_any_call({"prompts": [prompts[1]]})
+
+
+class TestAppModels():
 
     @patch("ft.app.update_state")
     @patch("ft.app.get_state")
@@ -119,7 +195,7 @@ class TestAppModels():
                     )
                 )
 
-        get_state.return_value = self.mock_app_state_empty()
+        get_state.return_value = AppState()
 
         app = FineTuningApp(FineTuningAppProps(
             DatasetsManagerSimple(),

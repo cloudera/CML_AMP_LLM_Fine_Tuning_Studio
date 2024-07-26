@@ -133,6 +133,12 @@ class FineTuningApp():
         datasets = list(filter(lambda x: not x.id == id, datasets))
         update_state({"datasets": datasets})
 
+        # Remove prompts related to this dataset
+        prompts: List[PromptMetadata] = get_state().prompts
+        prompts = prompts if prompts is not None else []
+        prompts = list(filter(lambda x: not x.dataset_id == id, prompts))
+        update_state({"prompts": prompts})
+
     def add_prompt(self, prompt: PromptMetadata):
         """
         TODO: abstract this out similar to datasets above. Maybe have
@@ -174,7 +180,8 @@ class FineTuningApp():
         # this registered model to the app's metadata
         if export_response.registered_model is not None and request.type == ExportType.MODEL_REGISTRY:
             state: AppState = get_state()
-            registered_models: List[RegisteredModelMetadata] = state.registered_models
+            registered_models: List[RegisteredModelMetadata] = state.registered_models if state.registered_models is not None else [
+            ]
             registered_models.append(export_response.registered_model)
             update_state({"registered_models": registered_models})
 
