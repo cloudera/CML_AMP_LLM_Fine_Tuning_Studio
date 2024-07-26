@@ -69,3 +69,8 @@ class AdapterMetadata(BaseModel):
     Job ID of the job that was used to train/create this adapter. This is
     used to determine if an adapter is completely trained or not.
     """
+
+    prompt_id: Optional[str] = None 
+    """
+    Prompt ID of the prompt that was used to train this adapter.
+    """

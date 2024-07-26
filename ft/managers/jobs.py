@@ -155,7 +155,8 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
                 type=AdapterType.LOCAL,
                 model_id=request.base_model_id,
                 location=out_dir,
-                job_id=job_id
+                job_id=job_id,
+                prompt_id=request.prompt_id,
             )
 
             state: AppState = get_state()
