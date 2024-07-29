@@ -6,8 +6,7 @@ from typing import *
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 import random
-import time
-from peft.peft_model import PeftModel
+import os
 import torch
 from ft.utils import get_device
 
@@ -19,9 +18,8 @@ with st.container(border=True):
     with col1:
         col1.image("./resources/images/difference_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
     with col2:
-        col2.subheader('Local Adapater Comparison', divider='red')
+        col2.subheader('Local Adapter Comparison', divider='red')
         st.caption("Compare your fine-tuned model performance with base model and gain valuable insights.")
-
 
 st.write("\n")
 
@@ -32,10 +30,10 @@ with st.container(border=True):
     current_models = get_state().models
     model_idx = st.selectbox(
         "Models",
-        range(
-            len(current_models)),
+        range(len(current_models)),
         format_func=lambda x: current_models[x].name,
-        index=None)
+        index=None
+    )
 
     model_adapter_idx = None
 
@@ -44,39 +42,37 @@ with st.container(border=True):
         current_model_metadata = current_models[model_idx]
 
         with st.spinner("Loading model..."):
-            # CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto').to("cpu")
             CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(
                 current_model_metadata.huggingface_model_name, return_dict=True).to(get_device())
 
         model_adapters: List[AdapterMetadata] = get_state().adapters
-        model_adapters: List[AdapterMetadata] = list(
-            filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
+        model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
+
+        # Filter adapters based on their presence in the /data/adapter directory
+        model_adapters = list(filter(lambda x: os.path.isdir(os.path.join(x.location)), model_adapters))
 
         # TODO: We should not have to load the adapters every run, this is overkill
         with st.spinner("Loading Adapters..."):
             for adapter in model_adapters:
-
-                # TODO. This is a hardcoded dependency on local adapters. Not good.
-                loc = adapter.location
+                loc = os.path.join(adapter.location)
                 if not loc.endswith("/"):
-                    loc = loc + "/"
+                    loc += "/"
 
-                # See https://github.com/huggingface/peft/issues/211
-                # This is a PEFT Model, we can load another adapter
-                if hasattr(CURRENT_MODEL, 'load_adapter'):
-                    CURRENT_MODEL.load_adapter(loc, adapter_name=adapter.id)
-                # This is a regular AutoModelForCausalLM, we should use
-                # PeftModel.from_pretrained for this first adapter load
-                else:
-                    # TODO: these arguments don't look right. This needs to be fixed.
-                    raise ValueError("Not supported!")
+                if os.path.isdir(loc):
+                    # This is a PEFT Model, we can load another adapter
+                    if hasattr(CURRENT_MODEL, 'load_adapter'):
+                        CURRENT_MODEL.load_adapter(loc, adapter_name=adapter.id)
+                    # This is a regular AutoModelForCausalLM, we should use
+                    # PeftModel.from_pretrained for this first adapter load
+                    else:
+                        raise ValueError("Not supported!")
 
         model_adapter_idx = st.selectbox(
             "Choose an Adapter",
-            range(
-                len(model_adapters)),
+            range(len(model_adapters)),
             format_func=lambda x: model_adapters[x].name,
-            index=None)
+            index=None
+        )
 
         if model_adapter_idx is not None:
             model_adapter = model_adapters[model_adapter_idx]
@@ -92,8 +88,7 @@ def update_text_area():
         st.session_state.input_prompt_template = None
 
 # TODO: extend this out to both prompt templates and actual input prompts.
-# The button should generate the prompt, the dropdown should allow you
-# to set a prompt template
+# The button should generate the prompt, the dropdown should allow you to set a prompt template
 
 
 def generate_random():
@@ -112,7 +107,7 @@ def generate_random():
 
 @st.fragment
 def prompt_fragment():
-    cont = st.container(border=True)
+    cont = st.container()
 
     prompts = get_state().prompts
 
@@ -137,7 +132,7 @@ if model_idx is not None and model_adapter_idx is not None:
 
 @st.fragment
 def evaluate_fragment():
-    cont = st.container(border=True)
+    cont = st.container()
     expander = cont.expander("Advanced options")
     expander.caption("TODO: add generation arguments")
     generate_button = cont.button("Generate", type="primary", use_container_width=True)

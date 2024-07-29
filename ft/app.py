@@ -29,8 +29,10 @@ fine tuning jobs, etc.
 from ft.managers import (
     ModelsManagerBase,
     FineTuningJobsManagerBase,
-    DatasetsManagerBase
+    DatasetsManagerBase,
+    MLflowEvaluationJobsManagerBase
 )
+
 from ft.state import AppState
 from ft.dataset import ImportDatasetRequest, ImportDatasetResponse, DatasetType, DatasetMetadata
 from ft.model import (
@@ -43,6 +45,7 @@ from ft.model import (
     RegisteredModelMetadata
 )
 from ft.job import StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningJobMetadata
+from ft.mlflow_job import StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse, MLflowEvaluationJobMetadata
 from datasets import load_dataset
 
 
@@ -59,16 +62,19 @@ class FineTuningAppProps:
     models_manager: ModelsManagerBase
     jobs_manager: FineTuningJobsManagerBase
     datasets_manager: DatasetsManagerBase
+    mlflow_manager: MLflowEvaluationJobsManagerBase
 
     def __init__(self,
                  datasets_manager: DatasetsManagerBase,
                  models_manager: ModelsManagerBase,
                  jobs_manager: FineTuningJobsManagerBase,
+                 mlflow_manager: MLflowEvaluationJobsManagerBase,
                  state_location: str = os.getenv("FINE_TUNING_APP_STATE_LOCATION")):
         self.state_location = state_location
         self.datasets_manager = datasets_manager
         self.models_manager = models_manager
         self.jobs_manager = jobs_manager
+        self.mlflow_manager = mlflow_manager
 
 
 class FineTuningApp():
@@ -99,6 +105,12 @@ class FineTuningApp():
     tuning jobs in the FT app.
     """
 
+    mlflow: MLflowEvaluationJobsManagerBase
+    """
+    Jobs manager for managing all ongoing fine
+    mlflow jobs in the FT app.
+    """
+
     datasets: DatasetsManagerBase
     """
     Datasets adapter, for managing all of the datasets
@@ -109,6 +121,7 @@ class FineTuningApp():
         self.state_location = props.state_location
         self.models = props.models_manager
         self.jobs = props.jobs_manager
+        self.mlflow = props.mlflow_manager
         self.datasets = props.datasets_manager
         return
 
@@ -206,6 +219,20 @@ class FineTuningApp():
             jobs: List[FineTuningJobMetadata] = state.jobs
             jobs.append(job_launch_response.job)
             update_state({"jobs": jobs})
+
+        return job_launch_response
+
+    def launch_mlflow_job(self, request: StartMLflowEvaluationJobRequest) -> StartMLflowEvaluationJobResponse:
+        """
+        Create and launch a job for MLflow
+        """
+        job_launch_response: StartMLflowEvaluationJobResponse = self.mlflow.start_ml_flow_evaluation_job(request)
+
+        if job_launch_response.job is not None:
+            state: AppState = get_state()
+            jobs: List[MLflowEvaluationJobMetadata] = state.mlflow
+            jobs.append(job_launch_response.job)
+            update_state({"mlflow": jobs})
 
         return job_launch_response
 

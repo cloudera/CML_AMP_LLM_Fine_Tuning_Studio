@@ -79,7 +79,7 @@ finetuner.training_args.max_grad_norm = 0.3
 finetuner.training_args.learning_rate = args.learning_rate
 
 
-def load_dataset(dataset_name, dataset_fraction=100):
+def load_dataset(dataset_name, dataset_fraction=1):
     """
     Loads a dataset from Huggingface, optionally sampling a fraction of it.
 

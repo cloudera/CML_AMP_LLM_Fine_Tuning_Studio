@@ -36,7 +36,6 @@ def display_create_prompt():
             dataset = datasets[dataset_idx]
             st.code("Dataset Columns: \n * " + '\n * '.join(dataset.features))
 
-            st.markdown("---")
             c1, c2 = st.columns([1, 1])
             prompt_template_header = c1.button("Enter Prompt Template", disabled=True, use_container_width=True)
             generate_example_button = c2.button("Generate Prompt Example", type="secondary", use_container_width=True)
@@ -61,7 +60,6 @@ def display_create_prompt():
                 disabled=True,
                 label_visibility="collapsed")
 
-            st.markdown("---")
             create_prompt = st.button("Create Prompt", type="primary", use_container_width=True)
 
             if create_prompt:

@@ -62,6 +62,19 @@ tasks:
     environment:
       TASK_TYPE: CREATE/RUN_JOB
       MLFLOW_FLATTEN_PARAMS: true
+
+  - type: create_job
+    name: Mlflow_Evaluation_Base_Job
+    short_summary: Create Template Job for creating mlflow evaluation tasks
+    entity_label: mlflow_evaluation_job_template
+    script: ft/mlflow_evaluation_base_script.py
+    arguments: None
+    long_summary: Create Template Job for creating mlflow evaluation tasks. This job is used as the template for creating and launching mlflow evaluation tasks in the application.
+    cpu: 2
+    memory: 8
+    gpu: 1
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
   
   - type: start_application
     name: LLM Fine Tuning Application
