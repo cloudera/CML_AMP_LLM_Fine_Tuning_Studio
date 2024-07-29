@@ -1,9 +1,6 @@
 import streamlit as st
 from ft.state import get_state
 from ft.app import get_app
-from st_aggrid import AgGrid
-from st_aggrid import JsCode
-from st_aggrid.grid_options_builder import GridOptionsBuilder
 import pandas as pd
 import os
 import requests
@@ -11,8 +8,6 @@ import json
 import altair as alt
 
 # Function to read and return the trainer_state.json file
-
-
 def get_trainer_json_data(checkpoint_dir):
     """
     Search for the trainer_state.json file in the specified checkpoint_dir folder
@@ -145,67 +140,37 @@ else:
                         # Apply status color renderer
                         display_df['Status'] = display_df['Status'].apply(lambda x: x['status'])
 
-                        # Build Grid Options
-                        gd = GridOptionsBuilder.from_dataframe(display_df)
-
-                        # Renderer for links
-                        cell_url_renderer = JsCode("""
-                            class UrlCellRenderer {
-                                init(params) {
-                                    this.eGui = document.createElement('a');
-                                    this.eGui.innerText = 'CML Job';
-                                    this.eGui.setAttribute('href', params.value);
-                                    this.eGui.setAttribute('style', "text-decoration:underline;");
-                                    this.eGui.setAttribute('target', "_blank");
-                                }
-                                getGui() {
-                                    return this.eGui;
-                                }
-                            }
-                        """)
-                        gd.configure_column("html_url", headerName="CML Job Link",
-                                            cellRenderer=cell_url_renderer, width=300)
-
-                        # Renderer for status colors
-                        cell_status_renderer = JsCode("""
-                            function(params) {
-                                if (params.value == 'succeeded') {
-                                    return {
-                                        'color': 'white',
-                                        'backgroundColor': 'green'
-                                    }
-                                } else if (params.value == 'running') {
-                                    return {
-                                        'color': 'white',
-                                        'backgroundColor': 'blue'
-                                    }
-                                } else if (params.value == 'scheduling') {
-                                    return {
-                                        'color': 'black',
-                                        'backgroundColor': 'grey'
-                                    }
-                                } else {
-                                    return {
-                                        'color': 'black',
-                                        'backgroundColor': 'red'
-                                    }
-                                }
-                            };
-                        """)
-
-                        gd.configure_column("Status", cellStyle=cell_status_renderer)
-
-                        # Build all grid options
-                        gridoptions = gd.build()
+                        status_mapping = {
+                            "succeeded": 100,
+                            "running": 30,
+                            "scheduling": 1
+                        }
+                        display_df['status'] = display_df['Status'].apply(
+                            lambda x: status_mapping.get(x, 0) if pd.notnull(x) else 0)
 
                         # Display the grid with the merged and filtered dataframe
-                        AgGrid(
-                            display_df,
-                            gridOptions=gridoptions,
-                            enable_enterprise_modules=False,
-                            allow_unsafe_jscode=True,
-                            height=590,
-                            theme='alpine')
+                        st.data_editor(
+                            display_df[["Job ID", "status", "html_url", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
+                            column_config={
+                                "Job ID": st.column_config.TextColumn("Job ID"),
+                                "status": st.column_config.ProgressColumn(
+                                    "Status",
+                                    help="Job status as progress",
+                                    format="%.0f%%",
+                                    min_value=0,
+                                    max_value=100,
+                                ),
+                                "html_url": st.column_config.LinkColumn(
+                                    "CML Job Link", display_text="Open CML Job"
+                                ),
+                                "Adapter Name": st.column_config.TextColumn("Adapter Name"),
+                                "Model Name": st.column_config.TextColumn("Model Name"),
+                                "Dataset Name": st.column_config.TextColumn("Dataset Name"),
+                                "Prompt Name": st.column_config.TextColumn("Prompt Name")
+                            },
+                            use_container_width=True,
+                            height=590
+                        )
 
     with col2:
         st.subheader("View Jobs", divider='red')

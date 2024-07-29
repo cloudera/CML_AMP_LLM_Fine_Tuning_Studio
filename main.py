@@ -18,13 +18,15 @@ st.set_page_config(
     layout="wide"  # Set layout to wide
 )
 
-
 def apply_custom_css_for_tab():
     """
     Apply custom CSS for the tab styling to adjust font sizes.
     """
     css = '''
     <style>
+        body {
+            zoom: 0.78;  /* Adjust the zoom level to scale down the entire content */
+        }
         h3 {
             font-size: 1.1rem;  /* Adjust the font size as needed */
         }
@@ -35,6 +37,7 @@ def apply_custom_css_for_tab():
     '''
     st.markdown(css, unsafe_allow_html=True)
 
+apply_custom_css_for_tab()
 
 st.markdown("""
     <style>
@@ -115,4 +118,4 @@ with st.sidebar:
     with st.chat_message("ai", avatar="./resources/images/account_circle_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz48.png"):
         st.subheader(f" {project_owner}")
 
-apply_custom_css_for_tab()
+# apply_custom_css_for_tab()
