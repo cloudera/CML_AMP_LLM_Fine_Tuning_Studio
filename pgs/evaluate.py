@@ -9,7 +9,7 @@ import random
 import time
 from peft.peft_model import PeftModel
 import torch
-
+from ft.utils import get_device
 
 # TODO: fix this:
 # /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
@@ -46,7 +46,7 @@ with st.container(border=True):
         with st.spinner("Loading model..."):
             # CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto').to("cpu")
             CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(
-                current_model_metadata.huggingface_model_name, return_dict=True, device_map='auto')
+                current_model_metadata.huggingface_model_name, return_dict=True).to(get_device())
 
         model_adapters: List[AdapterMetadata] = get_state().adapters
         model_adapters: List[AdapterMetadata] = list(
@@ -147,7 +147,7 @@ def evaluate_fragment():
             tokenizer = AutoTokenizer.from_pretrained(current_model_metadata.huggingface_model_name)
 
         # input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to("cpu")
-        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt")
+        input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to(get_device())
 
         CURRENT_MODEL.disable_adapters()
 
