@@ -2,7 +2,7 @@ import streamlit as st
 
 
 with st.container(border=True):
-    col1, col2 = st.columns([1,17])
+    col1, col2 = st.columns([1, 17])
     with col1:
         col1.image("./resources/images/deployed_code_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
     with col2:

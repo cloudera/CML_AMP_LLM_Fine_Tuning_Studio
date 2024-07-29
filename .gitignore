@@ -173,3 +173,5 @@ cython_debug/
 .local/
 .vscode-server/
 .wget-hsts
+.vscode-server
+.vscode

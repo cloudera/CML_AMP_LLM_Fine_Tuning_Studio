@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from ft.dataset import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
 from typing import List
-from datasets import load_dataset
+from datasets import load_dataset_builder
 from ft.state import get_state
 from uuid import uuid4
 
@@ -44,7 +44,7 @@ class DatasetsManagerSimple(DatasetsManagerBase):
 
     def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
         """
-        Load a dataset into the App.
+        Retrieve dataset information without fully loading it into memory.
         """
 
         # Create a new dataset metadata for the imported dataset.
@@ -59,20 +59,22 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         )
 
         if request.type == DatasetType.HUGGINGFACE:
+            try:
+                # Get dataset information without loading it into memory.
+                dataset_builder = load_dataset_builder(request.huggingface_name)
+                dataset_info = dataset_builder.info
 
-            # Load the dataset into memory.
-            loaded_dataset = load_dataset(request.huggingface_name)
+                print(dataset_info)
 
-            # Lots of datasets have a train split for fine tuning. We will
-            # explicitly assume this is the case for the scope of this AMP.
-            if "train" in loaded_dataset:
-                loaded_dataset = loaded_dataset["train"]
+                # Extract features from the dataset info.
+                features = list(dataset_info.features.keys())
+                metadata.features = features
+                metadata.huggingface_name = request.huggingface_name
+                metadata.name = request.huggingface_name
+                metadata.description = dataset_info.description
 
-            # Extract out the fields.
-            features = loaded_dataset.column_names
-            metadata.features = features
-            metadata.huggingface_name = request.huggingface_name
-            metadata.name = request.huggingface_name
+            except Exception as e:
+                raise ValueError(f"Failed to load dataset. {e}")
 
         else:
             raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
