@@ -135,6 +135,13 @@ class StartFineTuningJobRequest(BaseModel):
     Amount of memory to allocate for this job (e.g., '16Gi').
     """
 
+    train_test_split: Optional[float] = None
+    """
+    Optional dataset test split to split the dataset into a training
+    dataset and an eval dataset. Evaluation datasets are used at epoch boundaries
+    during training to compute metrics and compte loss again.
+    """
+
 
 class StartFineTuningJobResponse(BaseModel):
     job: Optional[FineTuningJobMetadata] = None

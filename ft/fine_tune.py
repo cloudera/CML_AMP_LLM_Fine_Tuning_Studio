@@ -84,15 +84,17 @@ class AMPFineTuner:
     # Train/Fine-tune model with SFTTrainer and a provided dataset
     def train(
             self,
-            tuning_data,
-            dataset_text_field,
-            output_dir,
+            train_dataset: datasets.Dataset = None,
+            eval_dataset: datasets.Dataset = None,
+            dataset_text_field: str = None,
+            output_dir: str = None,
             packing=True,
             max_seq_length=1024,
             callbacks: list = None):
         trainer = SFTTrainer(
             model=self.model,
-            train_dataset=tuning_data,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
             peft_config=self.lora_config,
             tokenizer=self.tokenizer,
             dataset_text_field=dataset_text_field,
