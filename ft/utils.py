@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Any
 import pandas as pd
 import os
 import requests
-
+import torch 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
     """Get environment variable or return default value."""
@@ -39,3 +39,15 @@ def load_markdown_file(file_path: str) -> str:
     except FileNotFoundError:
         st.error(f"File not found: {file_path}")
         return ""
+
+
+def get_device() -> torch.device: 
+    """
+    Get the type of device used to load models and tensors during this session.
+    """
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    elif torch.backends.mps.is_available():
+        return torch.device('mps')
+    else:
+        return torch.device('cpu')
