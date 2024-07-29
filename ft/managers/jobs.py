@@ -112,6 +112,10 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
         arg_list.append("--learning_rate")
         arg_list.append(str(request.learning_rate))  # Convert to str
 
+        if request.train_test_split is not None:
+            arg_list.append("--train_test_split")
+            arg_list.append(str(request.train_test_split))
+
         cpu = request.cpu
         gpu = request.gpu
         memory = request.memory

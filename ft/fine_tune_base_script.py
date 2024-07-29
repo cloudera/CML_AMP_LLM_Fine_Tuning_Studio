@@ -6,11 +6,14 @@ import datasets
 from ft import fine_tune
 import argparse
 import os
+from typing import Tuple
 
 # Constants
 NUM_EPOCHS = 3
 LEARNING_RATE = 2e-4
 DATA_TEXT_FIELD = "prediction"
+TRAIN_TEST_SPLIT = 0.1
+SEED = 42
 
 # Parse arguments from environment variable
 arg_string = os.environ.get('JOB_ARGUMENTS', '')
@@ -32,6 +35,8 @@ parser.add_argument("--experimentid", help="UUID to use for experiment tracking"
 parser.add_argument("--out_dir", help="Output directory for the fine-tuned model", required=True)
 parser.add_argument("--num_epochs", type=int, default=NUM_EPOCHS, help="Epochs for fine tuning job")
 parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for fine tuning job")
+parser.add_argument("--train_test_split", type=float, default=TRAIN_TEST_SPLIT,
+                    help="Split of the existing dataset between training and testing.")
 
 args = parser.parse_args(arg_string.split())
 
@@ -91,6 +96,23 @@ def load_dataset(dataset_name, dataset_fraction=100):
         raise RuntimeError(f"Error loading dataset: {e}")
 
 
+def split_dataset(ds: datasets.Dataset, split_fraction: float = TRAIN_TEST_SPLIT,
+                  seed: int = SEED) -> Tuple[datasets.Dataset, datasets.Dataset]:
+    """
+    Split a dataset into two datasets given a split size and a random seed. This is
+    primarily used to create a train dataset and an evaluation dataset.
+
+    Parameters:
+        split_fraction (float): the dataset split. The first dataset returned will be of size S*(1-split_fraction).
+        seed (int): randomized seed for dataset splitting.
+
+    Returns:
+        Tuple[Dataset, Dataset], the two split datasets.
+    """
+    dataset_split = ds.train_test_split(test_size=split_fraction, shuffle=True, seed=SEED)
+    return dataset_split['train'], dataset_split['test']
+
+
 def map_dataset_with_prompt_template(dataset, prompt_template):
     """
     Maps a dataset with a given prompt template.
@@ -115,10 +137,23 @@ def map_dataset_with_prompt_template(dataset, prompt_template):
 # Load and map dataset
 try:
     prompt_text = Path(args.prompttemplate).read_text()
+
+    # Load the base dataset into memory
     dataset = load_dataset(args.dataset)
-    mapped_dataset = map_dataset_with_prompt_template(dataset, prompt_text)
+
+    # Split the above dataset into a training dataset and a testing dataset.
+    ds_train, ds_eval = split_dataset(dataset, args.train_test_split)
+
+    # Map both datasets with prompt templates
+    ds_train = map_dataset_with_prompt_template(ds_train, prompt_text)
+    ds_eval = map_dataset_with_prompt_template(ds_eval, prompt_text)
+
 except FileNotFoundError as e:
     raise RuntimeError(f"Error loading prompt template: {e}")
 
 # Start fine-tuning
-finetuner.train(mapped_dataset, DATA_TEXT_FIELD, args.out_dir)
+finetuner.train(
+    train_dataset=ds_train,
+    eval_dataset=ds_eval,
+    dataset_text_field=DATA_TEXT_FIELD,
+    output_dir=args.out_dir)

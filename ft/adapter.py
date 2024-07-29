@@ -70,7 +70,7 @@ class AdapterMetadata(BaseModel):
     used to determine if an adapter is completely trained or not.
     """
 
-    prompt_id: Optional[str] = None 
+    prompt_id: Optional[str] = None
     """
     Prompt ID of the prompt that was used to train this adapter.
     """
