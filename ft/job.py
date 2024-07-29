@@ -110,6 +110,31 @@ class StartFineTuningJobRequest(BaseModel):
     Automatically add the trained job as an adapter to the app.
     """
 
+    num_epochs: int
+    """
+    Number of epochs to run during fine-tuning.
+    """
+
+    learning_rate: float
+    """
+    Learning rate to use during fine-tuning.
+    """
+
+    cpu: int
+    """
+    Number of CPUs to allocate for this job.
+    """
+
+    gpu: int
+    """
+    Number of GPUs to allocate for this job.
+    """
+
+    memory: float
+    """
+    Amount of memory to allocate for this job (e.g., '16Gi').
+    """
+
 
 class StartFineTuningJobResponse(BaseModel):
     job: Optional[FineTuningJobMetadata] = None

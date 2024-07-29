@@ -10,6 +10,7 @@ from uuid import uuid4
 from ft.prompt import PromptMetadata
 from typing import List
 
+
 def display_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
@@ -17,8 +18,10 @@ def display_header():
             col1.image("./resources/images/chat_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
         with col2:
             col2.subheader('Prompts', divider='red')
-            col2.caption('Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.')
+            col2.caption(
+                'Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.')
     st.write("\n")
+
 
 def display_create_prompt():
     loaded_dataset = None
@@ -41,7 +44,7 @@ def display_create_prompt():
             cc1, cc2 = st.columns([1, 1])
             prompt_template = cc1.text_area("Prompt Template", height=300, label_visibility="collapsed")
 
-            prompt_output = None 
+            prompt_output = None
             if generate_example_button:
                 with st.spinner("Generating Prompt..."):
                     loaded_dataset = load_dataset(dataset.huggingface_name)
@@ -51,7 +54,12 @@ def display_create_prompt():
                 dataset_idx = loaded_dataset["train"][idx_random]
                 prompt_output = prompt_template.format(**dataset_idx)
 
-            cc2.text_area("Example Prompt", value=prompt_output, height=300, disabled=True, label_visibility="collapsed")
+            cc2.text_area(
+                "Example Prompt",
+                value=prompt_output,
+                height=300,
+                disabled=True,
+                label_visibility="collapsed")
 
             st.markdown("---")
             create_prompt = st.button("Create Prompt", type="primary", use_container_width=True)
@@ -65,6 +73,7 @@ def display_create_prompt():
                     st.error(f"Failed to create prompt: **{str(e)}**", icon=":material/error:")
                     st.toast(f"Failed to create prompt: **{str(e)}**", icon=":material/error:")
 
+
 def add_prompt(name, dataset_id, template):
     get_app().add_prompt(PromptMetadata(
         id=str(uuid4()),
@@ -73,6 +82,7 @@ def add_prompt(name, dataset_id, template):
         slots=None,
         prompt_template=template
     ))
+
 
 def display_available_prompts():
     prompts: List[PromptMetadata] = get_state().prompts
@@ -86,6 +96,7 @@ def display_available_prompts():
     for i, prompt in enumerate(prompts):
         container = col1 if i % 2 == 0 else col2
         display_prompt(prompt, container)
+
 
 def display_prompt(prompt: PromptMetadata, container):
     with container.container(border=True):
@@ -103,6 +114,7 @@ def display_prompt(prompt: PromptMetadata, container):
         if remove:
             get_app().remove_prompt(prompt.id)
             st.rerun()
+
 
 display_header()
 create_prompt_tab, available_prompts_tab = st.tabs(["**Create Prompt**", "**Available Prompts**"])

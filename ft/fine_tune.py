@@ -49,7 +49,7 @@ class AMPFineTuner:
 
         # transformers.TrainingArguments defaults
         self.training_args = TrainingArguments(
-            output_dir="outputs",
+            output_dir=f"outputs/{ft_job_uuid}",
             num_train_epochs=1,
             optim="paged_adamw_32bit",
             per_device_train_batch_size=1,

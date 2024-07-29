@@ -13,18 +13,18 @@ import pathlib
 
 class FineTuningJobsManagerBase(ABC):
     def __init__(self):
-        return
-
-    @abstractmethod
-    def list_fine_tuning_jobs():
         pass
 
     @abstractmethod
-    def get_fine_tuning_job(job_id: str) -> FineTuningJobMetadata:
+    def list_fine_tuning_jobs(self):
         pass
 
     @abstractmethod
-    def start_fine_tuning_job(request: StartFineTuningJobRequest):
+    def get_fine_tuning_job(self, job_id: str) -> FineTuningJobMetadata:
+        pass
+
+    @abstractmethod
+    def start_fine_tuning_job(self, request: StartFineTuningJobRequest):
         pass
 
 
@@ -32,15 +32,15 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
     def __init__(self):
         # TODO: Maybe pull this out to a central startup process
         # Set up clients and base job ids
-        # TODO: Also needs error handling/autrebuild of base job
+        # TODO: Also needs error handling/autorebuild of base job
         self.cml_api_client = cmlapi.default_client()
         self.project_id = os.getenv("CDSW_PROJECT_ID")
 
-    def list_fine_tuning_jobs():
+    def list_fine_tuning_jobs(self):
         pass
 
-    def get_fine_tuning_job(job_id: str) -> FineTuningJobMetadata:
-        return super().get_fine_tuning_job()
+    def get_fine_tuning_job(self, job_id: str) -> FineTuningJobMetadata:
+        return super().get_fine_tuning_job(job_id)
 
     def start_fine_tuning_job(self, request: StartFineTuningJobRequest):
         """
@@ -91,11 +91,9 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
         # Create aggregate config file containing all config object content
         # TODO: (lora, bnb, trainerargs, ?cmlworkersargs?)
         # Can we use pydantic here for serialization?
-        print(request)
         aggregate_config = {
             "bnb_config": request.bits_and_bytes_config.to_dict()
         }
-        print(aggregate_config)
         with open("%s/%s" % (job_dir, "job.config"), 'w') as aggregate_config_file:
             aggregate_config_file.write(json.dumps(aggregate_config, indent=4))
         arg_list.append("--aggregateconfig")
@@ -108,6 +106,16 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
         arg_list.append("--out_dir")
         arg_list.append(out_dir)
 
+        arg_list.append("--num_epochs")
+        arg_list.append(str(request.num_epochs))  # Convert to str
+
+        arg_list.append("--learning_rate")
+        arg_list.append(str(request.learning_rate))  # Convert to str
+
+        cpu = request.cpu
+        gpu = request.gpu
+        memory = request.memory
+
         # TODO: Support more args here: output-dir, bnb config, trainerconfig,
         # loraconfig, model, dataset, prompt_config, cpu, mem, gpu
         job_instance = cmlapi.models.create_job_request.CreateJobRequest(
@@ -115,12 +123,12 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             name=job_id,
             script=template_job.script,
             runtime_identifier=template_job.runtime_identifier,
-            cpu=2,
-            memory=8,
-            nvidia_gpu=1,
+            cpu=cpu,
+            memory=memory,
+            nvidia_gpu=gpu,
             arguments=" ".join(arg_list)
         )
-        print(job_instance)
+
         created_job = self.cml_api_client.create_job(
             body=job_instance,
             project_id=self.project_id
