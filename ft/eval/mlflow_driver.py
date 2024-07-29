@@ -1,9 +1,9 @@
-from eval.mlflow_evaluator import ModelEvaluator
-from eval.mlflow_logger import ModelLogger
-from eval.data_loader import Dataloader
+from ft.eval.mlflow_evaluator import ModelEvaluator
+from ft.eval.mlflow_logger import ModelLogger
+from ft.eval.data_loader import Dataloader
 from ft.pipeline import fetch_pipeline
 import pandas as pd
-from eval.eval_job import StartEvaluationRequest, EvaluationResponse
+from ft.eval.eval_job import StartEvaluationRequest, EvaluationResponse
 
 
 def driver(StartEvaluationRequest):
