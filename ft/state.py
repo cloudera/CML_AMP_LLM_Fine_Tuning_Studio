@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List
 from ft.dataset import DatasetMetadata
 from ft.job import FineTuningJobMetadata
+from ft.mlflow_job import MLflowEvaluationJobMetadata
 from ft.model import ModelMetadata, RegisteredModelMetadata
 from ft.prompt import PromptMetadata
 from ft.adapter import AdapterMetadata
@@ -44,6 +45,11 @@ class AppState(BaseModel):
     jobs: Optional[List[FineTuningJobMetadata]] = None
     """
     All available fine tuning jobs associated with the application
+    """
+
+    mlflow: Optional[List[MLflowEvaluationJobMetadata]] = None
+    """
+    All available mlflow jobs associated with the application
     """
 
     prompts: Optional[List[PromptMetadata]] = None

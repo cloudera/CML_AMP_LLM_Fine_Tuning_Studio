@@ -119,11 +119,11 @@ with ccol1:
             learning_rate = st.text_input("Learning Rate", value="2e-4", key="learning_rate")
         c1, c2, c3 = st.columns([1, 1, 2])
         with c1:
-            cpu = st.text_input("CPU", value="1", key="cpu")
+            cpu = st.text_input("CPU (vCPU)", value="2", key="cpu")
         with c2:
-            memory = st.text_input("Memory", value="4", key="memory")
+            memory = st.text_input("Memory (GiB)", value="8", key="memory")
         with c3:
-            gpu = st.selectbox("GPU", options=[1], index=0)
+            gpu = st.selectbox("GPU (NVIDIA)", options=[1], index=0)
 
         c1, c2 = st.columns([1, 1])
         lora_config = c1.text_area(
@@ -200,7 +200,7 @@ with ccol2:
                     min_value=0,
                     max_value=100,
                 ),
-                "Max Available": "Max Available"
+                "Max Available": "User Quota"
             },
             hide_index=True,
             use_container_width=True

@@ -8,73 +8,37 @@ import pandas as pd
 import os
 import requests
 import json
-import altair as alt
-
-# Function to read and return the trainer_state.json file
-
-
-def get_trainer_json_data(checkpoint_dir):
-    """
-    Search for the trainer_state.json file in the specified checkpoint_dir folder
-    and return its content as a dictionary.
-    """
-    file_path = os.path.join(checkpoint_dir, 'trainer_state.json')
-
-    if os.path.exists(file_path):
-        try:
-            with open(file_path, 'r') as file:
-                data = json.load(file)
-                return data
-        except Exception as e:
-            return {}
-    else:
-        return {}
-
-
-def list_checkpoints(job_id):
-    """
-    List all checkpoint folders for a given job_id in outputs/{job_id}.
-    """
-    try:
-        base_path = os.path.join('outputs', job_id)
-        checkpoints = [d for d in os.listdir(base_path) if d.startswith('checkpoint-')]
-        return checkpoints
-    except Exception as e:
-        return []
-
 
 # Container for the layout
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
     with col1:
-        col1.image("./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+        col1.image("./resources/images/monitoring_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
     with col2:
-        col2.subheader('Monitor Training Jobs')
-        st.caption("Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
+        col2.subheader('View MLflow Runs')
+        st.caption("Examine the MLflow evaluation results for adapters trained on foundation models, specifically for the datasets they were trained on.")
 
 st.write("\n\n")
 
 # Fetch current jobs from state
-current_jobs = get_state().jobs
+current_jobs = get_state().mlflow
 models = get_state().models
 adapters = get_state().adapters
 datasets = get_app().datasets.list_datasets()
-prompts = get_state().prompts
 
 # Create dictionaries for ID to name mapping
 model_dict = {model.id: model.name for model in models}
 adapter_dict = {adapter.id: adapter.name for adapter in adapters}
 dataset_dict = {dataset.id: dataset.name for dataset in datasets}
-prompt_dict = {prompt.id: prompt.name for prompt in prompts}
 
 # Check if there are any current jobs
 if not current_jobs:
-    st.info("No fine-tuning jobs triggered.", icon=":material/info:")
+    st.info("No MLflow jobs triggered.", icon=":material/info:")
 else:
-    col1, emptyCol, col2 = st.columns([30, 1, 22])
+    col1, emptyCol, col2 = st.columns([32, 1, 30])
     with col1:
+        st.subheader("MLflow Jobs List", divider='red')
         # Convert jobs to DataFrame
-        st.subheader("Jobs List", divider='red')
         try:
             jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
         except Exception as e:
@@ -126,11 +90,10 @@ else:
                         display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
                         display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
                         display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
-                        display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
 
                         # Filter for only columns we care about
                         display_df = display_df[['job_id', 'html_url', 'latest',
-                                                 'adapter_name', 'base_model_name', 'dataset_name', 'prompt_name']]
+                                                 'adapter_name', 'base_model_name', 'dataset_name']]
 
                         # Rename columns
                         display_df.rename(columns={
@@ -138,7 +101,6 @@ else:
                             'adapter_name': 'Adapter Name',
                             'base_model_name': 'Model Name',
                             'dataset_name': 'Dataset Name',
-                            'prompt_name': 'Prompt Name',
                             'latest': 'Status'
                         }, inplace=True)
 
@@ -204,46 +166,32 @@ else:
                             gridOptions=gridoptions,
                             enable_enterprise_modules=False,
                             allow_unsafe_jscode=True,
-                            height=590,
+                            height=540,
                             theme='alpine')
 
     with col2:
-        st.subheader("View Jobs", divider='red')
+        st.subheader("View MLflow Job", divider='red')
         # Extract cml_job_ids
         job_ids = [job.job_id for job in current_jobs]
 
         # Select a cml_job_id from the list
         selected_job_id = st.selectbox('Select Job ID', job_ids, index=0)
+        st.write("\n")
+        st.caption("**Evaluation Results**")
 
-        # Get the list of checkpoints for the selected job
-        checkpoints = list_checkpoints(selected_job_id)
+        # Find the job corresponding to the selected job_id
+        selected_job = next((job for job in current_jobs if job.job_id == selected_job_id), None)
 
-        if checkpoints:
-            # Select a checkpoint from the list
-            selected_checkpoint = st.selectbox('Select Checkpoint', checkpoints, index=0)
+        if selected_job:
+            # Get the evaluation CSV file path for the selected job
+            csv_file_path = os.path.join(selected_job.evaluation_dir, 'result_evaluation.csv')
 
-            # Display the trainer.json file for the selected checkpoint
-            training_data = get_trainer_json_data(os.path.join('outputs', selected_job_id, selected_checkpoint))
-
-            if training_data:
-                # Extract data for plotting
-                log_history = training_data.get("log_history", [])
-                if log_history:
-                    df = pd.DataFrame(log_history)
-                    # Plotting using altair for a logarithmic scale
-                    chart = alt.Chart(df).mark_line().encode(
-                        x='epoch',
-                        y=alt.Y('loss', scale=alt.Scale(type='log'))
-                    ).properties(
-                        width='container'
-                    )
-                    st.altair_chart(chart, use_container_width=True)
-                else:
-                    st.info("No log history found in the trainer_state.json file.")
-
-                with st.expander("Show Training Data"):
-                    st.json(training_data)
+            # Read the CSV file
+            if os.path.exists(csv_file_path):
+                df = pd.read_csv(csv_file_path)
+                # Display the dataframe in Streamlit
+                st.dataframe(df)
             else:
-                st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint}")
+                st.info("Evaluation file not found.")
         else:
-            st.info(f"No checkpoints found for Job: {selected_job_id}")
+            st.error("Selected job not found.")

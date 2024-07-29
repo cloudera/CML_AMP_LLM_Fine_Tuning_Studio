@@ -6,7 +6,8 @@ from typing import List, Optional, Dict, Any
 import pandas as pd
 import os
 import requests
-import torch 
+import torch
+
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
     """Get environment variable or return default value."""
@@ -41,7 +42,7 @@ def load_markdown_file(file_path: str) -> str:
         return ""
 
 
-def get_device() -> torch.device: 
+def get_device() -> torch.device:
     """
     Get the type of device used to load models and tensors during this session.
     """
