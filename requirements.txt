@@ -21,3 +21,4 @@ streamlit-aggrid==1.0.5
 pytest==8.2.2
 autopep8==2.3.1
 pytest-cov==5.0.0
+tiktoken==0.7.0
