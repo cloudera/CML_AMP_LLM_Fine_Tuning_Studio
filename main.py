@@ -25,7 +25,7 @@ def apply_custom_css_for_tab():
     css = '''
     <style>
         body {
-            zoom: 0.82;  /* Adjust the zoom level to scale down the entire content */
+            zoom: 1.00;  /* Change to adjust the zoom level to scale down the entire content, for testing only. Zoom breaks data_editor table drawing interaction offset */
         }
         h3 {
             font-size: 1.1rem;  /* Adjust the font size as needed */
