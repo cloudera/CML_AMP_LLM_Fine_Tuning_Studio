@@ -69,9 +69,28 @@ prompt_dict = {prompt.id: prompt.name for prompt in prompts}
 
 # Fetch current experiments tracked in CML
 cml_api_client = cmlapi.default_client()
-cml_experiments_list = cml_api_client.list_experiments(cml_project).to_dict()['experiments']
-cml_experiments_df = pd.DataFrame(cml_experiments_list)
-cml_experiments_df = cml_experiments_df[['id','name','artifact_location']]
+all_experiments = []
+page_token = None
+page_size = 10  # Set your desired page size here
+
+while True:
+    kwargs = {'page_size': page_size}
+    if page_token:
+        kwargs['page_token'] = page_token
+    
+    response = cml_api_client.list_experiments(
+        cml_project,
+        **kwargs
+    ).to_dict()
+    
+    all_experiments.extend(response['experiments'])
+    
+    page_token = response.get('next_page_token')
+    if not page_token:
+        break
+
+cml_experiments_df = pd.DataFrame(all_experiments)
+cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']]
 cml_experiments_df = cml_experiments_df.add_prefix('exp_')
 
 # Resolve real URL for each experiment
