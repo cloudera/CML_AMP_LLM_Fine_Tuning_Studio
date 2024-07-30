@@ -126,7 +126,7 @@ def map_dataset_with_prompt_template(dataset, prompt_template):
     """
     def ds_map(data):
         try:
-            data[DATA_TEXT_FIELD] = prompt_template.format(**data)
+            data[DATA_TEXT_FIELD] = prompt_template.format(**data) + finetuner.tokenizer.eos_token
         except KeyError as e:
             raise KeyError(f"Error formatting data with prompt template: {e}")
         return data
