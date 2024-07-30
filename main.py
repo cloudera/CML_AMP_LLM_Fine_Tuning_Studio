@@ -25,7 +25,7 @@ def apply_custom_css_for_tab():
     css = '''
     <style>
         body {
-            zoom: 0.78;  /* Adjust the zoom level to scale down the entire content */
+            zoom: 0.82;  /* Adjust the zoom level to scale down the entire content */
         }
         h3 {
             font-size: 1.1rem;  /* Adjust the font size as needed */

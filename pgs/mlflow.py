@@ -77,7 +77,7 @@ with ccol1:
 
         current_models = get_state().models
         model_idx = st.selectbox(
-            "Models",
+            "Base Models",
             range(len(current_models)),
             format_func=lambda x: current_models[x].name,
             index=None
@@ -124,13 +124,15 @@ with ccol1:
         )
 
         # Advanced options
-        c1, c2, c3 = st.columns([1, 1, 2])
+        st.markdown("---")
+        st.caption("**Advance Options**")
+        c1, c2= st.columns([1, 1])
         with c1:
             cpu = st.text_input("CPU(vCPU)", value="2", key="cpu")
         with c2:
             memory = st.text_input("Memory(GiB)", value="8", key="memory")
-        with c3:
-            gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
+
+        gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
 
         button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None
         start_job_button = st.button(
@@ -162,6 +164,15 @@ with ccol1:
                 st.toast(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
 
 with ccol2:
+    st.info(
+        """
+        This page allows you to run MLflow evaluation jobs on your fine-tuned models and their corresponding adapters.
+        The evaluation job will generate a detailed report on the performance of the adapter using a sample dataset.
+        You can view the complete evaluation report on the **View MLflow Runs** page.
+        """,
+        icon=":material/info:"
+    )
+    st.write("\n")
     ccol2.caption("**Resource Usage**")
     data = fetch_resource_usage_data(cdsw_api_url, cdsw_api_key)
     if data:
