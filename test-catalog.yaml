@@ -1,0 +1,24 @@
+name: FTStudio
+
+entries:
+  - title: CML Finetuning Studio
+    label: cml-ft-studio
+    short_description: |
+        Launch, track and export LLM PEFT Finetuning jobs from a single project interface. 
+    long_description: |
+        Launch, track and export LLM PEFT Finetuning jobs from a single project interface. 
+        ---------------------------
+        IMPORTANT: Please read the following before proceeding. This AMP includes or otherwise depends on certain third party software packages.  Information about such third party software packages are made available in the notice file associated with this AMP.  By configuring and launching this AMP, you will cause such third party software packages to be downloaded and installed into your environment, in some instances, from third parties' websites.  For each third party software package, please see the notice file and the applicable websites for more information, including the applicable license terms.
+        If you do not wish to download and install the third party software packages, do not configure, launch or otherwise use this AMP.  By configuring, launching or otherwise using the AMP, you acknowledge the foregoing statement and agree that Cloudera is not responsible or liable in any way for the third party software packages.
+    long_description_html: |
+        Launch, track and export LLM PEFT Finetuning jobs from a single project interface. 
+        <div style="margin-top:10px"><b>IMPORTANT:</b> Please read the following before proceeding.</div>
+        <div style="margin-top:10px">This AMP includes or otherwise depends on certain third party software packages.  Information about such third party software packages are made available in the notice file associated with this AMP.  By configuring and launching this AMP, you will cause such third party software packages to be downloaded and installed into your environment, in some instances, from third parties' websites.  For each third party software package, please see the notice file and the applicable websites for more information, including the applicable license terms.</div>
+        <div style="margin-top:10px">If you do not wish to download and install the third party software packages, do not configure, launch or otherwise use this AMP.  By configuring, launching or otherwise using the AMP, you acknowledge the foregoing statement and agree that Cloudera is not responsible or liable in any way for the third party software packages.</div>
+    image_path: >-
+      https://github.infra.cloudera.com/raw/jev/CML_AMP_Fine_Tuning_With_Streamlit_Prototype/main/images/ft-studio-sticker-colorfix.png
+    tags:
+      - PEFT
+      - Finetune
+    git_url: 'https://github.infra.cloudera.com/jev/CML_AMP_Fine_Tuning_With_Streamlit_Prototype'
+    is_prototype: true

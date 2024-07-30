@@ -88,6 +88,8 @@ pg = st.navigation([
 pg.run()
 
 with st.sidebar:
+    st.image("images/ft-studio-colorfix.png")
+    
     st.subheader("")
     st.markdown("Navigation")
     st.page_link("pgs/home.py", label="Home", icon=":material/home:")
