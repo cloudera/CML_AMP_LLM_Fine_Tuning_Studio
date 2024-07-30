@@ -29,7 +29,7 @@ with st.container(border=True):
 
     current_models = get_state().models
     model_idx = st.selectbox(
-        "Models",
+        "Base Models",
         range(len(current_models)),
         format_func=lambda x: current_models[x].name,
         index=None

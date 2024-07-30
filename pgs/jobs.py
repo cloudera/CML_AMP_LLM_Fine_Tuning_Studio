@@ -215,8 +215,16 @@ else:
                                 "Dataset Name": st.column_config.TextColumn("Dataset Name"),
                                 "Prompt Name": st.column_config.TextColumn("Prompt Name")
                             },
-                            use_container_width=True,
-                            height=590
+                            height=500,
+                            hide_index=True
+                        )
+
+                        st.info(
+                            """
+                            Adapters generated from the fine-tuning job are available in the **View Base Models** page.
+                            Each adapter is associated with the specific base model it was trained on.
+                            """,
+                            icon=":material/info:"
                         )
 
     with col2:
@@ -258,4 +266,4 @@ else:
             else:
                 st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint}")
         else:
-            st.info(f"No checkpoints found for Job: {selected_job_id}")
+            st.info(f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to complete", icon=":material/info:")

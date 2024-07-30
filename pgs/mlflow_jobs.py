@@ -122,8 +122,8 @@ else:
                                 "base_model_name": st.column_config.TextColumn("Base Model"),
                                 "dataset_name": st.column_config.TextColumn("Dataset")
                             },
-                            use_container_width=True,
-                            height=540
+                            height=540,
+                            hide_index=True
                         )
 
     with col2:
@@ -147,8 +147,8 @@ else:
             if os.path.exists(csv_file_path):
                 df = pd.read_csv(csv_file_path)
                 # Display the dataframe in Streamlit
-                st.dataframe(df)
+                st.dataframe(df, hide_index=True)
             else:
-                st.info("Evaluation file not found.")
+                st.info("**Evaluation report** is not available yet. Please wait for MLflow run to complete.", icon=':material/info:')
         else:
             st.error("Selected job not found.")
