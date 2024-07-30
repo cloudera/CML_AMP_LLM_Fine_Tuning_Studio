@@ -6,6 +6,7 @@ import os
 import requests
 import json
 import altair as alt
+import cmlapi
 
 # Function to read and return the trainer_state.json file
 def get_trainer_json_data(checkpoint_dir):
@@ -49,6 +50,10 @@ with st.container(border=True):
 
 st.write("\n\n")
 
+# Initialize CML API v2 Client
+cml_api_client = cmlapi.default_client()
+cml_project = os.getenv("CDSW_PROJECT_ID")
+
 # Fetch current jobs from state
 current_jobs = get_state().jobs
 models = get_state().models
@@ -61,6 +66,18 @@ model_dict = {model.id: model.name for model in models}
 adapter_dict = {adapter.id: adapter.name for adapter in adapters}
 dataset_dict = {dataset.id: dataset.name for dataset in datasets}
 prompt_dict = {prompt.id: prompt.name for prompt in prompts}
+
+# Fetch current experiments tracked in CML
+cml_api_client = cmlapi.default_client()
+cml_experiments_list = cml_api_client.list_experiments(cml_project).to_dict()['experiments']
+cml_experiments_df = pd.DataFrame(cml_experiments_list)
+cml_experiments_df = cml_experiments_df[['id','name','artifact_location']]
+cml_experiments_df = cml_experiments_df.add_prefix('exp_')
+
+# Resolve real URL for each experiment
+proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
+cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
+
 
 # Check if there are any current jobs
 if not current_jobs:
@@ -116,6 +133,13 @@ else:
                             cml_jobs_list_df,
                             left_on='cml_job_id',
                             right_on='public_identifier')
+                        
+                        # Merge the DataFrame for experiments
+                        display_df = pd.merge(
+                            display_df,
+                            cml_experiments_df,
+                            left_on='job_id',
+                            right_on='exp_name')
 
                         # Replace IDs with names using the dictionaries
                         display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
@@ -125,8 +149,9 @@ else:
 
                         # Filter for only columns we care about
                         display_df = display_df[['job_id', 'html_url', 'latest',
-                                                 'adapter_name', 'base_model_name', 'dataset_name', 'prompt_name']]
-
+                                                 'adapter_name', 'base_model_name', 'dataset_name',
+                                                 'prompt_name', 'exp_id']]
+                        
                         # Rename columns
                         display_df.rename(columns={
                             'job_id': 'Job ID',
@@ -150,7 +175,7 @@ else:
 
                         # Display the grid with the merged and filtered dataframe
                         st.data_editor(
-                            display_df[["Job ID", "status", "html_url", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
+                            display_df[["Job ID", "status", "html_url", "exp_id", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
                             column_config={
                                 "Job ID": st.column_config.TextColumn("Job ID"),
                                 "status": st.column_config.ProgressColumn(
@@ -162,6 +187,9 @@ else:
                                 ),
                                 "html_url": st.column_config.LinkColumn(
                                     "CML Job Link", display_text="Open CML Job"
+                                ),
+                                "exp_id": st.column_config.LinkColumn(
+                                    "CML Exp Link", display_text="Open CML Exp"
                                 ),
                                 "Adapter Name": st.column_config.TextColumn("Adapter Name"),
                                 "Model Name": st.column_config.TextColumn("Model Name"),
