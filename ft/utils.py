@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import requests
 import torch
+from huggingface_hub import login
 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
@@ -52,3 +53,17 @@ def get_device() -> torch.device:
         return torch.device('mps')
     else:
         return torch.device('cpu')
+
+
+def attempt_hf_login(access_token):
+    # Try to log in to HF hub to access gated models for fine tuning.
+    try:
+        if access_token is not None:
+            print("Attempting HF Login...")
+            print("HF token from arguments: ", access_token)
+            login(access_token)
+        else:
+            print("HF Access token not provided. Cannot use gated models.")
+    except Exception as e:
+        print("Could not log in to HF! Cannot use gated models.")
+        print(e)

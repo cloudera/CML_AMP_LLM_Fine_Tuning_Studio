@@ -44,7 +44,7 @@ class AMPFineTuner:
             base_model,
             quantization_config=bnb_config,
             device_map='auto',
-            use_auth_token=auth_token,
+            token=auth_token,
         )
 
         # transformers.TrainingArguments defaults
