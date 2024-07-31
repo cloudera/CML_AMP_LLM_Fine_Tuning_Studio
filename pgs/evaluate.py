@@ -3,7 +3,7 @@ from ft.state import get_state
 from ft.app import get_app
 from ft.adapter import *
 from typing import *
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from datasets import load_dataset
 import random
 import os
@@ -47,8 +47,11 @@ with st.container(border=True):
         current_model_metadata = current_models[model_idx]
 
         with st.spinner("Loading model..."):
+            bnb_config = BitsAndBytesConfig()
+            bnb_config.load_in_4bit = True
+            bnb_config.bnb_4bit_compute_dtype = torch.float16
             CURRENT_MODEL = AutoModelForCausalLM.from_pretrained(
-                current_model_metadata.huggingface_model_name, return_dict=True).to(get_device())
+                current_model_metadata.huggingface_model_name, quantization_config=bnb_config, return_dict=True)
 
         model_adapters: List[AdapterMetadata] = get_state().adapters
         model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
