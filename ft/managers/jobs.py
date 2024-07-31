@@ -116,6 +116,11 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             arg_list.append("--train_test_split")
             arg_list.append(str(request.train_test_split))
 
+        hf_token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN")
+        if (not hf_token == "") and (hf_token is not None):
+            arg_list.append("--hf_token")
+            arg_list.append(hf_token)
+
         cpu = request.cpu
         gpu = request.gpu
         memory = request.memory

@@ -15,6 +15,10 @@ environment_variables:
     default: "data/adapters/"
     description: >-
       The directory containing the reproduced LoRA adapters created by the fine-tuning jobs in this project. Also the location to look for any custom LoRA adapters.
+  HUGGINGFACE_ACCESS_TOKEN:
+    default: ""
+    description: >-
+      In order to access Huggingface gated models, please create a Huggingface Access Token. Log in to Huggingface -> Settings -> Access Tokens.
 
 runtimes:
   - editor: PBJ Workbench

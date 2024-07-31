@@ -7,6 +7,7 @@ from ft import fine_tune
 import argparse
 import os
 from typing import Tuple
+from huggingface_hub import login
 
 # Constants
 NUM_EPOCHS = 3
@@ -37,8 +38,22 @@ parser.add_argument("--num_epochs", type=int, default=NUM_EPOCHS, help="Epochs f
 parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for fine tuning job")
 parser.add_argument("--train_test_split", type=float, default=TRAIN_TEST_SPLIT,
                     help="Split of the existing dataset between training and testing.")
+parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
 
 args = parser.parse_args(arg_string.split())
+
+# Try to log in to HF hub to access gated models for fine tuning.
+try:
+    if args.hf_token is not None:
+        print("Attempting HF Login...")
+        print("HF token from arguments: ", args.hf_token)
+        login(args.hf_token)
+    else:
+        print("HF Access token not provided. Cannot use gated models.")
+except Exception as e:
+    print("Could not log in to HF!")
+    print(e)
+
 
 # Load aggregate config file
 try:
