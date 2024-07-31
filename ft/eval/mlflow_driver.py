@@ -11,7 +11,7 @@ def driver(StartEvaluationRequest):
     dataset_name = StartEvaluationRequest.dataset_name
     base_model_name = StartEvaluationRequest.base_model_name
     adapter_name = StartEvaluationRequest.adapter_path
-    device = "gpu"
+    device = "cuda"
 
     dataloader = Dataloader()
     logger = ModelLogger()
