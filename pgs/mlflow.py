@@ -19,6 +19,7 @@ from ft.utils import get_env_variable, fetch_resource_usage_data
 from typing import List, Optional, Dict, Any
 from ft.adapter import *
 
+project_owner = get_env_variable('PROJECT_OWNER', 'User')
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
@@ -174,7 +175,7 @@ with ccol2:
     )
     st.write("\n")
     ccol2.caption("**Resource Usage**")
-    data = fetch_resource_usage_data(cdsw_api_url, cdsw_api_key)
+    data = fetch_resource_usage_data(cdsw_api_url, project_owner, cdsw_api_key)
     if data:
         df = process_resource_usage_data(data)
         st.data_editor(

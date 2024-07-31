@@ -30,19 +30,19 @@ def display_import_section():
 
 def display_huggingface_import():
     col1, col2 = st.columns([4, 1])
-    import_hf_dataset_name = col1.text_input(
+    import_hf_model_name = col1.text_input(
         'Model Name',
         placeholder="organization/model",
         label_visibility='collapsed')
-    import_hf_dataset = col2.button("Import", type="primary", use_container_width=True)
+    import_hf_model = col2.button("Import", type="primary", use_container_width=True)
 
-    if import_hf_dataset:
-        if import_hf_dataset_name:
+    if import_hf_model:
+        if import_hf_model_name:
             with st.spinner("Loading Model..."):
                 try:
                     get_app().import_model(ImportModelRequest(
                         type=ModelType.HUGGINGFACE,
-                        huggingface_name=import_hf_dataset_name
+                        huggingface_name=import_hf_model_name
                     ))
                     st.success(
                         "Model imported successfully. Please check **View Models** page!",

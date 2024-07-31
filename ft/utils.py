@@ -21,9 +21,9 @@ def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
     return value
 
 
-def fetch_resource_usage_data(host: str, api_key: str) -> Optional[Dict[str, Any]]:
+def fetch_resource_usage_data(host: str, project_owner: str, api_key: str) -> Optional[Dict[str, Any]]:
     """Fetch data from API and handle errors."""
-    url = f"{host}/users/suryakant/resources-usage"
+    url = f"{host}/users/{project_owner}/resources-usage"
     try:
         res = requests.get(url, headers={"Content-Type": "application/json"}, auth=(api_key, ""))
         res.raise_for_status()

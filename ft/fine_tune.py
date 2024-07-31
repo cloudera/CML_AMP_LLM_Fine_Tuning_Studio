@@ -2,7 +2,13 @@ from peft import get_peft_model
 import datasets
 import mlflow
 from trl import SFTTrainer
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, DataCollatorForLanguageModeling
+from transformers import (
+    AutoTokenizer, 
+    AutoModelForCausalLM, 
+    BitsAndBytesConfig, 
+    TrainingArguments, 
+    DataCollatorForLanguageModeling
+)
 import bitsandbytes as bnb
 import torch.nn as nn
 import torch
@@ -11,7 +17,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["BITSANDBYTES_NOWELCOME"] = "1"
 os.environ["DATASETS_VERBOSITY"] = "error"
 
-
 """
 Fine Tuner facade.
 
@@ -19,24 +24,19 @@ Pulled from:
 https://github.com/cloudera/CML_AMP_Finetune_Foundation_Model_Multiple_Tasks
 """
 
-
 def get_unique_cache_dir():
     # Use a cache dir specific to this session, since workers and sessions will share project files
     return "~/.cache/" + os.environ['CDSW_ENGINE_ID'] + "/huggingface/datasets"
 
-
 class AMPFineTuner:
-
     # Load basemodel from huggingface
     # Default: bigscience/bloom-1b1
     def __init__(self, base_model, auth_token="", ft_job_uuid="", bnb_config=BitsAndBytesConfig()):
-
         mlflow.set_experiment(ft_job_uuid)
 
         # Load the base model and tokenizer
         print("Load the base model and tokenizer...\n")
         self.tokenizer = AutoTokenizer.from_pretrained(base_model, use_auth_token=auth_token)
-
         self.tokenizer.pad_token = self.tokenizer.eos_token
         compute_dtype = getattr(torch, "float16")
 
@@ -61,11 +61,13 @@ class AMPFineTuner:
             logging_steps=1,
             lr_scheduler_type="constant",
             disable_tqdm=True,
+            evaluation_strategy="epoch",
+            eval_steps=1,
+            save_strategy="epoch",
             report_to='mlflow',
         )
 
     # Use PEFT library to set LoRA training config and get trainable peft model
-
     def set_lora_config(self, lora_config):
         trainable_params = 0
         all_param = 0
@@ -78,7 +80,6 @@ class AMPFineTuner:
         )
 
         self.lora_config = lora_config
-
         self.model = get_peft_model(self.model, self.lora_config)
 
     # Train/Fine-tune model with SFTTrainer and a provided dataset
@@ -91,6 +92,7 @@ class AMPFineTuner:
             packing=True,
             max_seq_length=1024,
             callbacks: list = None):
+
         trainer = SFTTrainer(
             model=self.model,
             train_dataset=train_dataset,
@@ -108,6 +110,7 @@ class AMPFineTuner:
         print("Begin Training....")
         trainer.train()
         print("Training Complete!")
-        # Will only save from the main process.
-        # This works for peft models thanks to https://github.com/huggingface/transformers/pull/24073
+
+        # Save the model and the tokenizer.
         trainer.save_model(output_dir)
+        

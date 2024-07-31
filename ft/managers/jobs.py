@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import uuid4
 from typing import List
 
-from ft.job import FineTuningJobMetadata, StartFineTuningJobRequest, StartFineTuningJobResponse
+from ft.job import FineTuningJobMetadata, StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningWorkerProps
 from ft.state import get_state, AppState, update_state
 from ft.adapter import AdapterMetadata, AdapterType
 import cmlapi
@@ -162,7 +162,14 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             dataset_id=request.dataset_id,
             prompt_id=request.prompt_id,
             num_workers=1,
-            cml_job_id=created_job.id
+            cml_job_id=created_job.id,
+            num_epochs=request.num_epochs,
+            learning_rate=request.learning_rate,
+            worker_props=FineTuningWorkerProps(
+                num_cpu=request.cpu,
+                gpu=request.gpu,
+                memory=request.memory
+            )
         )
 
         if request.auto_add_adapter:

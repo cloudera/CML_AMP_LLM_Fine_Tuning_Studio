@@ -29,12 +29,12 @@ adapter_dict = {adapter.id: adapter.name for adapter in adapters}
 dataset_dict = {dataset.id: dataset.name for dataset in datasets}
 
 # Check if there are any current jobs
-if not current_jobs:
-    st.info("No MLflow jobs triggered.", icon=":material/info:")
-else:
-    col1, emptyCol, col2 = st.columns([32, 1, 30])
-    with col1:
-        st.subheader("MLflow Jobs List", divider='red')
+tab1, tab2 = st.tabs(["**MLflow Jobs List**", "**View MLflow Runs**"])
+
+with tab1:
+    if not current_jobs:
+        st.info("No MLflow jobs triggered.", icon=":material/info:")
+    else:
         # Convert jobs to DataFrame
         try:
             jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
@@ -90,7 +90,7 @@ else:
 
                         # Filter for only columns we care about
                         display_df = display_df[['job_id', 'html_url', 'latest',
-                                                 'adapter_name', 'base_model_name', 'dataset_name']]
+                                                'adapter_name', 'base_model_name', 'dataset_name']]
 
                         status_mapping = {
                             "succeeded": 100,
@@ -123,11 +123,14 @@ else:
                                 "dataset_name": st.column_config.TextColumn("Dataset")
                             },
                             height=540,
-                            hide_index=True
+                            hide_index=True,
+                            use_container_width=True
                         )
 
-    with col2:
-        st.subheader("View MLflow Job", divider='red')
+with tab2:
+    if not current_jobs:
+        st.info("No MLflow jobs triggered.", icon=":material/info:")
+    else:
         # Extract cml_job_ids
         job_ids = [job.job_id for job in current_jobs]
 
@@ -147,7 +150,7 @@ else:
             if os.path.exists(csv_file_path):
                 df = pd.read_csv(csv_file_path)
                 # Display the dataframe in Streamlit
-                st.dataframe(df, hide_index=True)
+                st.data_editor(df, hide_index=True)
             else:
                 st.info("**Evaluation report** is not available yet. Please wait for MLflow run to complete.", icon=':material/info:')
         else:

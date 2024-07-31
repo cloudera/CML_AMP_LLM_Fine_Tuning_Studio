@@ -21,6 +21,7 @@ from typing import List, Optional, Dict, Any
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
+project_owner = get_env_variable('PROJECT_OWNER', 'User')
 
 
 def process_resource_usage_data(data: Dict[str, Any]) -> pd.DataFrame:
@@ -186,7 +187,7 @@ with ccol2:
     The button will be enabled only when all required fields are filled out.
     """)
     ccol2.caption("**Resource Usage**")
-    data = fetch_resource_usage_data(cdsw_api_url, cdsw_api_key)
+    data = fetch_resource_usage_data(cdsw_api_url, project_owner, cdsw_api_key)
     if data:
         df = process_resource_usage_data(data)
         st.data_editor(

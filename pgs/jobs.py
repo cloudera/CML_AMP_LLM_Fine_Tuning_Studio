@@ -7,6 +7,7 @@ import requests
 import json
 import altair as alt
 import cmlapi
+import plotly.graph_objects as go
 
 # Function to read and return the trainer_state.json file
 def get_trainer_json_data(checkpoint_dir):
@@ -39,17 +40,6 @@ def list_checkpoints(job_id):
         return []
 
 
-# Container for the layout
-with st.container(border=True):
-    col1, col2 = st.columns([1, 17])
-    with col1:
-        col1.image("./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
-    with col2:
-        col2.subheader('Monitor Training Jobs')
-        st.caption("Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
-
-st.write("\n\n")
-
 # Initialize CML API v2 Client
 cml_api_client = cmlapi.default_client()
 cml_project = os.getenv("CDSW_PROJECT_ID")
@@ -68,7 +58,6 @@ dataset_dict = {dataset.id: dataset.name for dataset in datasets}
 prompt_dict = {prompt.id: prompt.name for prompt in prompts}
 
 # Fetch current experiments tracked in CML
-cml_api_client = cmlapi.default_client()
 all_experiments = []
 page_token = None
 page_size = 10  # Set your desired page size here
@@ -97,15 +86,26 @@ cml_experiments_df = cml_experiments_df.add_prefix('exp_')
 proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
 cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
 
-
-# Check if there are any current jobs
-if not current_jobs:
-    st.info("No fine-tuning jobs triggered.", icon=":material/info:")
-else:
-    col1, emptyCol, col2 = st.columns([30, 1, 22])
+# Container for the layout
+with st.container(border=True):
+    col1, col2 = st.columns([1, 17])
     with col1:
+        col1.image("./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+    with col2:
+        col2.subheader('Monitor Training Jobs')
+        st.caption("Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
+
+st.write("\n")
+
+# Streamlit tabs
+tab1, tab2 = st.tabs(["**Jobs List**", "**View Jobs**"])
+
+with tab1:
+    # Check if there are any current jobs
+    if not current_jobs:
+        st.info("No fine-tuning jobs triggered.", icon=":material/info:")
+    else:
         # Convert jobs to DataFrame
-        st.subheader("Jobs List", divider='red')
         try:
             jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
         except Exception as e:
@@ -168,8 +168,8 @@ else:
 
                         # Filter for only columns we care about
                         display_df = display_df[['job_id', 'html_url', 'latest',
-                                                 'adapter_name', 'base_model_name', 'dataset_name',
-                                                 'prompt_name', 'exp_id']]
+                                                    'adapter_name', 'base_model_name', 'dataset_name',
+                                                    'prompt_name', 'exp_id']]
                         
                         # Rename columns
                         display_df.rename(columns={
@@ -216,7 +216,8 @@ else:
                                 "Prompt Name": st.column_config.TextColumn("Prompt Name")
                             },
                             height=500,
-                            hide_index=True
+                            hide_index=True,
+                            use_container_width=True
                         )
 
                         st.info(
@@ -227,42 +228,144 @@ else:
                             icon=":material/info:"
                         )
 
-    with col2:
-        st.subheader("View Jobs", divider='red')
-        # Extract cml_job_ids
+with tab2:
+    # Check if there are any current jobs
+    if not current_jobs:
+        st.info("No fine-tuning jobs triggered.", icon=":material/info:")
+    else:
+        col1, col2, col3 = st.columns([2, 1, 3])
         job_ids = [job.job_id for job in current_jobs]
 
         # Select a cml_job_id from the list
-        selected_job_id = st.selectbox('Select Job ID', job_ids, index=0)
+        selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
 
-        # Get the list of checkpoints for the selected job
-        checkpoints = list_checkpoints(selected_job_id)
+        # Get the list of checkpoints for the selected job and sort them numerically
+        checkpoints = sorted(list_checkpoints(selected_job_id), key=lambda x: int(x.split('-')[-1]))
 
         if checkpoints:
             # Select a checkpoint from the list
-            selected_checkpoint = st.selectbox('Select Checkpoint', checkpoints, index=0)
+            selected_checkpoint = col2.selectbox('Select Checkpoint', checkpoints, index=0)
 
             # Display the trainer.json file for the selected checkpoint
-            training_data = get_trainer_json_data(os.path.join('outputs', selected_job_id, selected_checkpoint))
+            trainer_json_path = os.path.join('outputs', selected_job_id, selected_checkpoint, 'trainer_state.json')
+            try:
+                with open(trainer_json_path, 'r') as file:
+                    training_data = json.load(file)
+            except FileNotFoundError:
+                st.error("File not found.")
+                training_data = None
 
             if training_data:
-                # Extract data for plotting
                 log_history = training_data.get("log_history", [])
-                if log_history:
-                    df = pd.DataFrame(log_history)
-                    # Plotting using altair for a logarithmic scale
-                    chart = alt.Chart(df).mark_line().encode(
-                        x='epoch',
-                        y=alt.Y('loss', scale=alt.Scale(type='log'))
-                    ).properties(
-                        width='container'
+                df = pd.DataFrame(log_history)
+
+                # Ensure the 'eval_loss' column exists without forward-filling
+                if 'eval_loss' not in df.columns:
+                    df['eval_loss'] = pd.NA  # Ensure the column exists
+
+                # Replace pd.NA with None
+                df = df.where(pd.notnull(df), None)
+
+                if not df.empty:
+                    # Separate dataframes for loss and eval_loss
+                    loss_df = df[['epoch', 'loss']].dropna()
+                    eval_loss_df = df[['epoch', 'eval_loss']].dropna()
+
+                    fig_loss = go.Figure()
+                    fig_eval_loss = go.Figure()
+
+                    # Add Loss trace
+                    fig_loss.add_trace(go.Scatter(
+                        x=loss_df['epoch'],
+                        y=loss_df['loss'],
+                        mode='lines+markers',
+                        name='Loss',
+                        line=dict(color='blue'),
+                        hovertemplate='Epoch: %{x}<br>Loss: %{y}<extra></extra>'
+                    ))
+
+                    # Add Evaluation Loss trace
+                    fig_eval_loss.add_trace(go.Scatter(
+                        x=eval_loss_df['epoch'],
+                        y=eval_loss_df['eval_loss'],
+                        mode='lines+markers',
+                        name='Evaluation Loss',
+                        line=dict(color='red'),
+                        hovertemplate='Epoch: %{x}<br>Evaluation Loss: %{y}<extra></extra>'
+                    ))
+
+                    # Update layout for both figures
+                    fig_loss.update_layout(
+                        title='Training Loss',
+                        xaxis_title='Epoch',
+                        yaxis_title='Loss',
+                        yaxis_type='log',
+                        height=500,
+                        legend=dict(
+                            orientation='h',
+                            yanchor='bottom',
+                            y=1.02,
+                            xanchor='right',
+                            x=1
+                        )
                     )
-                    st.altair_chart(chart, use_container_width=True)
+
+                    fig_eval_loss.update_layout(
+                        title='Evaluation Loss',
+                        xaxis_title='Epoch',
+                        yaxis_title='Evaluation Loss',
+                        yaxis_type='log',
+                        height=500,
+                        legend=dict(
+                            orientation='h',
+                            yanchor='bottom',
+                            y=1.02,
+                            xanchor='right',
+                            x=1
+                        )
+                    )
+
+                    # Create separate columns for charts and training data
+                    col11, col12 = st.columns([7,3])
+                    with col11:
+                        chart_col1, chart_col2 = st.columns([5, 5])
+                        with chart_col1:
+                            st.plotly_chart(fig_loss, use_container_width=True)
+                        with chart_col2:
+                            st.plotly_chart(fig_eval_loss, use_container_width=True)
+
+                    with col12:
+                        st.json(training_data)
+
+                    col21, col22 = st.columns([7,3])
+                    with col11:
+                        st.caption("Job Metadata")
+
+                        # Find the selected job metadata
+                        selected_job = next((job for job in current_jobs if job.job_id == selected_job_id), None)
+
+                        if selected_job:                        
+                            # Prepare data for display in Streamlit data editor
+                            job_data = {
+                                "Epochs": [selected_job.num_epochs],
+                                "Learning Rate": [selected_job.learning_rate],
+                                "CPU": [selected_job.worker_props.num_cpu],
+                                "GPU": [selected_job.worker_props.num_gpu],
+                                "Memory": [selected_job.worker_props.num_memory]
+                            }
+
+                            # Convert data to DataFrame for display
+                            job_df = pd.DataFrame(job_data)
+                            
+                            # Display data editor
+                            st.data_editor(job_df, use_container_width=True, hide_index=True)
+                        else:
+                            st.error("Selected job not found.")
+
+                    with col12:
+                        st.json(training_data)
                 else:
                     st.info("No log history found in the trainer_state.json file.")
-
-                with st.expander("Show Training Data"):
-                    st.json(training_data)
             else:
                 st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint}")
         else:
