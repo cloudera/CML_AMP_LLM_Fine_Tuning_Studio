@@ -7,7 +7,7 @@ from ft import fine_tune
 import argparse
 import os
 from typing import Tuple
-from huggingface_hub import login
+from ft.utils import attempt_hf_login
 
 # Constants
 NUM_EPOCHS = 3
@@ -42,18 +42,8 @@ parser.add_argument("--hf_token", help="Huggingface access token to use for gate
 
 args = parser.parse_args(arg_string.split())
 
-# Try to log in to HF hub to access gated models for fine tuning.
-try:
-    if args.hf_token is not None:
-        print("Attempting HF Login...")
-        print("HF token from arguments: ", args.hf_token)
-        login(args.hf_token)
-    else:
-        print("HF Access token not provided. Cannot use gated models.")
-except Exception as e:
-    print("Could not log in to HF!")
-    print(e)
-
+# Attempt log in to huggingface
+attempt_hf_login(args.hf_token)
 
 # Load aggregate config file
 try:
@@ -72,7 +62,8 @@ except KeyError as e:
 finetuner = fine_tune.AMPFineTuner(
     base_model=args.basemodel,
     ft_job_uuid=args.experimentid,
-    bnb_config=bnb_config
+    bnb_config=bnb_config,
+    auth_token=args.hf_token,
 )
 
 # Set LoRA training configuration
@@ -94,7 +85,7 @@ finetuner.training_args.max_grad_norm = 0.3
 finetuner.training_args.learning_rate = args.learning_rate
 
 
-def load_dataset(dataset_name, dataset_fraction=1):
+def load_dataset(dataset_name, dataset_fraction=100):
     """
     Loads a dataset from Huggingface, optionally sampling a fraction of it.
 

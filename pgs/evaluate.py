@@ -9,6 +9,11 @@ import random
 import os
 import torch
 from ft.utils import get_device
+from ft.utils import attempt_hf_login
+
+# Attempt to log in to huggingface for gated models
+hf_token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN")
+attempt_hf_login(hf_token)
 
 # TODO: fix this:
 # /Users/jev/miniconda3/envs/jev/lib/python3.10/site-packages/pydantic/_internal/_fields.py:161: UserWarning: Field "model_id" has conflict with protected namespace "model_".
