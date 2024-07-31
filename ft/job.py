@@ -66,6 +66,15 @@ class FineTuningJobMetadata(BaseModel):
     Properties of each worker that will be spawned up.
     """
 
+    num_epochs: Optional[int] = 10
+    """
+    Number of epochs to run during fine-tuning.
+    """
+
+    learning_rate: Optional[float] = 2e-4
+    """
+    Learning rate to use during fine-tuning.
+    """
 
 class StartFineTuningJobRequest(BaseModel):
 

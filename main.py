@@ -24,38 +24,30 @@ def apply_custom_css_for_tab():
     """
     css = '''
     <style>
-        body {
-            zoom: 1.00;  /* Change to adjust the zoom level to scale down the entire content, for testing only. Zoom breaks data_editor table drawing interaction offset */
-        }
         h3 {
             font-size: 1.1rem;  /* Adjust the font size as needed */
         }
         .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
             font-size: 0.9rem;
         }
+        [data-testid="stHeader"] {
+            color: #4CAF50; /* Change text color */
+            background-color: #f0f0f0; /* Change background color */
+        }
+        /* Target the sidebar content using data-testid attribute */
+        [data-testid="stSidebarContent"] {
+            background: #16262c;  /* Shiny black gradient */
+            color: white;         /* Change text color to white for better contrast */
+        }
+        /* Ensure all text elements inside the sidebar are white */
+        [data-testid="stSidebarContent"] * {
+            color: white;         /* Change text color to white */
+        }
     </style>
     '''
     st.markdown(css, unsafe_allow_html=True)
 
 apply_custom_css_for_tab()
-
-st.markdown("""
-    <style>
-    [data-testid="stHeader"] {
-        color: #4CAF50; /* Change text color */
-        background-color: #f0f0f0; /* Change background color */
-    }
-    /* Target the sidebar content using data-testid attribute */
-    [data-testid="stSidebarContent"] {
-        background: #132329;  /* Shiny black gradient */
-        color: white;         /* Change text color to white for better contrast */
-    }
-    /* Ensure all text elements inside the sidebar are white */
-    [data-testid="stSidebarContent"] * {
-        color: white;         /* Change text color to white */
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
 # Initialize the FineTuningApp instance
 ft.app.INSTANCE = FineTuningApp(
@@ -88,7 +80,7 @@ pg = st.navigation([
 pg.run()
 
 with st.sidebar:
-    st.image("images/ft-studio-colorfix.png")
+    st.image("./resources/images/ft-logo.png")
     
     st.subheader("")
     st.markdown("Navigation")
@@ -117,7 +109,7 @@ with st.sidebar:
     st.subheader("", divider="green")
 
     project_owner = get_env_variable('PROJECT_OWNER', 'User')
-    with st.chat_message("ai", avatar="./resources/images/account_circle_24dp_FFFFFF_FILL0_wght400_GRAD0_opsz48.png"):
-        st.subheader(f" {project_owner}")
+    cdsw_url = get_env_variable('CDSW_DOMAIN', 'CDSW Url')
+    st.page_link(f"https://{cdsw_url}", label=f"{project_owner}", icon=":material/account_circle:")
 
 # apply_custom_css_for_tab()

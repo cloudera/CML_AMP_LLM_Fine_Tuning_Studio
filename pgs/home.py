@@ -7,7 +7,8 @@ from typing import List, Optional, Dict, Any
 import pandas as pd
 import os
 import requests
-
+from ft.model import ModelMetadata, ModelType, ImportModelRequest
+from ft.adapter import AdapterMetadata, AdapterType
 
 def create_homepage_header():
     with st.container(border=True):
@@ -108,7 +109,7 @@ current_adapters = get_state().adapters
 col1, col2, col3 = st.columns([5, 4, 4])
 with col1:
     col1.caption("**Resource Usage**")
-    data = fetch_resource_usage_data(cdsw_api_url, cdsw_api_key)
+    data = fetch_resource_usage_data(cdsw_api_url, project_owner, cdsw_api_key)
     if data:
         df = process_resource_usage_data(data)
         st.data_editor(
@@ -281,7 +282,7 @@ with col3:
 
 st.write("\n")
 
-col1, col2, col3 = st.columns([2, 2, 1])
+col1, col2 = st.columns([1, 1])
 
 with col1:
     st.caption("**Datasets**")
@@ -296,3 +297,23 @@ with col1:
         hide_index=True,
         use_container_width=True
     )
+
+with col2:
+    st.caption("**Models & Adapters**")
+    models: List[ModelMetadata] = get_state().models
+    adapters: List[AdapterMetadata] = get_state().adapters
+    
+    # Prepare data for the data editor
+    data = []
+    if models:
+        for model in models:
+            model_adapters = [adapter.name for adapter in adapters if adapter.model_id == model.id]
+            if len(model_adapters) > 0:
+                data.append({"Model": model.name, "Adapters": model_adapters})
+            else:
+                data.append({"Model": model.name, "Adapters": [" -- No Adapters available for this base model -- "]})
+    else:
+        data.append({"Model": "", "Adapters": ""})
+    
+    # Display the data editor
+    st.data_editor(data, use_container_width=True)
