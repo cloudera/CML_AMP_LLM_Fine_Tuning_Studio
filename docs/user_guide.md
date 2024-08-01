@@ -2,7 +2,7 @@
 
 This User's Guide contains information about how end-users can interact with the Streamlit Application component of this AMP, as well as some light notes on manual App/AMP modifications.
 
-For a more technical deep dive on the structure of the AMP, please see the [Technical Overview](../techinical_overview.md).
+For a more technical deep dive on the structure of the AMP, please see the [Technical Overview](techinical_overview.md).
 
 
 ## Features
