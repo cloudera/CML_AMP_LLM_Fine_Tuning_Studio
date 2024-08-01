@@ -8,6 +8,7 @@ import json
 import altair as alt
 import cmlapi
 import plotly.graph_objects as go
+from typing import List
 
 # Function to read and return the trainer_state.json file
 def get_trainer_json_data(checkpoint_dir):
@@ -38,6 +39,25 @@ def list_checkpoints(job_id):
         return checkpoints
     except Exception as e:
         return []
+
+
+def generate_experiments_dataframe(experiments: List) -> pd.DataFrame:
+    """
+    Generate a render-able dataframe of experiments based on available
+    experiments in a CML workspace.
+    """
+    
+    cml_experiments_df = pd.DataFrame(experiments)
+    
+    if experiments:
+        cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']]
+        cml_experiments_df = cml_experiments_df.add_prefix('exp_')
+
+        # Resolve real URL for each experiment
+        proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
+        cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
+    
+    return cml_experiments_df
 
 
 # Initialize CML API v2 Client
@@ -77,14 +97,6 @@ while True:
     page_token = response.get('next_page_token')
     if not page_token:
         break
-
-cml_experiments_df = pd.DataFrame(all_experiments)
-cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']]
-cml_experiments_df = cml_experiments_df.add_prefix('exp_')
-
-# Resolve real URL for each experiment
-proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
-cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
 
 # Container for the layout
 with st.container(border=True):
@@ -156,7 +168,7 @@ with tab1:
                         # Merge the DataFrame for experiments
                         display_df = pd.merge(
                             display_df,
-                            cml_experiments_df,
+                            generate_experiments_dataframe(all_experiments),
                             left_on='job_id',
                             right_on='exp_name')
 
