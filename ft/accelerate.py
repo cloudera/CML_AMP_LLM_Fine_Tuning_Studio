@@ -3,6 +3,10 @@ import os
 import subprocess
 from string import Template
 
+"""
+TODO: add support for distributed training jobs using accelerate.
+"""
+
 def launch_distributed_script(tune_script):
   try:
     NUM_GPU_WORKERS = int(os.getenv("NUM_GPU_WORKERS")) # Total number of workers to use (including the main session)
