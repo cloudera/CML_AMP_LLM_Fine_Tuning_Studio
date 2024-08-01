@@ -8,7 +8,7 @@ class RegisteredModelMetadata(BaseModel):
     apply right now to both adapters as well as
     models (TODO: need to check this logic)
     """
-    
+
     cml_registered_model_id: Optional[str] = None
     """
     Model ID of the registered model.
@@ -25,4 +25,3 @@ class RegisteredModelMetadata(BaseModel):
     MLFlow run ID tied to this specific model artifact. This is used
     to extract individual model artifacts from MLFlow.
     """
-    

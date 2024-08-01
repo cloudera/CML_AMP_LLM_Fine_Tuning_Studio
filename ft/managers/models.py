@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import ft.cml
 from ft.model import (
     ModelMetadata,
     ImportModelRequest,
@@ -14,6 +15,7 @@ from uuid import uuid4
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata
+from ft.cml import RegisteredModelMetadata
 
 
 class ModelsManagerBase(ABC):
@@ -45,6 +47,9 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
     CML workspace. This is the default model manager activated when deploying
     this code to an AMP.
     """
+
+    def __init__(self):
+        CMLManager.__init__(self)
 
     def list_models(self) -> List[ModelMetadata]:
         return get_state().models
@@ -91,9 +96,11 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
                     id=str(uuid4()),
                     type=ModelType.MODEL_REGISTRY,
                     name=registered_model.name,
-                    cml_registered_model_id=registered_model.model_id,
-                    mlflow_experiment_id=mlflow_metadata.experiment_id,
-                    mlflow_run_id=mlflow_metadata.run_id,
+                    registered_model=RegisteredModelMetadata(
+                        cml_registered_model_id=registered_model.model_id,
+                        mlflow_experiment_id=mlflow_metadata.experiment_id,
+                        mlflow_run_id=mlflow_metadata.run_id,
+                    )
                 )
 
                 response.model = model_metadata

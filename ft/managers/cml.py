@@ -16,8 +16,8 @@ class CMLManager:
         default CML API client.
         """
         self.cml_api_client: CMLServiceApi = cmlapi.default_client()
-        self.client = self.cml_api_client # backwards compatibility
-        
+        self.client = self.cml_api_client  # backwards compatibility
+
         # Load in environment variables
         self.project_id = os.getenv("CDSW_PROJECT_ID")
         self.engine_id = os.getenv("CDSW_ENGINE_ID")

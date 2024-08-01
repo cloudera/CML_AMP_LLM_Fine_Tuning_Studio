@@ -31,6 +31,9 @@ class FineTuningJobsManagerBase(ABC):
 
 class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
 
+    def __init__(self):
+        CMLManager.__init__(self)
+
     def list_fine_tuning_jobs(self):
         pass
 
@@ -168,7 +171,7 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
         )
 
         # TODO: ideally this should be done at the END of training
-        # to ensure we're only loading WORKING adapters. Optionally, 
+        # to ensure we're only loading WORKING adapters. Optionally,
         # we can track adapter training status in the metadata
         if request.auto_add_adapter:
             adapter_metadata: AdapterMetadata = AdapterMetadata(

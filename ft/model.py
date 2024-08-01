@@ -66,8 +66,6 @@ class ExportType(Enum):
     """
 
 
-
-
 class ModelMetadata(BaseModel):
     id: str
     """
@@ -102,8 +100,8 @@ class ModelMetadata(BaseModel):
     model name that can be used to identify a huggingface model
     on HF hub.
     """
-    
-    registered_model: Optional[RegisteredModelMetadata] = None 
+
+    registered_model: Optional[RegisteredModelMetadata] = None
     """
     Metadata on the registered model with CML model registry,
     if this model is a model registry type.

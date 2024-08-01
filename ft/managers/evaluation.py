@@ -6,7 +6,7 @@ import pathlib
 
 import cmlapi
 from ft.mlflow import (MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest,
-                           StartMLflowEvaluationJobResponse, MLflowEvaluationWorkerProps)
+                       StartMLflowEvaluationJobResponse, MLflowEvaluationWorkerProps)
 from ft.state import get_state, AppState
 from ft.adapter import AdapterMetadata, AdapterType
 from ft.managers.cml import CMLManager
@@ -31,6 +31,9 @@ class MLflowEvaluationJobsManagerBase(ABC):
 
 
 class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase, CMLManager):
+
+    def __init__(self):
+        CMLManager.__init__(self)
 
     def list_ml_flow_evaluation_jobs(self):
         # Method to list ML flow evaluation jobs
