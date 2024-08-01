@@ -4,7 +4,7 @@
 
 This document outlines the technical components of the CML Fine Tuning Studio product. This is designed to be read by users of the tool that want deeper understanding of the framework behind the tool, or developers who are onboarding to the tool’s architecture and who would like to extend features in the AMP.
 
-For users who just want to interact with the vanilla application, please see the [User Guide](user_guide/index.md).
+For users who just want to interact with the vanilla application, please see the [User Guide](user_guide.md).
 
 ## Introduction
 

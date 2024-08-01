@@ -3,7 +3,7 @@
 ## Resources
 
 * [Technical Overview](docs/techinical_overview.md)
-* [User Guide](docs/user_guide/index.md)
+* [User Guide](docs/user_guide.md)
 
 ## About this AMP
 

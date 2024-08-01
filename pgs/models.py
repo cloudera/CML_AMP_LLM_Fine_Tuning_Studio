@@ -52,12 +52,13 @@ def display_model_registry_import():
             "Registered models",
             range(len(model_registry_models)),
             format_func=lambda x: model_registry_models[x].name,
-            index=None
+            index=None,
+            label_visibility="collapsed"
         )
-        import_registered_model = col2.button("Import", type="primary", use_container_width=True)
+        import_registered_model = col2.button("Import", type="primary", use_container_width=True, key="registry_import")
 
         if import_registered_model:
-            if model_idx:
+            if model_idx is not None:
                 with st.spinner("Loading Model..."):
                     try:
                         get_app().import_model(ImportModelRequest(
@@ -76,6 +77,8 @@ def display_model_registry_import():
 
     st.info("""
         **Model Registry Models:**
+        
+        Users can also import models that exist within a CML Model Registry tied to this workspace.
 
     """, icon=":material/info:")
 
