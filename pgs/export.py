@@ -84,13 +84,14 @@ with st.container(border=True):
 
     if start_job_button:
         try:
+            # TODO: move model export logic out of Streamlit UI logic
             with st.spinner("Generating an MLFlow model pipeline..."):
                 model: ModelMetadata = current_models[model_idx]
                 adapter: AdapterMetadata = model_adapters[adapter_idx]
 
                 # For now, let's assume HF model is available. If not, we should be ideally
                 # raising an error or handling custom models differently.
-                adapter_location_or_name = adapter.location if adapter.type == AdapterType.LOCAL else adapter.huggingface_name
+                adapter_location_or_name = adapter.location if adapter.type == AdapterType.PROJECT else adapter.huggingface_name
                 pipeline = fetch_pipeline(
                     model_name=model.huggingface_model_name,
                     adapter_name=adapter_location_or_name)

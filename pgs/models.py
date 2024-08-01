@@ -4,7 +4,13 @@ from ft.app import get_app
 from ft.model import ModelMetadata, ModelType, ImportModelRequest
 from ft.adapter import AdapterMetadata, AdapterType
 from typing import List
+from ft.managers.cml import CMLManager
+from cmlapi import RegisteredModelDetails
 
+
+# Create a simple CML manager to use on this page.
+# TODO: this should probably be a singleton.
+cml = CMLManager()
 
 def display_header():
     with st.container(border=True):
@@ -20,12 +26,58 @@ def display_header():
 def display_import_section():
     with st.container():
         upload_ct = st.container()
-        import_hf_tab, upload_tab = upload_ct.tabs(["**Import Huggingface Models**", "**Upload Custom Models**"])
+        import_hf_tab, registry_tab, upload_tab = upload_ct.tabs(["**Import Huggingface Models**", "**Import from Model Registry**", "**Upload from Project Files**"])
 
         with import_hf_tab:
             display_huggingface_import()
+        with registry_tab:
+            display_model_registry_import()
         with upload_tab:
             st.info("Feature coming soon", icon=":material/info:")
+
+
+def display_model_registry_import():
+    
+    # List the available models in the model registry.
+    model_registry_models: List[RegisteredModelDetails] = cml.cml_api_client.list_registered_models().models
+    
+    if not model_registry_models:
+        st.info("There are no registered models in this workspace.")
+    else:
+        
+        col1, col2 = st.columns([4, 1])
+        model_idx = col1.selectbox(
+            "Registered models",
+            range(len(model_registry_models)),
+            format_func=lambda x: model_registry_models[x].name,
+            index=None
+        )
+        import_registered_model = col2.button("Import", type="primary", use_container_width=True)
+
+        if import_registered_model:
+            if model_idx:
+                with st.spinner("Loading Model..."):
+                    try:
+                        get_app().import_model(ImportModelRequest(
+                            type=ModelType.MODEL_REGISTRY,
+                            model_registry_id=model_registry_models[model_idx].model_id
+                        ))
+                        st.success(
+                            "Model imported successfully. Please check **View Models** page!",
+                            icon=":material/check:")
+                    except Exception as e:
+                        st.error(f"Error importing model: {str(e)}", icon=":material/error:")
+            else:
+                st.error("Please enter a model name.", icon=":material/info:")
+
+    
+    
+    st.write("\n")
+
+    st.info("""
+        **Model Registry Models:**
+
+    """, icon=":material/info:")
 
 
 def display_huggingface_import():

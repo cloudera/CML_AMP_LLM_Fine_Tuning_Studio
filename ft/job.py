@@ -76,6 +76,7 @@ class FineTuningJobMetadata(BaseModel):
     Learning rate to use during fine-tuning.
     """
 
+
 class StartFineTuningJobRequest(BaseModel):
 
     adapter_name: str
