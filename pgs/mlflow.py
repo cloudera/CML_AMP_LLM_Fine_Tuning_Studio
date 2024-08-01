@@ -12,7 +12,7 @@ import ft.fine_tune
 import os
 from ft.app import get_app
 from ft.state import get_state
-from ft.mlflow_job import MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse
+from ft.mlflow import MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse
 import json
 import torch
 from ft.utils import get_env_variable, fetch_resource_usage_data

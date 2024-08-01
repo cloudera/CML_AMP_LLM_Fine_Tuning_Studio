@@ -17,7 +17,6 @@ class MLflowEvaluationStatus(Enum):
     SUCCESS = "success"
     FAILURE = "failure"
 
-
 class MLflowEvaluationJobMetadata(BaseModel):
     job_id: str
     """

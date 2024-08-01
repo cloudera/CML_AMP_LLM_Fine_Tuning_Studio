@@ -3,10 +3,10 @@ import datasets
 import mlflow
 from trl import SFTTrainer
 from transformers import (
-    AutoTokenizer, 
-    AutoModelForCausalLM, 
-    BitsAndBytesConfig, 
-    TrainingArguments, 
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    BitsAndBytesConfig,
+    TrainingArguments,
     DataCollatorForLanguageModeling
 )
 import bitsandbytes as bnb
@@ -24,9 +24,11 @@ Pulled from:
 https://github.com/cloudera/CML_AMP_Finetune_Foundation_Model_Multiple_Tasks
 """
 
+
 def get_unique_cache_dir():
     # Use a cache dir specific to this session, since workers and sessions will share project files
     return "~/.cache/" + os.environ['CDSW_ENGINE_ID'] + "/huggingface/datasets"
+
 
 class AMPFineTuner:
     # Load basemodel from huggingface
@@ -113,4 +115,3 @@ class AMPFineTuner:
 
         # Save the model and the tokenizer.
         trainer.save_model(output_dir)
-        

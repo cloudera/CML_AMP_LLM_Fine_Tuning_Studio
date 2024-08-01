@@ -42,10 +42,9 @@ from ft.model import (
     ExportModelRequest,
     ExportModelResponse,
     ExportType,
-    RegisteredModelMetadata
 )
 from ft.job import StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningJobMetadata
-from ft.mlflow_job import StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse, MLflowEvaluationJobMetadata
+from ft.mlflow import StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse, MLflowEvaluationJobMetadata
 from datasets import load_dataset
 
 
@@ -86,6 +85,9 @@ class FineTuningApp():
     of sub-managers for each component (models, datasets, etc.). By design,
     this app class also handles app state management, so only call sub-manager
     classes directly if you know what you're doing.
+
+    # TODO: Look into making this an API surface and eventually
+    migrating to a protobuf
     """
 
     state_location: str
@@ -167,7 +169,7 @@ class FineTuningApp():
         prompts = list(filter(lambda x: not x.id == id, prompts))
         update_state({"prompts": prompts})
 
-    def import_model(self, request: ImportModelRequest) -> ImportDatasetResponse:
+    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
         """
         Add a dataset to the App based on the request.
         """
@@ -191,12 +193,14 @@ class FineTuningApp():
 
         # If we've successfully exported a model to model registry, add
         # this registered model to the app's metadata
-        if export_response.registered_model is not None and request.type == ExportType.MODEL_REGISTRY:
+        # TODO: adding this model to models list should be based on a setting
+        # in the ExportModelRequest (similar to auto_add_adapter). This should NOT
+        # just be based on model registry.
+        if export_response.model is not None and request.type == ExportType.MODEL_REGISTRY:
             state: AppState = get_state()
-            registered_models: List[RegisteredModelMetadata] = state.registered_models if state.registered_models is not None else [
-            ]
-            registered_models.append(export_response.registered_model)
-            update_state({"registered_models": registered_models})
+            models: List[ModelMetadata] = state.models if state.models is not None else []
+            models.append(export_response.model)
+            update_state({"models": models})
 
         return export_response
 

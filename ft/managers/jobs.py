@@ -5,6 +5,7 @@ from typing import List
 from ft.job import FineTuningJobMetadata, StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningWorkerProps
 from ft.state import get_state, AppState, update_state
 from ft.adapter import AdapterMetadata, AdapterType
+from ft.managers.cml import CMLManager
 import cmlapi
 import os
 import json
@@ -28,13 +29,7 @@ class FineTuningJobsManagerBase(ABC):
         pass
 
 
-class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
-    def __init__(self):
-        # TODO: Maybe pull this out to a central startup process
-        # Set up clients and base job ids
-        # TODO: Also needs error handling/autorebuild of base job
-        self.cml_api_client = cmlapi.default_client()
-        self.project_id = os.getenv("CDSW_PROJECT_ID")
+class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
 
     def list_fine_tuning_jobs(self):
         pass
@@ -172,11 +167,14 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase):
             )
         )
 
+        # TODO: ideally this should be done at the END of training
+        # to ensure we're only loading WORKING adapters. Optionally, 
+        # we can track adapter training status in the metadata
         if request.auto_add_adapter:
             adapter_metadata: AdapterMetadata = AdapterMetadata(
                 id=str(uuid4()),
                 name=request.adapter_name,
-                type=AdapterType.LOCAL,
+                type=AdapterType.PROJECT,
                 model_id=request.base_model_id,
                 location=out_dir,
                 job_id=job_id,

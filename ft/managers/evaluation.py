@@ -5,10 +5,11 @@ import os
 import pathlib
 
 import cmlapi
-from ft.mlflow_job import (MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest,
+from ft.mlflow import (MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest,
                            StartMLflowEvaluationJobResponse, MLflowEvaluationWorkerProps)
 from ft.state import get_state, AppState
 from ft.adapter import AdapterMetadata, AdapterType
+from ft.managers.cml import CMLManager
 from datetime import datetime
 
 
@@ -29,11 +30,7 @@ class MLflowEvaluationJobsManagerBase(ABC):
         pass
 
 
-class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase):
-    def __init__(self):
-        # Initialize API client and project ID
-        self.cml_api_client = cmlapi.default_client()
-        self.project_id = os.getenv("CDSW_PROJECT_ID")
+class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase, CMLManager):
 
     def list_ml_flow_evaluation_jobs(self):
         # Method to list ML flow evaluation jobs

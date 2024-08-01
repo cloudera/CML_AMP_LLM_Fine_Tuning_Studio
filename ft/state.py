@@ -2,8 +2,8 @@ from pydantic import BaseModel
 from typing import List
 from ft.dataset import DatasetMetadata
 from ft.job import FineTuningJobMetadata
-from ft.mlflow_job import MLflowEvaluationJobMetadata
-from ft.model import ModelMetadata, RegisteredModelMetadata
+from ft.mlflow import MLflowEvaluationJobMetadata
+from ft.model import ModelMetadata
 from ft.prompt import PromptMetadata
 from ft.adapter import AdapterMetadata
 import json
@@ -60,11 +60,6 @@ class AppState(BaseModel):
     adapters: Optional[List[AdapterMetadata]] = None
     """
     All available model adapters associated with the application
-    """
-
-    registered_models: Optional[List[RegisteredModelMetadata]] = None
-    """
-    All available CML registered models associated with the application
     """
 
 

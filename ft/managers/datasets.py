@@ -5,6 +5,7 @@ from datasets import load_dataset_builder
 from ft.state import get_state
 from uuid import uuid4
 
+
 class DatasetsManagerBase(ABC):
     """
     Base class for a dataset adapter. A custom implementation
@@ -25,6 +26,7 @@ class DatasetsManagerBase(ABC):
     @abstractmethod
     def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
         pass
+
 
 class DatasetsManagerSimple(DatasetsManagerBase):
 
@@ -58,11 +60,11 @@ class DatasetsManagerSimple(DatasetsManagerBase):
 
         if request.type == DatasetType.HUGGINGFACE:
             try:
-                 # Check if the dataset already exists
+                # Check if the dataset already exists
                 existing_datasets = get_state().datasets
                 if any(ds.huggingface_name == request.huggingface_name for ds in existing_datasets):
                     raise ValueError(f"Dataset with name '{request.huggingface_name}' already exists.")
-                
+
                 # Get dataset information without loading it into memory.
                 dataset_builder = load_dataset_builder(request.huggingface_name)
                 dataset_info = dataset_builder.info

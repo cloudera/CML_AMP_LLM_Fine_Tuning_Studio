@@ -2,15 +2,16 @@ from pydantic import BaseModel
 from enum import Enum
 from typing import Optional
 
+from ft.cml import RegisteredModelMetadata
 
 class AdapterType(Enum):
     """
     Type of PEFT adapter.
     """
 
-    LOCAL = "local"
+    PROJECT = "project"
     """
-    Local PEFT adapter imported from project
+    Project-relative PEFT adapter imported from project
     files, probably created after a fine-tuning
     job was ran in our app.
     """
@@ -19,6 +20,11 @@ class AdapterType(Enum):
     """
     Huggingface-stored adapter that can be pulled
     down from HF hub.
+    """
+    
+    MODEL_REGISTRY = "model_registry"
+    """
+    Adapter stored within the CML model registry.
     """
 
 
@@ -73,4 +79,10 @@ class AdapterMetadata(BaseModel):
     prompt_id: Optional[str] = None
     """
     Prompt ID of the prompt that was used to train this adapter.
+    """
+    
+    registered_model: Optional[RegisteredModelMetadata] = None 
+    """
+    Adapters should eventually have support in CML model registry. This metadata
+    will be stored here for adapters in case this is available.
     """
