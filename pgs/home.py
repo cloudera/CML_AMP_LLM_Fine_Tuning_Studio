@@ -2,13 +2,14 @@ import streamlit as st
 from ft.dataset import DatasetMetadata, DatasetType
 from ft.app import get_app
 from ft.state import get_state
-from ft.utils import get_env_variable, fetch_resource_usage_data
+from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 from typing import List, Optional, Dict, Any
 import pandas as pd
 import os
 import requests
 from ft.model import ModelMetadata, ModelType, ImportModelRequest
 from ft.adapter import AdapterMetadata, AdapterType
+
 
 def create_homepage_header():
     with st.container(border=True):
@@ -20,39 +21,6 @@ def create_homepage_header():
             col2.caption(
                 'The LLM Fine Tuning Studio, updated in July 2024, features a new Streamlit-based UI and integrates with Cloudera Machine Learning (CML) components. '
                 'It supports custom datasets, BitsAndBytes, LoRA configurations, and distributed training.')
-
-
-def process_resource_usage_data(data: Dict[str, Any]) -> pd.DataFrame:
-    """Process the JSON data to extract relevant information and return a DataFrame."""
-    user_data = data.get('user', {})
-    quotas = user_data.get('quotas', {})
-
-    resources = ['cpu', 'memory', 'nvidiaGPU']
-    rows = []
-
-    for resource in resources:
-        current_usage = user_data.get(resource, 0)
-        if resource == 'nvidiaGPU':
-            max_usage = quotas.get('requestsGpu', '0')
-            max_usage_value = int(max_usage)
-            unit = "GPU"
-        elif resource == 'memory':
-            max_usage = quotas.get('requestsMemory', '0Gi')
-            max_usage_value = float(max_usage.replace('Gi', '').replace('Ti', '')) * (1024 if 'Ti' in max_usage else 1)
-            unit = "GiB"
-        else:
-            max_usage = quotas.get(f'requestsCpu', '0')
-            max_usage_value = int(max_usage)
-            unit = "vCPU"
-
-        rows.append({
-            'Resource Name': resource.upper(),
-            'Progress': current_usage / max_usage_value * 100 if max_usage_value else 0,
-            'Used': f"{current_usage:.2f} {unit}",
-            'Max Available': f"{max_usage_value} {unit}"
-        })
-
-    return pd.DataFrame(rows)
 
 
 def create_tile(container, image_path: str, button_text: str, page_path: str, description: str) -> None:
@@ -123,7 +91,7 @@ with col1:
                     min_value=0,
                     max_value=100,
                 ),
-                "Max Available": "User Quota"
+                "Max Available": "Available (Cluster)"
             },
             hide_index=True,
             use_container_width=True
@@ -302,7 +270,7 @@ with col2:
     st.caption("**Models & Adapters**")
     models: List[ModelMetadata] = get_state().models
     adapters: List[AdapterMetadata] = get_state().adapters
-    
+
     # Prepare data for the data editor
     data = []
     if models:
@@ -314,6 +282,6 @@ with col2:
                 data.append({"Model": model.name, "Adapters": [" -- No Adapters available for this base model -- "]})
     else:
         data.append({"Model": "", "Adapters": ""})
-    
+
     # Display the data editor
     st.data_editor(data, use_container_width=True)

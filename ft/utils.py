@@ -67,3 +67,33 @@ def attempt_hf_login(access_token):
     except Exception as e:
         print("Could not log in to HF! Cannot use gated models.")
         print(e)
+
+
+def process_resource_usage_data(data: Dict[str, Any]) -> pd.DataFrame:
+    """Process the JSON data to extract relevant information and return a DataFrame."""
+    cluster_data = data.get('cluster', {})
+
+    resources = [
+        ('cpu', 'cpuAllocatable', 'vCPU', None),
+        ('memory', 'memoryAllocatable', 'GiB', None),  # Convert from bytes to GiB
+        ('nvidiaGPU', 'nvidiaGPUAllocatable', 'GPU', None)
+    ]
+    rows = []
+
+    for resource, allocatable_field, unit, conversion_factor in resources:
+        current_usage = cluster_data.get(resource, 0)
+        max_usage = cluster_data.get(allocatable_field, 0)
+
+        if conversion_factor:
+            max_usage_value = float(max_usage) / conversion_factor
+        else:
+            max_usage_value = float(max_usage)
+
+        rows.append({
+            'Resource Name': resource.upper(),
+            'Progress': current_usage / max_usage_value * 100 if max_usage_value else 0,
+            'Used': f"{current_usage:.2f} {unit}",
+            'Max Available': f"{max_usage_value-current_usage:.2f} {unit}"
+        })
+
+    return pd.DataFrame(rows)
