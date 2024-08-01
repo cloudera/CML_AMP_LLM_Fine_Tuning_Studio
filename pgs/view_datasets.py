@@ -50,12 +50,8 @@ def display_datasets(
 
 
 display_header()
-st.write("\n")
-
 datasets: List[DatasetMetadata] = get_app().datasets.list_datasets()
-
 tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**Custom Datasets**"])
-
 with tab1:
     display_datasets(
         datasets,

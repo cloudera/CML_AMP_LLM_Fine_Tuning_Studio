@@ -152,6 +152,8 @@ with tab2:
                 # Display the dataframe in Streamlit
                 st.data_editor(df, hide_index=True)
             else:
-                st.info("**Evaluation report** is not available yet. Please wait for MLflow run to complete.", icon=':material/info:')
+                st.info(
+                    "**Evaluation report** is not available yet. Please wait for MLflow run to complete.",
+                    icon=':material/info:')
         else:
             st.error("Selected job not found.")

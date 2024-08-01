@@ -83,5 +83,4 @@ def display_adapter(adapter: AdapterMetadata, container):
 
 
 display_header()
-
 display_models_section()

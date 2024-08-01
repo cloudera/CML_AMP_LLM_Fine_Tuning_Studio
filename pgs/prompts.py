@@ -20,27 +20,30 @@ def display_header():
             col2.subheader('Prompts')
             col2.caption(
                 'Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.')
-    st.write("\n")
 
 
 def display_create_prompt():
     loaded_dataset = None
 
-    col1, col2 = st.columns([3,2])
+    col1, col2 = st.columns([3, 2])
     with col1:
         with st.container(border=True):
             new_prompt_name = st.text_input("Prompt Name", placeholder="Enter a human-friendly prompt name")
 
             datasets = get_state().datasets
-            dataset_idx = st.selectbox("Dataset", range(len(datasets)), format_func=lambda x: datasets[x].name, index=0)  # Set the default index as needed
+            dataset_idx = st.selectbox(
+                "Dataset",
+                range(
+                    len(datasets)),
+                format_func=lambda x: datasets[x].name,
+                index=0)  # Set the default index as needed
 
             if dataset_idx is not None:
                 dataset = datasets[dataset_idx]
                 st.code("Dataset Columns: \n * " + '\n * '.join(dataset.features))
 
-                c1, c2 = st.columns([1, 1])
-                c1.button("Enter Prompt Template", disabled=True, use_container_width=True)
-                generate_example_button = c2.button("Generate Prompt Example", type="secondary", use_container_width=True)
+                generate_example_button = st.button(
+                    "Generate Prompt Example", type="secondary", use_container_width=True)
 
                 cc1, cc2 = st.columns([1, 1])
                 prompt_template = cc1.text_area("Prompt Template", height=200)
@@ -80,7 +83,7 @@ def display_create_prompt():
             ### 1. Task-Specific Formatting
             - **Explanation**: Tailors the data format to the specific task.
             - **Impact**: Enhances the model's performance on the specific task.
-                
+
             ### 2. Enhanced Context Understanding
             - **Explanation**: Provides additional context to each data entry.
             - **Impact**: Improves the model's understanding and response generation.

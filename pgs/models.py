@@ -12,6 +12,7 @@ from cmlapi import RegisteredModelDetails
 # TODO: this should probably be a singleton.
 cml = CMLManager()
 
+
 def display_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
@@ -26,7 +27,8 @@ def display_header():
 def display_import_section():
     with st.container():
         upload_ct = st.container()
-        import_hf_tab, registry_tab, upload_tab = upload_ct.tabs(["**Import Huggingface Models**", "**Import from Model Registry**", "**Upload from Project Files**"])
+        import_hf_tab, registry_tab, upload_tab = upload_ct.tabs(
+            ["**Import Huggingface Models**", "**Import from Model Registry**", "**Upload from Project Files**"])
 
         with import_hf_tab:
             display_huggingface_import()
@@ -37,14 +39,14 @@ def display_import_section():
 
 
 def display_model_registry_import():
-    
+
     # List the available models in the model registry.
     model_registry_models: List[RegisteredModelDetails] = cml.cml_api_client.list_registered_models().models
-    
+
     if not model_registry_models:
         st.info("There are no registered models in this workspace.")
     else:
-        
+
         col1, col2 = st.columns([4, 1])
         model_idx = col1.selectbox(
             "Registered models",
@@ -70,8 +72,6 @@ def display_model_registry_import():
             else:
                 st.error("Please enter a model name.", icon=":material/info:")
 
-    
-    
     st.write("\n")
 
     st.info("""

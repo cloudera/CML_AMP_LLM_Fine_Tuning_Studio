@@ -76,7 +76,4 @@ def handle_database_import():
 
 
 create_header()
-
-st.write("\n\n")
-
 handle_database_import()

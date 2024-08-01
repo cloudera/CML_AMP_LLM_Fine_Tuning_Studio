@@ -15,7 +15,7 @@ from ft.state import get_state
 from ft.mlflow import MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse
 import json
 import torch
-from ft.utils import get_env_variable, fetch_resource_usage_data
+from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 from typing import List, Optional, Dict, Any
 from ft.adapter import *
 
@@ -23,39 +23,6 @@ project_owner = get_env_variable('PROJECT_OWNER', 'User')
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
-
-
-def process_resource_usage_data(data: Dict[str, Any]) -> pd.DataFrame:
-    """Process the JSON data to extract relevant information and return a DataFrame."""
-    user_data = data.get('user', {})
-    quotas = user_data.get('quotas', {})
-
-    resources = ['cpu', 'memory', 'nvidiaGPU']
-    rows = []
-
-    for resource in resources:
-        current_usage = user_data.get(resource, 0)
-        if resource == 'nvidiaGPU':
-            max_usage = quotas.get('requestsGpu', '0')
-            max_usage_value = int(max_usage)
-            unit = "GPU"
-        elif resource == 'memory':
-            max_usage = quotas.get('requestsMemory', '0Gi')
-            max_usage_value = float(max_usage.replace('Gi', '').replace('Ti', '')) * (1024 if 'Ti' in max_usage else 1)
-            unit = "GiB"
-        else:
-            max_usage = quotas.get(f'requestsCpu', '0')
-            max_usage_value = int(max_usage)
-            unit = "vCPU"
-
-        rows.append({
-            'Resource Name': resource.upper(),
-            'Progress': current_usage / max_usage_value * 100 if max_usage_value else 0,
-            'Used': f"{current_usage:.2f} {unit}",
-            'Max Available': f"{max_usage_value} {unit}"
-        })
-
-    return pd.DataFrame(rows)
 
 
 # Container for header
@@ -127,7 +94,7 @@ with ccol1:
         # Advanced options
         st.markdown("---")
         st.caption("**Advance Options**")
-        c1, c2= st.columns([1, 1])
+        c1, c2 = st.columns([1, 1])
         with c1:
             cpu = st.text_input("CPU(vCPU)", value="2", key="cpu")
         with c2:
@@ -189,7 +156,7 @@ with ccol2:
                     min_value=0,
                     max_value=100,
                 ),
-                "Max Available": "User Quota"
+                "Max Available": "Available (Cluster)"
             },
             hide_index=True,
             use_container_width=True
