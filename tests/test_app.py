@@ -5,6 +5,7 @@ import pytest
 
 
 from ft.dataset import DatasetMetadata, ImportDatasetRequest, ImportDatasetResponse, DatasetType
+from ft.job import FineTuningJobMetadata, StartFineTuningJobRequest
 from ft.managers.models import ModelsManagerBase, ModelsManagerSimple
 from ft.managers.datasets import DatasetsManagerBase, DatasetsManagerSimple
 from ft.managers.jobs import FineTuningJobsManagerBase, FineTuningJobsManagerSimple
@@ -29,27 +30,7 @@ from ft.prompt import PromptMetadata
 
 from ft.state import AppState
 
-
-class MockModelManager(ModelsManagerBase):
-    def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
-        pass
-
-    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
-        pass
-
-    def list_models(self) -> List[ModelMetadata]:
-        pass
-
-
-class MockDatasetManager(DatasetsManagerBase):
-    def list_datasets(self) -> List[DatasetMetadata]:
-        return super().list_datasets()
-
-    def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
-        return super().import_dataset(request)
-
-    def get_dataset(self, id: str) -> DatasetMetadata:
-        return super().get_dataset(id)
+from tests.mock import *
 
 
 class TestAppDatasets():
@@ -64,15 +45,15 @@ class TestAppDatasets():
             )
         ]
 
-        class MockDatasetManagerConstant(MockDatasetManager):
+        class MockDatasetsManagerConstant(MockDatasetsManager):
             def list_datasets(self) -> List[DatasetMetadata]:
                 return datasets
 
         app = FineTuningApp(FineTuningAppProps(
-            MockDatasetManagerConstant(),
-            ModelsManagerSimple(),
-            FineTuningJobsManagerSimple(),
-            MLflowEvaluationJobsManagerSimple(),
+            MockDatasetsManagerConstant(),
+            MockModelsManager(),
+            MockFineTuningJobsManager(),
+            MockEvaluatorManager(),
         ))
 
         app.remove_dataset(datasets[0].id)
@@ -108,15 +89,15 @@ class TestAppDatasets():
             )
         ]
 
-        class MockDatasetManagerConstant(MockDatasetManager):
+        class MockDatasetManagerConstant(MockDatasetsManager):
             def list_datasets(self) -> List[DatasetMetadata]:
                 return datasets
 
         app = FineTuningApp(FineTuningAppProps(
             MockDatasetManagerConstant(),
-            ModelsManagerSimple(),
-            FineTuningJobsManagerSimple(),
-            MLflowEvaluationJobsManagerSimple()
+            MockModelsManager(),
+            MockFineTuningJobsManager(),
+            MockEvaluatorManager(),
         ))
 
         get_state.return_value = AppState(prompts=prompts)
@@ -133,15 +114,15 @@ class TestAppModels():
     def test_export_model_no_response(self, get_state, update_state):
 
         # Make a mock model manager
-        class MockModelManagerNone(MockModelManager):
+        class MockModelManagerNone(MockModelsManager):
             def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
                 return ExportModelResponse()
 
         app = FineTuningApp(FineTuningAppProps(
-            DatasetsManagerSimple(),
+            MockDatasetsManager(),
             MockModelManagerNone(),
-            FineTuningJobsManagerSimple(),
-            MLflowEvaluationJobsManagerSimple()
+            MockFineTuningJobsManager(),
+            MockEvaluatorManager()
         ))
 
         response: ExportModelResponse = app.export_model(ExportModelRequest(
@@ -161,7 +142,7 @@ class TestAppModels():
         cml_model_uuid = str(uuid4())
 
         # Make a mock model manager
-        class MockModelManagerExportWithId(MockModelManager):
+        class MockModelManagerExportWithId(MockModelsManager):
             def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
                 return ExportModelResponse(
                     model=ModelMetadata(
@@ -174,10 +155,10 @@ class TestAppModels():
         get_state.return_value = AppState()
 
         app = FineTuningApp(FineTuningAppProps(
-            DatasetsManagerSimple(),
+            MockDatasetsManager(),
             MockModelManagerExportWithId(),
-            FineTuningJobsManagerSimple(),
-            MLflowEvaluationJobsManagerSimple()
+            MockFineTuningJobsManager(),
+            MockEvaluatorManager()
         ))
 
         response: ExportModelResponse = app.export_model(ExportModelRequest(
