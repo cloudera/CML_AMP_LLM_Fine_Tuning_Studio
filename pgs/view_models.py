@@ -21,9 +21,13 @@ def display_models_section():
     adapters: List[AdapterMetadata] = get_state().adapters
 
     with st.container():
-        tab1 = st.tabs(["**Huggingface**"])
-        with tab1[0]:
+        tab1, tab2, tab3 = st.tabs(["**Huggingface**", "**Model Registry**", "**Project**"])
+        with tab1:
             display_models([model for model in models if model.type == ModelType.HUGGINGFACE], adapters)
+        with tab2:
+            display_models([model for model in models if model.type == ModelType.MODEL_REGISTRY], adapters)
+        with tab3:
+            display_models([model for model in models if model.type == ModelType.PROJECT], adapters)
 
 
 def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata]):

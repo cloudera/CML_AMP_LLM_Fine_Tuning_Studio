@@ -69,7 +69,7 @@ def setup_navigation():
         st.Page("pgs/mlflow.py", title="Run MLFlow Evaluation"),
         st.Page("pgs/mlflow_jobs.py", title="View MLflow Runs"),
         st.Page("pgs/export.py", title="Export to CML Model Registry"),
-        # st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),
+        st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),
     ], position="hidden")
     pg.run()
 
@@ -102,7 +102,7 @@ def setup_sidebar():
 
         st.markdown("CML")
         st.page_link("pgs/export.py", label="Export to CML Model Registry", icon=":material/move_group:")
-        # st.page_link("pgs/deploy.py", label="Deploy to Cloudera AI Inference", icon=":material/deployed_code:")
+        st.page_link("pgs/deploy.py", label="Deploy to Cloudera AI Inference", icon=":material/deployed_code:")
         st.subheader("", divider="green")
 
         project_owner = get_env_variable('PROJECT_OWNER', 'User')

@@ -70,6 +70,8 @@ def prompt_fragment():
 
 def evaluate_fragment():
     cont = st.container()
+    expander = cont.expander("Advanced options")
+    expander.caption("TODO: add generation arguments")
     generate_button = cont.button("Generate", type="primary", use_container_width=True)
 
     if generate_button:
