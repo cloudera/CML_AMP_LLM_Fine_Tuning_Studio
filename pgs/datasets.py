@@ -17,9 +17,9 @@ def create_header():
 
 def handle_database_import():
     with st.container():
-        import_hf_tab, upload_tab = st.tabs(["**Import Huggingface Dataset**", "**Upload Custom Dataset**"])
+        import_hf_tab = st.tabs(["**Import Huggingface Dataset**"])
 
-        with import_hf_tab:
+        with import_hf_tab[0]:
             c1, c2 = st.columns([4, 1])
             import_hf_dataset_name = c1.text_input(
                 'Dataset Name',
@@ -64,15 +64,6 @@ def handle_database_import():
                 - Once imported, these datasets can be utilized to fine-tune adapters on foundational models, enhancing their performance for specific tasks.
 
             """, icon=":material/info:")
-
-        with upload_tab:
-            upload_tab.info("Feature not available yet.", icon=":material/info:")
-            # with st.container():
-            #     data_file = st.file_uploader("Upload a dataset", type=["csv", "txt", "json"], disabled=True)
-
-            #     if data_file:
-            #         st.warning("Custom dataset uploads not yet supported.")
-            #         # Add data handling logic here if needed
 
 
 create_header()

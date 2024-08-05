@@ -27,15 +27,11 @@ def display_header():
 def display_import_section():
     with st.container():
         upload_ct = st.container()
-        import_hf_tab, registry_tab, upload_tab = upload_ct.tabs(
-            ["**Import Huggingface Models**", "**Import from Model Registry**", "**Upload from Project Files**"])
+        import_hf_tab = upload_ct.tabs(
+            ["**Import Huggingface Models**"])
 
-        with import_hf_tab:
+        with import_hf_tab[0]:
             display_huggingface_import()
-        with registry_tab:
-            display_model_registry_import()
-        with upload_tab:
-            st.info("Feature coming soon", icon=":material/info:")
 
 
 def display_model_registry_import():
@@ -77,7 +73,7 @@ def display_model_registry_import():
 
     st.info("""
         **Model Registry Models:**
-        
+
         Users can also import models that exist within a CML Model Registry tied to this workspace.
 
     """, icon=":material/info:")
