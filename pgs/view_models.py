@@ -64,10 +64,6 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
             for adapter in model_adapters:
                 display_adapter(adapter, expander)
 
-            # add_adapter_button = expander.button("Add Adapter", type="primary", key=f"{model.id}_add_adapter", use_container_width=True)
-            # if add_adapter_button:
-            #     st.toast("You can't do that yet.", icon=":material/info:")
-
 
 def display_adapter(adapter: AdapterMetadata, container):
     with container:

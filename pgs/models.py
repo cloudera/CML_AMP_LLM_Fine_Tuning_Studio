@@ -33,9 +33,9 @@ def display_import_section():
         with import_hf_tab:
             display_huggingface_import()
         with registry_tab:
-            display_model_registry_import()
+            st.info("coming soon !", icon=":material/info:")
         with upload_tab:
-            st.info("Feature coming soon", icon=":material/info:")
+            st.info("coming soon !", icon=":material/info:")
 
 
 def display_model_registry_import():
@@ -77,7 +77,7 @@ def display_model_registry_import():
 
     st.info("""
         **Model Registry Models:**
-        
+
         Users can also import models that exist within a CML Model Registry tied to this workspace.
 
     """, icon=":material/info:")
