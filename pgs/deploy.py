@@ -12,7 +12,7 @@ def display_page_header():
 
 
 def display_page():
-    st.info("coming soon !", icon=":material/info:")
+    st.info("Coming soon !", icon=":material/info:")
 
 
 display_page_header()

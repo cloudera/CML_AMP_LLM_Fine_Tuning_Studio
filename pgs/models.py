@@ -33,9 +33,9 @@ def display_import_section():
         with import_hf_tab:
             display_huggingface_import()
         with registry_tab:
-            st.info("coming soon !", icon=":material/info:")
+            st.info("Coming soon !", icon=":material/info:")
         with upload_tab:
-            st.info("coming soon !", icon=":material/info:")
+            st.info("Coming soon !", icon=":material/info:")
 
 
 def display_model_registry_import():
