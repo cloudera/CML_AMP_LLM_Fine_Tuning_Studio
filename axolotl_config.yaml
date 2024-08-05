@@ -1,0 +1,43 @@
+base_model: NousResearch/Llama-2-7b-hf
+model_type: LlamaForCausalLM
+tokenizer_type: LlamaTokenizer
+tokenizer_use_fast: true
+tokenizer_legacy: true
+gptq: true
+load_in_8bit: true
+bf16: auto
+tf32: false
+bfloat16: true
+float16: true
+lora_on_cpu: true
+datasets:
+- path: mhenrichsen/alpaca_2k_test
+  type: alpaca
+  train_on_split: train
+shuffle_merged_datasets: true
+val_set_size: 0.05
+sequence_len: 4096
+pad_to_sequence_len: true
+sample_packing: true
+adapter: lora
+lora_r: 32
+lora_alpha: 16
+lora_dropout: 0.05
+lora_target_linear: true
+output_dir: ./outputs/lora-out
+gradient_accumulation_steps: 4
+micro_batch_size: 2
+num_epochs: 4
+warmup_steps: 10
+learning_rate: 0.0002
+logging_steps: 1
+evals_per_epoch: 4
+saves_per_epoch: 1
+eval_max_new_tokens: 128
+train_on_inputs: false
+group_by_length: false
+gradient_checkpointing: true
+lr_scheduler: cosine
+optimizer: adamw_bnb_8bit
+weight_decay: 0.0
+strict: false

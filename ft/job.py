@@ -4,7 +4,7 @@ from typing import Optional
 from transformers import BitsAndBytesConfig
 from datetime import datetime
 from enum import Enum
-
+from ft.axolotl import AxolotlConfig
 
 class FineTuningWorkerProps(BaseModel):
     num_cpu: int = 2
@@ -74,6 +74,16 @@ class FineTuningJobMetadata(BaseModel):
     learning_rate: Optional[float] = 2e-4
     """
     Learning rate to use during fine-tuning.
+    """
+
+    use_axolotl_framework: bool = False
+    """
+    Use Axolotl Configurations
+    """
+
+    axolotl_config: Optional[AxolotlConfig]= None
+    """
+    Optional Axolotl Configurations
     """
 
 
@@ -150,6 +160,16 @@ class StartFineTuningJobRequest(BaseModel):
     Optional dataset test split to split the dataset into a training
     dataset and an eval dataset. Evaluation datasets are used at epoch boundaries
     during training to compute metrics and compte loss again.
+    """
+
+    use_axolotl_framework: bool = False
+    """
+    Use Axolotl Configurations
+    """
+
+    axolotl_config: Optional[AxolotlConfig]= None
+    """
+    Optional Axolotl Configurations
     """
 
 
