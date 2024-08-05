@@ -66,7 +66,7 @@ def handle_database_import():
             """, icon=":material/info:")
 
         with upload_tab:
-            upload_tab.info("coming soon !", icon=":material/info:")
+            upload_tab.info("Coming soon !", icon=":material/info:")
             # with st.container():
             #     data_file = st.file_uploader("Upload a dataset", type=["csv", "txt", "json"], disabled=True)
 
