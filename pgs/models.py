@@ -27,11 +27,15 @@ def display_header():
 def display_import_section():
     with st.container():
         upload_ct = st.container()
-        import_hf_tab = upload_ct.tabs(
-            ["**Import Huggingface Models**"])
+        import_hf_tab, registry_tab, upload_tab = upload_ct.tabs(
+            ["**Import Huggingface Models**", "**Import from Model Registry**", "**Upload from Project Files**"])
 
-        with import_hf_tab[0]:
+        with import_hf_tab:
             display_huggingface_import()
+        with registry_tab:
+            st.info("coming soon !", icon=":material/info:")
+        with upload_tab:
+            st.info("coming soon !", icon=":material/info:")
 
 
 def display_model_registry_import():

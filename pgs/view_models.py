@@ -21,9 +21,13 @@ def display_models_section():
     adapters: List[AdapterMetadata] = get_state().adapters
 
     with st.container():
-        tab1 = st.tabs(["**Huggingface**"])
-        with tab1[0]:
+        tab1, tab2, tab3 = st.tabs(["**Huggingface**", "**Model Registry**", "**Project**"])
+        with tab1:
             display_models([model for model in models if model.type == ModelType.HUGGINGFACE], adapters)
+        with tab2:
+            display_models([model for model in models if model.type == ModelType.MODEL_REGISTRY], adapters)
+        with tab3:
+            display_models([model for model in models if model.type == ModelType.PROJECT], adapters)
 
 
 def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata]):
@@ -59,10 +63,6 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
                     icon=":material/info:")
             for adapter in model_adapters:
                 display_adapter(adapter, expander)
-
-            # add_adapter_button = expander.button("Add Adapter", type="primary", key=f"{model.id}_add_adapter", use_container_width=True)
-            # if add_adapter_button:
-            #     st.toast("You can't do that yet.", icon=":material/info:")
 
 
 def display_adapter(adapter: AdapterMetadata, container):
