@@ -51,13 +51,10 @@ def display_datasets(
 
 display_header()
 datasets: List[DatasetMetadata] = get_app().datasets.list_datasets()
-tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**Custom Datasets**"])
-with tab1:
+tab1 = st.tabs(["**Huggingface Datasets**"])
+with tab1[0]:
     display_datasets(
         datasets,
         DatasetType.HUGGINGFACE,
         "./resources/images/hf-logo.png",
         "No Huggingface datasets available.")
-
-with tab2:
-    display_datasets(datasets, DatasetType.IMPORTED, HF_LOGO, "No custom datasets available.")
