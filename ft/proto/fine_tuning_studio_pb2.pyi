@@ -312,7 +312,7 @@ class FineTuningJobMetadata(_message.Message):
     base_model_id: str
     dataset_id: str
     prompt_id: str
-    num_workers: str
+    num_workers: int
     cml_job_id: str
     adapter_id: str
     worker_props: WorkerProps
@@ -324,7 +324,7 @@ class FineTuningJobMetadata(_message.Message):
                  base_model_id: _Optional[str] = ...,
                  dataset_id: _Optional[str] = ...,
                  prompt_id: _Optional[str] = ...,
-                 num_workers: _Optional[str] = ...,
+                 num_workers: _Optional[int] = ...,
                  cml_job_id: _Optional[str] = ...,
                  adapter_id: _Optional[str] = ...,
                  worker_props: _Optional[_Union[WorkerProps,
@@ -337,31 +337,35 @@ class BnbConfig(_message.Message):
     __slots__ = (
         "load_in_8bit",
         "load_in_4bit",
-        "bnb_4bit_compute_type",
+        "bnb_4bit_compute_dtype",
         "bnb_4bit_quant_type",
         "bnb_4bit_use_double_quant",
-        "bnb_4bit_quant_storage")
+        "bnb_4bit_quant_storage",
+        "quant_method")
     LOAD_IN_8BIT_FIELD_NUMBER: _ClassVar[int]
     LOAD_IN_4BIT_FIELD_NUMBER: _ClassVar[int]
-    BNB_4BIT_COMPUTE_TYPE_FIELD_NUMBER: _ClassVar[int]
+    BNB_4BIT_COMPUTE_DTYPE_FIELD_NUMBER: _ClassVar[int]
     BNB_4BIT_QUANT_TYPE_FIELD_NUMBER: _ClassVar[int]
     BNB_4BIT_USE_DOUBLE_QUANT_FIELD_NUMBER: _ClassVar[int]
     BNB_4BIT_QUANT_STORAGE_FIELD_NUMBER: _ClassVar[int]
+    QUANT_METHOD_FIELD_NUMBER: _ClassVar[int]
     load_in_8bit: bool
     load_in_4bit: bool
-    bnb_4bit_compute_type: str
+    bnb_4bit_compute_dtype: str
     bnb_4bit_quant_type: str
     bnb_4bit_use_double_quant: bool
     bnb_4bit_quant_storage: str
+    quant_method: str
 
     def __init__(
         self,
         load_in_8bit: bool = ...,
         load_in_4bit: bool = ...,
-        bnb_4bit_compute_type: _Optional[str] = ...,
+        bnb_4bit_compute_dtype: _Optional[str] = ...,
         bnb_4bit_quant_type: _Optional[str] = ...,
         bnb_4bit_use_double_quant: bool = ...,
-        bnb_4bit_quant_storage: _Optional[str] = ...) -> None: ...
+        bnb_4bit_quant_storage: _Optional[str] = ...,
+        quant_method: _Optional[str] = ...) -> None: ...
 
 
 class StartFineTuningJobRequest(_message.Message):
@@ -431,7 +435,15 @@ class StartFineTuningJobResponse(_message.Message):
 
 
 class MLflowEvaluationJobMetadata(_message.Message):
-    __slots__ = ("job_id", "cml_job_id", "base_model_id", "dataset_id", "num_workers", "adapter_id", "worker_props")
+    __slots__ = (
+        "job_id",
+        "cml_job_id",
+        "base_model_id",
+        "dataset_id",
+        "num_workers",
+        "adapter_id",
+        "worker_props",
+        "evaluation_dir")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -439,6 +451,7 @@ class MLflowEvaluationJobMetadata(_message.Message):
     NUM_WORKERS_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     WORKER_PROPS_FIELD_NUMBER: _ClassVar[int]
+    EVALUATION_DIR_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     cml_job_id: str
     base_model_id: str
@@ -446,6 +459,7 @@ class MLflowEvaluationJobMetadata(_message.Message):
     num_workers: int
     adapter_id: str
     worker_props: WorkerProps
+    evaluation_dir: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -455,7 +469,8 @@ class MLflowEvaluationJobMetadata(_message.Message):
                  num_workers: _Optional[int] = ...,
                  adapter_id: _Optional[str] = ...,
                  worker_props: _Optional[_Union[WorkerProps,
-                                                _Mapping]] = ...) -> None: ...
+                                                _Mapping]] = ...,
+                 evaluation_dir: _Optional[str] = ...) -> None: ...
 
 
 class StartMLflowEvaluationJobRequest(_message.Message):

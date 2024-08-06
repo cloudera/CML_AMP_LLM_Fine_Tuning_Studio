@@ -75,7 +75,7 @@ with st.container(border=True):
 
                 # For now, let's assume HF model is available. If not, we should be ideally
                 # raising an error or handling custom models differently.
-                adapter_location_or_name = adapter.location if adapter.type == AdapterType.PROJECT else adapter.huggingface_name
+                adapter_location_or_name = adapter.location if adapter.type == AdapterType.ADAPTER_TYPE_PROJECT else adapter.huggingface_name
                 pipeline = fetch_pipeline(
                     model_name=model.huggingface_model_name,
                     adapter_name=adapter_location_or_name)

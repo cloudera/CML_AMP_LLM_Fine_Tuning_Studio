@@ -8,6 +8,7 @@ from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata
 
+
 class ModelsManagerBase(ABC):
     """
     Base models manager class responsible for all logic
@@ -66,7 +67,9 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
                     huggingface_model_name=request.huggingface_name,
                 )
 
-                response.model = model_metadata
+                response = ImportModelResponse(
+                    model=model_metadata
+                )
             except Exception as e:
                 raise ValueError(f"ERROR: Failed to load Hugging Face model. {e}")
         elif request.type == ModelType.MODEL_TYPE_MODEL_REGISTRY:
@@ -93,8 +96,9 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
                     )
                 )
 
-                response.model = model_metadata
-
+                response = ImportModelResponse(
+                    model=model_metadata
+                )
             except Exception as e:
                 raise ValueError(f"ERROR: Failed to load model registry model. {e}")
 

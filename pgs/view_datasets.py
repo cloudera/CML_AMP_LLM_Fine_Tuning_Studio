@@ -60,4 +60,4 @@ with tab1:
         "No Huggingface datasets available.")
 
 with tab2:
-    display_datasets(datasets, DatasetType.DATASET_TYPE_IMPORTED, HF_LOGO, "No custom datasets available.")
+    display_datasets(datasets, DatasetType.DATASET_TYPE_PROJECT, HF_LOGO, "No custom datasets available.")

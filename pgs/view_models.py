@@ -68,7 +68,7 @@ def display_adapter(adapter: AdapterMetadata, container):
     with container:
         c1, c2 = container.columns([4, 1])
         c1.text(adapter.name)
-        if adapter.type == AdapterType.PROJECT:
+        if adapter.type == AdapterType.ADAPTER_TYPE_PROJECT:
             c1.caption(adapter.location)
 
         remove = c2.button("Remove", type="secondary", key=f"{adapter.id}_remove", use_container_width=True)

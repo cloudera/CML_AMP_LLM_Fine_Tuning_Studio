@@ -46,13 +46,9 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         """
         Retrieve dataset information without fully loading it into memory.
         """
+        response = ImportDatasetResponse()
 
         # Create a new dataset metadata for the imported dataset.
-        metadata = DatasetMetadata(
-            id=str(uuid4()),
-            type=request.type
-        )
-
         if request.type == DatasetType.DATASET_TYPE_HUGGINGFACE:
             try:
                 # Check if the dataset already exists
@@ -68,10 +64,15 @@ class DatasetsManagerSimple(DatasetsManagerBase):
 
                 # Extract features from the dataset info.
                 features = list(dataset_info.features.keys())
-                metadata.features = features
-                metadata.huggingface_name = request.huggingface_name
-                metadata.name = request.huggingface_name
-                metadata.description = dataset_info.description
+                metadata = DatasetMetadata(
+                    id=str(uuid4()),
+                    type=request.type,
+                    features=features,
+                    huggingface_name=request.huggingface_name,
+                    name=request.huggingface_name,
+                    description=dataset_info.description
+                )
+                response = ImportDatasetResponse(dataset=metadata)
 
             except Exception as e:
                 raise ValueError(f"Failed to load dataset. {e}")
@@ -79,6 +80,4 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         else:
             raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
 
-        return ImportDatasetResponse(
-            dataset=metadata
-        )
+        return response

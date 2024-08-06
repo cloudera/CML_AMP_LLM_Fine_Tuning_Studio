@@ -14,6 +14,7 @@ from ft.managers import (
 
 from ft.api import *
 
+
 class FineTuningAppProps:
     state_location: str
     """
@@ -107,7 +108,7 @@ class FineTuningApp():
             state: AppState = get_state()
             state.datasets.append(import_response.dataset)
             write_state(state)
-            
+
         return import_response
 
     def remove_dataset(self, id: str):

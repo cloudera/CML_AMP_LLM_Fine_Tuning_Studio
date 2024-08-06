@@ -100,7 +100,6 @@ def add_prompt(name, dataset_id, template):
         id=str(uuid4()),
         name=name,
         dataset_id=dataset_id,
-        slots=None,
         prompt_template=template
     ))
 

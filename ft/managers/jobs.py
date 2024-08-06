@@ -112,7 +112,7 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
         arg_list.append(str(request.learning_rate))  # Convert to str
 
         # TODO: see if the protobuf default value is sufficient here
-        if request.train_test_split is not StartFineTuningJobRequest().train_test_split:
+        if not request.train_test_split == StartFineTuningJobRequest().train_test_split:
             arg_list.append("--train_test_split")
             arg_list.append(str(request.train_test_split))
 
@@ -160,7 +160,7 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
             base_model_id=request.base_model_id,
             dataset_id=request.dataset_id,
             prompt_id=request.prompt_id,
-            num_workers=1,
+            num_workers=request.num_workers,
             cml_job_id=created_job.id,
             num_epochs=request.num_epochs,
             learning_rate=request.learning_rate,
@@ -178,7 +178,7 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
             adapter_metadata: AdapterMetadata = AdapterMetadata(
                 id=str(uuid4()),
                 name=request.adapter_name,
-                type=AdapterType.PROJECT,
+                type=AdapterType.ADAPTER_TYPE_PROJECT,
                 model_id=request.base_model_id,
                 location=out_dir,
                 job_id=job_id,

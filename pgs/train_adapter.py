@@ -18,6 +18,7 @@ import torch
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 from typing import List, Optional, Dict, Any
 from google.protobuf.json_format import MessageToDict, ParseDict
+import traceback 
 
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
@@ -129,13 +130,14 @@ def create_train_adapter_page():
                     dataset = current_datasets[dataset_idx]
                     prompt = current_prompts[prompt_idx]
                     bnb_config_dict = json.loads(bnb_config)
+                    bnb_config_special_type: BnbConfig = BnbConfig(**bnb_config_dict)
                     get_app().launch_ft_job(StartFineTuningJobRequest(
                         adapter_name=adapter_name,
                         base_model_id=model.id,
                         dataset_id=dataset.id,
                         prompt_id=prompt.id,
-                        num_workers=1,
-                        bits_and_bytes_config=ParseDict(bnb_config_dict, BnbConfig()),
+                        num_workers=int(1),
+                        bits_and_bytes_config=bnb_config_special_type,
                         auto_add_adapter=True,
                         num_epochs=int(num_epochs),
                         learning_rate=float(learning_rate),
@@ -152,6 +154,9 @@ def create_train_adapter_page():
                 except Exception as e:
                     st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
                     st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
+                    print(traceback.format_exc())
+                    st.error(traceback.format_exc())
+                    
 
     with ccol2:
         st.info("""

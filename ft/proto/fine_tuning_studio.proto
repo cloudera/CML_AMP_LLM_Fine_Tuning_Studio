@@ -374,7 +374,7 @@ message FineTuningJobMetadata {
   string prompt_id = 4;
 
   // Number of workers to use for this fine-tuning job.
-  string num_workers = 5;
+  int32 num_workers = 5;
 
   // CML identifier for the created CML job.
   string cml_job_id = 6;
@@ -401,10 +401,11 @@ message FineTuningJobMetadata {
 message BnbConfig {
   bool load_in_8bit = 1;
   bool load_in_4bit = 2;
-  string bnb_4bit_compute_type = 3;
+  string bnb_4bit_compute_dtype = 3;
   string bnb_4bit_quant_type = 4;
   bool bnb_4bit_use_double_quant = 5;
   string bnb_4bit_quant_storage = 6;
+  string quant_method = 7;
 }
 
 
@@ -489,6 +490,9 @@ message MLflowEvaluationJobMetadata {
 
   // Properties of each worker that will be spawned up.
   WorkerProps worker_props = 7;
+
+  // Resulting directory of evaluation
+  string evaluation_dir = 8;
 }
 
 message StartMLflowEvaluationJobRequest {

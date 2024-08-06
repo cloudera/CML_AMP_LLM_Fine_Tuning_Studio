@@ -5,6 +5,7 @@ import pandas as pd
 import os
 import requests
 import json
+from google.protobuf.json_format import MessageToDict, ParseDict
 
 # Container for the layout
 with st.container(border=True):
@@ -37,7 +38,7 @@ with tab1:
     else:
         # Convert jobs to DataFrame
         try:
-            jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+            jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         except Exception as e:
             st.error(f"Error converting jobs to DataFrame: {e}")
             jobs_df = pd.DataFrame()

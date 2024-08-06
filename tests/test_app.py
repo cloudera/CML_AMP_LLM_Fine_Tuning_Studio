@@ -20,6 +20,7 @@ from ft.app import (
 
 from tests.mock import *
 
+
 def generate_test_app(
     models: ModelsManagerBase = MockModelsManager(),
     datasets: DatasetsManagerBase = MockDatasetsManager(),
@@ -43,6 +44,7 @@ class TestAppDatasets():
             id=str(uuid4()),
             type=DatasetType.DATASET_TYPE_HUGGINGFACE
         )
+
         class MockDatasetsManagerConstant(MockDatasetsManager):
             def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
                 return ImportDatasetResponse(
@@ -56,19 +58,17 @@ class TestAppDatasets():
                 dataset
             ]
         ))
-        
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_add_dataset_no_response(self, get_state, write_state):
         class MockDatasetsManagerConstant(MockDatasetsManager):
             def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
                 return ImportDatasetResponse()
-        app = generate_test_app(datasets=MockDatasetsManagerConstant())  
+        app = generate_test_app(datasets=MockDatasetsManagerConstant())
         get_state.return_value = AppState()
         app.add_dataset(ImportDatasetRequest())
         write_state.assert_not_called()
-        
-        
 
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
@@ -83,7 +83,6 @@ class TestAppDatasets():
         get_state.return_value = AppState(datasets=datasets)
         app.remove_dataset(datasets[0].id)
         write_state.assert_called_with(AppState())
-        
 
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
@@ -126,10 +125,8 @@ class TestAppDatasets():
         ))
 
 
-
-
 class TestAppPrompts():
-    
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_add_prompt(self, get_state, write_state):
@@ -145,7 +142,7 @@ class TestAppPrompts():
         write_state.assert_called_with(AppState(
             prompts=[prompt]
         ))
-        
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_remove_prompt(self, get_state, write_state):
@@ -163,9 +160,8 @@ class TestAppPrompts():
         write_state.assert_called_with(AppState())
 
 
-
 class TestAppModels():
-    
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_import_model_success(self, get_state, write_state):
@@ -173,6 +169,7 @@ class TestAppModels():
             id=str(uuid4()),
             type=ModelType.MODEL_TYPE_HUGGINGFACE
         )
+
         class MockModelsManagerConstant(MockModelsManager):
             def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
                 return ImportModelResponse(model=model)
@@ -184,7 +181,7 @@ class TestAppModels():
                 model
             ]
         ))
-        
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_import_model_no_response(self, get_state, write_state):
@@ -195,8 +192,7 @@ class TestAppModels():
         get_state.return_value = AppState()
         app.import_model(ImportModelRequest())
         write_state.assert_not_called()
-        
-        
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_remove_model_success(self, get_state, write_state):
@@ -216,8 +212,7 @@ class TestAppModels():
         write_state.assert_called_with(AppState(
             models=[models[1]]
         ))
-        
-        
+
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_remove_model_no_models(self, get_state, write_state):
@@ -225,7 +220,6 @@ class TestAppModels():
         app = generate_test_app()
         app.remove_model("model1")
         write_state.assert_called_with(AppState())
-
 
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
@@ -244,13 +238,12 @@ class TestAppModels():
         get_state.assert_not_called()
         write_state.assert_not_called()
 
-
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")
     def test_export_model_not_model_registry(self, get_state, write_state):
         """
         This test ensures that we are only "adding" exported models back into the
-        namespace for model registry models. In reality, this should only be 
+        namespace for model registry models. In reality, this should only be
         tied to a request type object that specifies if we should auto-add the
         model. Similar to auto-adding adapters.
         """
@@ -267,7 +260,6 @@ class TestAppModels():
         assert response.model == ModelMetadata()
         get_state.assert_not_called()
         write_state.assert_not_called()
-
 
     @patch("ft.app.write_state")
     @patch("ft.app.get_state")

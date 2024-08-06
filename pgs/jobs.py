@@ -9,7 +9,7 @@ import cmlapi
 
 import plotly.graph_objects as go
 from typing import List
-
+from google.protobuf.json_format import MessageToDict, ParseDict
 
 def display_page_header():
     with st.container(border=True):
@@ -49,7 +49,7 @@ def fetch_current_jobs_and_mappings():
     current_jobs = get_state().jobs
     models = get_state().models
     adapters = get_state().adapters
-    datasets = get_app().datasets.list_datasets()
+    datasets = get_state().datasets
     prompts = get_state().prompts
 
     model_dict = {model.id: model.name for model in models}
@@ -120,7 +120,7 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         return
 
     try:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
     except Exception as e:
         st.error(f"Error converting jobs to DataFrame: {e}")
         jobs_df = pd.DataFrame()
