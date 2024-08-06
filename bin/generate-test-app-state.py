@@ -1,13 +1,9 @@
 from uuid import uuid4
 import json 
 from ft.state import AppState
-from ft.dataset import *
-from ft.prompt import *
-from ft.adapter import *
+from ft.api import *
 from datasets import load_dataset
-from ft.model import *
-from ft.job import *
-
+from typing import List
 
 OUTPUT_FILE = ".app/state.json"
 
@@ -55,7 +51,7 @@ for dataset_name in AVAILABLE_DATASETS:
         id=str(uuid4()),
         name=dataset_name,
         description=dataset.description,
-        type=DatasetType.HUGGINGFACE,
+        type=DatasetType.DATASET_TYPE_HUGGINGFACE,
         huggingface_name=dataset_name,
         features=dataset.column_names,
         location=None
@@ -66,7 +62,7 @@ models: List[ModelMetadata] = []
 for model_name in AVAILABLE_MODELS:
     models.append(ModelMetadata(
         id=str(uuid4()),
-        type=ModelType.HUGGINGFACE,
+        type=ModelType.MODEL_TYPE_HUGGINGFACE,
         name=model_name,
         huggingface_model_name=model_name
     ))

@@ -1,0 +1,528 @@
+/**
+
+CML LLM Fine Tuning Studio
+
+This is the protobuf definition used at the API
+surface of the Fine Tuning Studio (FTS) application. Given that 
+this may integrate in the future as a first-class citizen of CML, 
+we are prepending FTS to our objects to make it abundantly clear
+that these model metadata definitions, etc., are different
+from the CML model metadata definitions.
+
+*/
+
+syntax = "proto3";
+
+package fine_tuning_studio;
+
+// Type of dataset. This type determines how a 
+// dataset is extracted or loaded into memory when
+// running fine-tuning jobs.
+//
+// Note that enum values use C++ scoping rules, meaning that enum values are siblings of their type,
+// not children of it.  Therefore, enum names must be unique within "fine_tuning_studio", not just within 
+// their enums. Hence the prefix of the enum.
+enum DatasetType {
+
+  // Dataset is stored on HF hub and can be 
+  // downloaded whenever needed.
+  DATASET_TYPE_HUGGINGFACE = 0;
+
+  // Dataset is locally stored in project files
+  // and can be referenced by a dataset location.
+  DATASET_TYPE_PROJECT = 1;
+}
+
+
+// Metadata about a dataset that is being tracked in FTS. 
+message DatasetMetadata {
+
+  // FTS id of the dataset.
+  string id = 1;
+
+  // Type of the dataset.
+  DatasetType type = 2;
+
+  // human-readable name of the dataset. 
+  string name = 3;
+  
+  // description of the dataset.
+  string description = 4;
+
+  // canonical huggingface dataset name (can be used to find
+  // huggingface hub if this is a huggingface dataset)
+  string huggingface_name = 5;
+
+  // Project-relative location of the dataset that is
+  // loaded into the app's state, if this is a project dataset.
+  string location = 6;
+
+  // list of features in the dataset.
+  repeated string features = 7;
+
+}
+
+
+// Request object for importing a new dataset into
+// the FTS app's ecosystem. Note that importing a new dataset
+// isn't the same as loading a dataset into memory. This simply
+// makes the FT app aware of the dataset and it's location. 
+message ImportDatasetRequest {
+
+  // Type of dataset to be imported.
+  DatasetType type = 1;
+
+  // If this is a huggingface dataset, the huggingface name
+  // should be provided.
+  string huggingface_name = 2;
+
+  // If this is a project-relative dataset, then add project
+  // location
+  string location = 3;
+}
+
+
+// Response object from importing a dataset.
+message ImportDatasetResponse {
+
+  // If the dataset import was successful, then a dataset
+  // metadata object is returned. If the import was not successful,
+  // there's currently no way to determine the reasoning of the
+  // failure rather than looking into the application/microservice logs. 
+  DatasetMetadata dataset = 1;
+
+}
+
+
+// Type of model. This AMP currently supports
+// loading models in huggingface, from CML's
+// model registry, and finally from local project
+// files within a CML workspace.
+enum ModelType {
+
+  // Huggingface model.
+  MODEL_TYPE_HUGGINGFACE = 0;
+
+  // Model imported from project files.
+  //
+  // TODO: determine a way to extract model framework from the content
+  // of the provided file directory (or by other parameters
+  // in the model metadata request)
+  MODEL_TYPE_PROJECT = 1;
+
+  // Model was imported from CML Model Registry.
+  MODEL_TYPE_MODEL_REGISTRY = 2;
+
+}
+
+
+// The model framework used for this model. Depending on
+// the model type (i.e. HF, project, registry), handling
+// the model may be different (for example, for local projects,
+// we should specify a file/packaging format for ONNX models.)
+// 
+// TODO: for the most part, this AMP only supports pytorch models
+// at this time. we should support other frameworks.
+enum ModelFrameworkType {
+
+  // Pytorch
+  MODEL_FRAMEWORK_TYPE_PYTORCH = 0;
+
+  // Tensorflow
+  MODEL_FRAMEWORK_TYPE_TENSORFLOW = 1;
+
+  // ONNX
+  MODEL_FRAMEWORK_TYPE_ONNX = 2;
+
+}
+
+
+// Metadata about a registered model. This can
+// apply right now to both adapters as well as
+// models (TODO: need to check this logic)
+message RegisteredModelMetadata {
+
+  // Model ID of the registered model.
+  string cml_registered_model_id = 1;
+
+  // MLFlow experiment ID. This allows us to extract individual
+  // model artifacts from the model registry, for example.
+  string mlflow_experiment_id = 2;
+
+  // MLFlow run ID tied to this specific model artifact. This is used
+  // to extract individual model artifacts from MLFlow.
+  string mlflow_run_id = 3;
+
+}
+
+
+// Metadata about a model that is loaded into the FTS
+// application.
+message ModelMetadata {
+  
+  // Global identifier for models.
+  //
+  // For the purpose of this
+  // AMP application, during local ML model loading & inference,
+  // model IDs are random unique identifiers that have no
+  // significance within the CML ecosystem. Evenutally when this
+  // AMP is integrated with CML model registry, we will ideally
+  // be able to have a more significant model ID.
+  string id = 1;
+
+  // Type of model. This type affects the source of where models
+  // are loaded from.
+  ModelType type = 2;
+
+  // framework of the model.
+  ModelFrameworkType framework = 3;
+
+  // human-friendly name for the model.
+  string name = 4;
+
+  // Name of the huggingface model. This is the human-readable
+  // model name that can be used to identify a huggingface model
+  // on HF hub.
+  string huggingface_model_name = 5;
+
+  // Location of the model if it is a local project model.
+  string location = 6;
+
+  // Metadata on the registered model with CML model registry,
+  // if this model is a model registry type.
+  RegisteredModelMetadata registered_model = 7;
+}
+
+
+// Import a new model into the FTS app.
+message ImportModelRequest {
+
+  // type of model to import. This affects how the model
+  // is loaded and how metadata is extracted for the model. 
+  ModelType type = 1; 
+
+  // Name of the huggingface model. This is the full huggingface
+  // model name used to identify the model on HF hub.
+  string huggingface_name = 2;
+
+  // Model ID of the model in the model registry of the workspace.
+  // Used when importing models from model registries.
+  string model_registry_id = 3;
+
+}
+
+
+message ImportModelResponse {
+
+  // Response metadata
+  ModelMetadata model = 1;
+}
+
+
+// Export a model out of the FTS app ecosystem. 
+message ExportModelRequest {
+
+  // Type of export model operation to perform.
+  ModelType type = 1; 
+
+  // Model ID that should be exported
+  string model_id = 2;
+
+  // Trained adapter that is to also be
+  // exported (optional). Depending on the model
+  // export type, any PEFT adapter weights may be
+  // merged into the base model.
+  string adapter_id = 3;
+
+  // Human-friendly name to give to the exported
+  // model. Might not be used if only exporting
+  // model to a file output (for example, ONNX output)
+  string model_name = 4;
+
+  // Export output artifact location for export types
+  // that require file-writing to project files.
+  string artifact_location = 5;
+
+  // model description for those model export
+  // types that allow for descriptions.
+  string model_description = 6;
+
+}
+
+message ExportModelResponse {
+
+  // If a model is exported, this typically means a new
+  // model is created and can technically be imported into
+  // the FTS app. For this reason, the ModelMetadata object
+  // can be used to store this information.
+  ModelMetadata model = 1;
+}
+
+// Type of PEFT adapter.
+enum AdapterType {
+
+  // Project-relative PEFT adapter imported from project
+  // files, probably created after a fine-tuning
+  // job was ran in our app.
+  ADAPTER_TYPE_PROJECT = 0;
+
+  // Huggingface-stored adapter that can be pulled
+  // down from HF hub.
+  ADAPTER_TYPE_HUGGINGFACE = 1;
+
+  // Adapter stored within the CML model registry.
+  ADAPTER_TYPE_MODEL_REGISTRY = 2;
+}
+
+
+message AdapterMetadata {
+
+  // Unique ID of the PEFT adapter.
+  string id = 1;
+
+  // Type of model adapter.
+  AdapterType type = 2;
+
+  // Human friendly name of the adapter for tracking.
+  string name = 3;
+
+  // Corresponding model ID that this adapter is designed for. This is the
+  // model ID in the FT app.
+  string model_id = 4;
+
+  // Project-relative directory where the PEFT adapter data is stored.
+
+  // When training with HF/TRL libraries, a typical output directory
+  // for PEFT adapters will contain files like:
+  // * adapter_config.json
+  // * adapter_model.bin
+  
+  // This dataclass currently just stores the location of the PEFT adapter
+  // in the local directory which can then be used to load an adapter.
+  string location = 5;
+
+  // Huggingface PEFT adapter name (identifier used to find
+  // the adapter on HF hub).
+  string huggingface_name = 6;
+
+  // Job ID of the job that was used to train/create this adapter. This is
+  // used to determine if an adapter is completely trained or not.
+  string job_id = 7;
+
+  // Prompt ID of the prompt that was used to train this adapter.
+  string prompt_id = 8;
+
+  // Adapters should eventually have support in CML model registry. This metadata
+  // will be stored here for adapters in case this is available.
+  RegisteredModelMetadata registered_model = 9;
+}
+
+
+message PromptMetadata {
+
+  // Unique ID of the prompt in question.
+  string id = 1;
+
+  // Human-friendly name of this prompt template
+  // for use-cases elsewhere
+  string name = 2;
+
+  // ID of the dataset that uses this prompt.
+  // This dataset should contain column names
+  // that correspond to the items that are
+  // in the list of slots.
+  string dataset_id = 3;
+
+  // Python formatted prompt string template.
+  string prompt_template = 4;
+}
+
+
+message WorkerProps {
+  int32 num_cpu = 1;
+  int32 num_memory = 2;
+  int32 num_gpu = 3;
+}
+
+
+enum JobStatus {
+  JOB_STATUS_SCHEDULED = 0;
+  JOB_STATUS_RUNNING = 1;
+  JOB_STATUS_SUCCESS = 2;
+  JOB_STATUS_FAILURE = 3;
+}
+
+
+message FineTuningJobMetadata {
+
+  // Unique job identifier of the job. For some job implementations (local
+  // fine tuning with the AMP), this job ID does not specifically have a
+  // CML counterpart or significance in the CDP ecosystem.
+  string job_id = 1;
+
+  // The model ID of the base model that should be used as a
+  // base for the fine tuning job.
+  string base_model_id = 2;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 3;
+
+  // The prompt that will be used for training. This is
+  // tied to the dataset for now, but that won't necessarily
+  // be a many-to-one relationship in the future.
+  string prompt_id = 4;
+
+  // Number of workers to use for this fine-tuning job.
+  string num_workers = 5;
+
+  // CML identifier for the created CML job.
+  string cml_job_id = 6;
+
+  // Adapter ID of the adapter that this job is training.
+  string adapter_id = 7;
+
+  // Properties of each worker that will be spawned up.
+  WorkerProps worker_props = 8;
+
+  // Number of epochs to run during fine-tuning.
+  int32 num_epochs = 9;
+
+  // Learning rate to use during fine-tuning.
+  float learning_rate = 10;
+}
+
+
+// Bits and bytes config. Note that we need to 
+// define this here purely because we serialize this
+// config onto a protobuf, and the default data type in the
+// transformers package is not serializable to a protobuf
+// by default.
+message BnbConfig {
+  bool load_in_8bit = 1;
+  bool load_in_4bit = 2;
+  string bnb_4bit_compute_type = 3;
+  string bnb_4bit_quant_type = 4;
+  bool bnb_4bit_use_double_quant = 5;
+  string bnb_4bit_quant_storage = 6;
+}
+
+
+message StartFineTuningJobRequest {
+
+  // Human-friendly identifier for the name of the output adapter.
+  string adapter_name = 1;
+
+  // The model ID of the base model that should be used as a
+  // base for the fine tuning job.
+  string base_model_id = 2;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 3;
+
+  // The prompt that will be used for training. This is
+  // tied to the dataset for now, but that won't necessarily
+  // be a many-to-one relationship in the future.
+  string prompt_id = 4;
+
+  // Number of workers to use for this fine-tuning job.
+  int32 num_workers = 5;
+
+  // Bits and bytes config used to quantize the model. If this
+  // is present, then a model will be loaded with BnB config
+  // enabled.
+  BnbConfig bits_and_bytes_config = 6;
+
+  // Automatically add the trained job as an adapter to the app.
+  bool auto_add_adapter = 7;
+
+  // Number of epochs to run during fine-tuning.
+  int32 num_epochs = 8;
+
+  // Learning rate to use during fine-tuning.
+  float learning_rate = 9;
+
+  // Number of CPUs to allocate for this job.
+  int32 cpu = 10;
+
+  // Number of GPUs to allocate for this job.  
+  int32 gpu = 11;
+
+  // Amount of memory to allocate for this job (e.g., '16Gi').
+  int32 memory = 12;
+
+  // Optional dataset test split to split the dataset into a training
+  // dataset and an eval dataset. Evaluation datasets are used at epoch boundaries
+  // during training to compute metrics and compte loss again.
+  float train_test_split = 13;
+}
+
+
+message StartFineTuningJobResponse {
+  FineTuningJobMetadata job = 1;
+}
+
+message MLflowEvaluationJobMetadata {
+
+  // Unique job identifier of the job. For some job implementations (local
+  // fine tuning with the AMP), this job ID does not specifically have a
+  // CML counterpart or significance in the CDP ecosystem.
+  string job_id = 1;
+
+  // CML identifier for the created CML job.
+  string cml_job_id = 2;
+
+  // The model ID of the base model that should be used as a
+  // base for the fine tuning job.
+  string base_model_id = 3;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 4;
+
+  // Number of workers to use for this evaluation job.
+  int32 num_workers = 5;
+
+  // Adapter ID of the adapter that this job is training.
+  string adapter_id = 6;
+
+  // Properties of each worker that will be spawned up.
+  WorkerProps worker_props = 7;
+}
+
+message StartMLflowEvaluationJobRequest {
+
+  // The model ID of the base model that should be used as a
+  // base for the job.
+  string base_model_id = 1;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 2;
+
+  // Adapter ID of the adapter for this job
+  string adapter_id = 3;
+
+  // Number of CPUs to allocate for this job.
+  int32 cpu = 4;
+
+  // Number of GPUs to allocate for this job.
+  int32 gpu = 5;
+
+  // Amount of memory to allocate for this job (e.g., '16Gi').
+  int32 memory = 6;
+}
+
+message StartMLflowEvaluationJobResponse {
+  MLflowEvaluationJobMetadata job = 1;
+}
+
+message AppState {
+  repeated DatasetMetadata datasets = 1;
+  repeated ModelMetadata models = 2;
+  repeated FineTuningJobMetadata jobs = 3;
+  repeated MLflowEvaluationJobMetadata mlflow = 4;
+  repeated PromptMetadata prompts = 5;
+  repeated AdapterMetadata adapters = 6;
+}

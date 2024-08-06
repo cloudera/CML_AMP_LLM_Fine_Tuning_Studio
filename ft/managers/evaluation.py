@@ -5,12 +5,9 @@ import os
 import pathlib
 
 import cmlapi
-from ft.mlflow import (MLflowEvaluationJobMetadata, StartMLflowEvaluationJobRequest,
-                       StartMLflowEvaluationJobResponse, MLflowEvaluationWorkerProps)
-from ft.state import get_state, AppState
-from ft.adapter import AdapterMetadata, AdapterType
+from ft.state import get_state
+from ft.api import *
 from ft.managers.cml import CMLManager
-from datetime import datetime
 
 
 class MLflowEvaluationJobsManagerBase(ABC):
@@ -131,16 +128,15 @@ class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase, CMLMana
         )
 
         metadata = MLflowEvaluationJobMetadata(
-            start_time=launched_job.scheduling_at,
             job_id=job_id,
             base_model_id=request.base_model_id,
             dataset_id=request.dataset_id,
             adapter_id=request.adapter_id,
             num_workers=1,
-            worker_props=MLflowEvaluationWorkerProps(
-                cpu=request.cpu,
-                memory=request.memory,
-                gpu=request.gpu
+            worker_props=WorkerProps(
+                num_cpu=request.cpu,
+                num_gpu=request.gpu,
+                num_memory=request.memory
             ),
             cml_job_id=created_job.id,
             evaluation_dir=result_dir

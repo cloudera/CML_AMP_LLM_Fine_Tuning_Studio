@@ -1,8 +1,7 @@
 import streamlit as st
 from ft.state import get_state
 from ft.app import get_app
-from ft.model import ModelMetadata, ModelType, ImportModelRequest
-from ft.adapter import AdapterMetadata, AdapterType
+from ft.api import *
 from typing import List
 from ft.managers.cml import CMLManager
 from cmlapi import RegisteredModelDetails
@@ -62,7 +61,7 @@ def display_model_registry_import():
                 with st.spinner("Loading Model..."):
                     try:
                         get_app().import_model(ImportModelRequest(
-                            type=ModelType.MODEL_REGISTRY,
+                            type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
                             model_registry_id=model_registry_models[model_idx].model_id
                         ))
                         st.success(
@@ -96,7 +95,7 @@ def display_huggingface_import():
             with st.spinner("Loading Model..."):
                 try:
                     get_app().import_model(ImportModelRequest(
-                        type=ModelType.HUGGINGFACE,
+                        type=ModelType.MODEL_TYPE_HUGGINGFACE,
                         huggingface_name=import_hf_model_name
                     ))
                     st.success(

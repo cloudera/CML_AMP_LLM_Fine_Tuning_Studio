@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ft.dataset import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
+from ft.api import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
 from typing import List
 from datasets import load_dataset_builder
 from ft.state import get_state
@@ -50,15 +50,10 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         # Create a new dataset metadata for the imported dataset.
         metadata = DatasetMetadata(
             id=str(uuid4()),
-            type=request.type,
-            name=None,
-            description=None,
-            huggingface_name=None,
-            location=None,
-            features=None
+            type=request.type
         )
 
-        if request.type == DatasetType.HUGGINGFACE:
+        if request.type == DatasetType.DATASET_TYPE_HUGGINGFACE:
             try:
                 # Check if the dataset already exists
                 existing_datasets = get_state().datasets

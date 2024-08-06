@@ -12,11 +12,12 @@ import ft.fine_tune
 import os
 from ft.app import get_app
 from ft.state import get_state
-from ft.job import StartFineTuningJobRequest, FineTuningJobMetadata, StartFineTuningJobResponse
+from ft.api import *
 import json
 import torch
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 from typing import List, Optional, Dict, Any
+from google.protobuf.json_format import MessageToDict, ParseDict
 
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
@@ -134,7 +135,7 @@ def create_train_adapter_page():
                         dataset_id=dataset.id,
                         prompt_id=prompt.id,
                         num_workers=1,
-                        bits_and_bytes_config=BitsAndBytesConfig(**bnb_config_dict),
+                        bits_and_bytes_config=ParseDict(bnb_config_dict, BnbConfig()),
                         auto_add_adapter=True,
                         num_epochs=int(num_epochs),
                         learning_rate=float(learning_rate),
