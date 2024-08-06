@@ -1,0 +1,136 @@
+{
+  "datasets": [
+    {
+      "id": "441509f4-137b-40ce-a303-bbd2a63f1e69",
+      "type": "huggingface",
+      "name": "Clinton/Text-to-sql-v1",
+      "description": "",
+      "huggingface_name": "Clinton/Text-to-sql-v1",
+      "features": [
+        "instruction",
+        "input",
+        "response",
+        "source",
+        "text"
+      ]
+    },
+    {
+      "id": "ea5b3d2f-c2b6-4b73-8989-e5175b4efb03",
+      "type": "huggingface",
+      "name": "hakurei/open-instruct-v1",
+      "description": "",
+      "huggingface_name": "hakurei/open-instruct-v1",
+      "features": [
+        "output",
+        "instruction",
+        "input"
+      ]
+    },
+    {
+      "id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
+      "type": "huggingface",
+      "name": "philschmid/sql-create-context-copy",
+      "description": "",
+      "huggingface_name": "philschmid/sql-create-context-copy",
+      "features": [
+        "question",
+        "answer",
+        "context"
+      ]
+    },
+    {
+      "id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "type": "huggingface",
+      "name": "teknium/GPTeacher-General-Instruct",
+      "description": "",
+      "huggingface_name": "teknium/GPTeacher-General-Instruct",
+      "features": [
+        "instruction",
+        "response",
+        "input"
+      ]
+    },
+    {
+      "id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
+      "type": "huggingface",
+      "name": "s-nlp/paradetox",
+      "description": "",
+      "huggingface_name": "s-nlp/paradetox",
+      "features": [
+        "en_toxic_comment",
+        "en_neutral_comment"
+      ]
+    }
+  ],
+  "models": [
+    {
+      "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
+      "type": "huggingface",
+      "name": "Qwen/Qwen2-0.5B",
+      "huggingface_model_name": "Qwen/Qwen2-0.5B"
+    },
+    {
+      "id": "275d8d87-6e07-4f68-acf4-031dd2ce5a96",
+      "type": "huggingface",
+      "name": "EleutherAI/pythia-160m",
+      "huggingface_model_name": "EleutherAI/pythia-160m"
+    },
+    {
+      "id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "type": "huggingface",
+      "name": "bigscience/bloom-1b1",
+      "huggingface_model_name": "bigscience/bloom-1b1"
+    },
+    {
+      "id": "1ea746bb-dd7c-4072-a93b-c409af07820e",
+      "type": "huggingface",
+      "name": "distilbert/distilgpt2",
+      "huggingface_model_name": "distilbert/distilgpt2"
+    }
+  ],
+  "jobs": [],
+  "mlflow": [],
+  "prompts": [
+    {
+      "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
+      "name": "PREBUILT: philschmid/sql-create-context-copy",
+      "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
+      "prompt_template": "<TABLE>: {context}\n<QUESTION>: {question}\n<SQL>: {answer}"
+    },
+    {
+      "id": "7ee0f633-faf0-4827-b4cf-2eab4795fc53",
+      "name": "PREBUILT: instruct",
+      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "prompt_template": "<Instruction>: {instruction}\n<Input>: {input}\n<Response>: {response}\n"
+    },
+    {
+      "id": "d1a4bb2b-e5c0-4fd7-abd3-0f53c5c00d17",
+      "name": "PREBUILT: toxic",
+      "dataset_id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
+      "prompt_template": "<Toxic>: {en_toxic_comment}\n<Neutral>: {en_neutral_comment}"
+    }
+  ],
+  "adapters": [
+    {
+      "id": "e3fe6f50-5be2-4960-bc7b-612843cdf5bd",
+      "name": "bloom1b1-lora-instruct",
+      "type": "project",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom1b1-lora-instruct"
+    },
+    {
+      "id": "64e8a578-7067-4cb9-8bd0-efd0da901bfe",
+      "name": "bloom1b1-lora-sql",
+      "type": "project",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom1b1-lora-sql"
+    },
+    {
+      "id": "4ff47f49-2e72-4457-99ac-964927e1b05c",
+      "name": "bloom1b1-lora-toxic",
+      "type": "project",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom1b1-lora-toxic"
+    }
+  ]
+}
