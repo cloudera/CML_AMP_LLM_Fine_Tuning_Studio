@@ -1,8 +1,7 @@
 import streamlit as st
 from ft.state import get_state
 from ft.app import get_app
-from ft.model import ModelMetadata, ModelType, ImportModelRequest
-from ft.adapter import AdapterMetadata, AdapterType
+from ft.api import *
 from typing import List
 
 
@@ -23,11 +22,11 @@ def display_models_section():
     with st.container():
         tab1, tab2, tab3 = st.tabs(["**Huggingface**", "**Model Registry**", "**Project**"])
         with tab1:
-            display_models([model for model in models if model.type == ModelType.HUGGINGFACE], adapters)
+            display_models([model for model in models if model.type == ModelType.MODEL_TYPE_HUGGINGFACE], adapters)
         with tab2:
-            display_models([model for model in models if model.type == ModelType.MODEL_REGISTRY], adapters)
+            display_models([model for model in models if model.type == ModelType.MODEL_TYPE_MODEL_REGISTRY], adapters)
         with tab3:
-            display_models([model for model in models if model.type == ModelType.PROJECT], adapters)
+            display_models([model for model in models if model.type == ModelType.MODEL_TYPE_PROJECT], adapters)
 
 
 def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata]):
@@ -69,7 +68,7 @@ def display_adapter(adapter: AdapterMetadata, container):
     with container:
         c1, c2 = container.columns([4, 1])
         c1.text(adapter.name)
-        if adapter.type == AdapterType.PROJECT:
+        if adapter.type == AdapterType.ADAPTER_TYPE_PROJECT:
             c1.caption(adapter.location)
 
         remove = c2.button("Remove", type="secondary", key=f"{adapter.id}_remove", use_container_width=True)

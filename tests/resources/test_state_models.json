@@ -1,0 +1,10 @@
+{
+  "models": [
+    {
+      "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
+      "type": 0,
+      "name": "Qwen/Qwen2-0.5B",
+      "huggingface_model_name": "Qwen/Qwen2-0.5B"
+    }
+  ]
+}

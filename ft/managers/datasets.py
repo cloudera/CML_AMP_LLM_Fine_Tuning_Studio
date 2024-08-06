@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ft.dataset import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
+from ft.api import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
 from typing import List
 from datasets import load_dataset_builder
 from ft.state import get_state
@@ -46,19 +46,10 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         """
         Retrieve dataset information without fully loading it into memory.
         """
+        response = ImportDatasetResponse()
 
         # Create a new dataset metadata for the imported dataset.
-        metadata = DatasetMetadata(
-            id=str(uuid4()),
-            type=request.type,
-            name=None,
-            description=None,
-            huggingface_name=None,
-            location=None,
-            features=None
-        )
-
-        if request.type == DatasetType.HUGGINGFACE:
+        if request.type == DatasetType.DATASET_TYPE_HUGGINGFACE:
             try:
                 # Check if the dataset already exists
                 existing_datasets = get_state().datasets
@@ -73,10 +64,15 @@ class DatasetsManagerSimple(DatasetsManagerBase):
 
                 # Extract features from the dataset info.
                 features = list(dataset_info.features.keys())
-                metadata.features = features
-                metadata.huggingface_name = request.huggingface_name
-                metadata.name = request.huggingface_name
-                metadata.description = dataset_info.description
+                metadata = DatasetMetadata(
+                    id=str(uuid4()),
+                    type=request.type,
+                    features=features,
+                    huggingface_name=request.huggingface_name,
+                    name=request.huggingface_name,
+                    description=dataset_info.description
+                )
+                response = ImportDatasetResponse(dataset=metadata)
 
             except Exception as e:
                 raise ValueError(f"Failed to load dataset. {e}")
@@ -84,6 +80,4 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         else:
             raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
 
-        return ImportDatasetResponse(
-            dataset=metadata
-        )
+        return response

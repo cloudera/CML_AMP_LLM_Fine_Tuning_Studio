@@ -1,5 +1,5 @@
 import streamlit as st
-from ft.dataset import DatasetMetadata, DatasetType
+from ft.api import DatasetMetadata, DatasetType
 from ft.app import get_app
 from ft.consts import HF_LOGO
 from typing import List
@@ -55,9 +55,9 @@ tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**Custom Datasets**"])
 with tab1:
     display_datasets(
         datasets,
-        DatasetType.HUGGINGFACE,
+        DatasetType.DATASET_TYPE_HUGGINGFACE,
         "./resources/images/hf-logo.png",
         "No Huggingface datasets available.")
 
 with tab2:
-    display_datasets(datasets, DatasetType.IMPORTED, HF_LOGO, "No custom datasets available.")
+    display_datasets(datasets, DatasetType.DATASET_TYPE_PROJECT, HF_LOGO, "No custom datasets available.")

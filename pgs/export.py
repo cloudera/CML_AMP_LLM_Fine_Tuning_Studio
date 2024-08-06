@@ -1,24 +1,8 @@
 import streamlit as st
 import streamlit as st
-import pandas as pd
-import numpy as np
-import time
-import datasets
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from trl import SFTConfig, SFTTrainer
-from setfit.trainer import TrainerCallback, TrainerState
-from peft import LoraConfig
-import ft
-import ft.fine_tune
-import os
-from ft.app import get_app
 from ft.state import get_state
-from ft.job import StartFineTuningJobRequest, FineTuningJobMetadata, StartFineTuningJobResponse
-import json
-import torch
 from ft.pipeline import fetch_pipeline
-from ft.model import ModelMetadata
-from ft.adapter import AdapterMetadata, AdapterType
+from ft.api import *
 import mlflow
 from transformers import GenerationConfig
 from typing import List
@@ -91,7 +75,7 @@ with st.container(border=True):
 
                 # For now, let's assume HF model is available. If not, we should be ideally
                 # raising an error or handling custom models differently.
-                adapter_location_or_name = adapter.location if adapter.type == AdapterType.PROJECT else adapter.huggingface_name
+                adapter_location_or_name = adapter.location if adapter.type == AdapterType.ADAPTER_TYPE_PROJECT else adapter.huggingface_name
                 pipeline = fetch_pipeline(
                     model_name=model.huggingface_model_name,
                     adapter_name=adapter_location_or_name)

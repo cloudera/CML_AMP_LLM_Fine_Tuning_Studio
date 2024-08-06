@@ -1,13 +1,11 @@
 import streamlit as st
-from ft.dataset import DatasetMetadata
 from ft.app import get_app
-from ft.dataset import *
+from ft.api import *
 from ft.consts import HF_LOGO
 from ft.state import get_state
 from datasets import load_dataset
 import random
 from uuid import uuid4
-from ft.prompt import PromptMetadata
 from typing import List
 
 
@@ -102,7 +100,6 @@ def add_prompt(name, dataset_id, template):
         id=str(uuid4()),
         name=name,
         dataset_id=dataset_id,
-        slots=None,
         prompt_template=template
     ))
 

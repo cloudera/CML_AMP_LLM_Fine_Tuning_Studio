@@ -1,30 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
-from pydantic import BaseModel
 import json
 from typing import Dict
-from ft.state import get_state, update_state
-from ft.prompt import PromptMetadata
+from ft.state import get_state, write_state
 import os
-
-
-'''
-In order to get this UI demo working properly, we need two components:
-
-1. a set of pydantic, data-driven schemas that define how data will be
-passed around in the frontend. This is LIGHTWEIGHT and does NOT include
-the scope of loading in actual models into memory on a machine. This is
-a frontend component
-
-2. A list of adapters that utilize the pydantic data structures that can
-be used to initialize training jobs, view job statuses, etc. These adapters
-can be implemented in any fashion (for example, we have mock adapters, which
-then can be expanded to local training/inference adapters, which can then
-be expanded out to CML-specific adapters (model registry, model serving)). These
-adapters are responsible for example: listing models available, listing current
-fine tuning jobs, etc.
-
-'''
 
 from ft.managers import (
     ModelsManagerBase,
@@ -33,19 +12,7 @@ from ft.managers import (
     MLflowEvaluationJobsManagerBase
 )
 
-from ft.state import AppState
-from ft.dataset import ImportDatasetRequest, ImportDatasetResponse, DatasetType, DatasetMetadata
-from ft.model import (
-    ImportModelRequest,
-    ImportModelResponse,
-    ModelMetadata,
-    ExportModelRequest,
-    ExportModelResponse,
-    ExportType,
-)
-from ft.job import StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningJobMetadata
-from ft.mlflow import StartMLflowEvaluationJobRequest, StartMLflowEvaluationJobResponse, MLflowEvaluationJobMetadata
-from datasets import load_dataset
+from ft.api import *
 
 
 class FineTuningAppProps:
@@ -134,25 +101,31 @@ class FineTuningApp():
         import_response: ImportDatasetResponse = self.datasets.import_dataset(request)
 
         # If we've successfully imported a new dataset, then make sure we update
-        # the app's dataset state with this data.
-        if import_response.dataset is not None:
+        # the app's dataset state with this data. The way we detect this in protobuf
+        # is to compare the response message input to the default message, because in
+        # protobuf3 there is no such concept as optional or None.
+        if not import_response.dataset == DatasetMetadata():
             state: AppState = get_state()
-            datasets: List[DatasetMetadata] = state.datasets
-            datasets.append(import_response.dataset)
-            update_state({"datasets": datasets})
+            state.datasets.append(import_response.dataset)
+            write_state(state)
 
         return import_response
 
     def remove_dataset(self, id: str):
-        datasets = self.datasets.list_datasets()
-        datasets = list(filter(lambda x: not x.id == id, datasets))
-        update_state({"datasets": datasets})
-
-        # Remove prompts related to this dataset
-        prompts: List[PromptMetadata] = get_state().prompts
-        prompts = prompts if prompts is not None else []
-        prompts = list(filter(lambda x: not x.dataset_id == id, prompts))
-        update_state({"prompts": prompts})
+        """
+        TODO: this should be an official request/response type
+        """
+        state: AppState = get_state()
+        datasets = list(filter(lambda x: not x.id == id, state.datasets))
+        prompts = list(filter(lambda x: not x.dataset_id == id, state.prompts))
+        write_state(AppState(
+            datasets=datasets,
+            prompts=prompts,
+            adapters=state.adapters,
+            jobs=state.jobs,
+            mlflow=state.mlflow,
+            models=state.models
+        ))
 
     def add_prompt(self, prompt: PromptMetadata):
         """
@@ -160,14 +133,20 @@ class FineTuningApp():
         a prompt manager object part of the app.
         """
         state: AppState = get_state()
-        prompts: List[PromptMetadata] = state.prompts
-        prompts.append(prompt)
-        update_state({"prompts": prompts})
+        state.prompts.append(prompt)
+        write_state(state)
 
     def remove_prompt(self, id: str):
-        prompts = get_state().prompts
-        prompts = list(filter(lambda x: not x.id == id, prompts))
-        update_state({"prompts": prompts})
+        state: AppState = get_state()
+        prompts = list(filter(lambda x: not x.id == id, state.prompts))
+        write_state(AppState(
+            datasets=state.datasets,
+            prompts=prompts,
+            adapters=state.adapters,
+            jobs=state.jobs,
+            mlflow=state.mlflow,
+            models=state.models
+        ))
 
     def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
         """
@@ -176,12 +155,13 @@ class FineTuningApp():
         import_response: ImportModelResponse = self.models.import_model(request)
 
         # If we've successfully imported a new dataset, then make sure we update
-        # the app's dataset state with this data.
-        if import_response.model is not None:
+        # the app's dataset state with this data. For now, using protobuf, we will
+        # compare to the default value of the message of the internal model, which
+        # means it was not set.
+        if not import_response.model == ModelMetadata():
             state: AppState = get_state()
-            lmodels: List[ModelMetadata] = state.models
-            lmodels.append(import_response.model)
-            update_state({"models": lmodels})
+            state.models.append(import_response.model)
+            write_state(state)
 
         return import_response
 
@@ -196,21 +176,27 @@ class FineTuningApp():
         # TODO: adding this model to models list should be based on a setting
         # in the ExportModelRequest (similar to auto_add_adapter). This should NOT
         # just be based on model registry.
-        if export_response.model is not None and request.type == ExportType.MODEL_REGISTRY:
+        if not export_response.model == ModelMetadata() and request.type == ModelType.MODEL_TYPE_MODEL_REGISTRY:
             state: AppState = get_state()
-            models: List[ModelMetadata] = state.models if state.models is not None else []
-            models.append(export_response.model)
-            update_state({"models": models})
+            state.models.append(export_response.model)
+            write_state(state)
 
         return export_response
 
     def remove_model(self, id: str):
         """
-        TODO: abstract this out to the model manager
+        TODO: official request/response types
         """
-        models = self.models.list_models()
-        models = list(filter(lambda x: not x.id == id, models))
-        update_state({"models": models})
+        state: AppState = get_state()
+        models = list(filter(lambda x: not x.id == id, state.models))
+        write_state(AppState(
+            datasets=state.datasets,
+            prompts=state.prompts,
+            adapters=state.adapters,
+            jobs=state.jobs,
+            mlflow=state.mlflow,
+            models=models
+        ))
 
     def launch_ft_job(self, request: StartFineTuningJobRequest) -> StartFineTuningJobResponse:
         """
@@ -218,11 +204,10 @@ class FineTuningApp():
         """
         job_launch_response: StartFineTuningJobResponse = self.jobs.start_fine_tuning_job(request)
 
-        if job_launch_response.job is not None:
+        if not job_launch_response.job == StartFineTuningJobResponse().job:
             state: AppState = get_state()
-            jobs: List[FineTuningJobMetadata] = state.jobs
-            jobs.append(job_launch_response.job)
-            update_state({"jobs": jobs})
+            state.jobs.append(job_launch_response.job)
+            write_state(state)
 
         return job_launch_response
 
@@ -232,11 +217,10 @@ class FineTuningApp():
         """
         job_launch_response: StartMLflowEvaluationJobResponse = self.mlflow.start_ml_flow_evaluation_job(request)
 
-        if job_launch_response.job is not None:
+        if not job_launch_response.job == StartMLflowEvaluationJobResponse().job:
             state: AppState = get_state()
-            jobs: List[MLflowEvaluationJobMetadata] = state.mlflow
-            jobs.append(job_launch_response.job)
-            update_state({"mlflow": jobs})
+            state.mlflow.append(job_launch_response.job)
+            write_state(state)
 
         return job_launch_response
 

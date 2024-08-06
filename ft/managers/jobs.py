@@ -2,14 +2,15 @@ from abc import ABC, abstractmethod
 from uuid import uuid4
 from typing import List
 
-from ft.job import FineTuningJobMetadata, StartFineTuningJobRequest, StartFineTuningJobResponse, FineTuningWorkerProps
-from ft.state import get_state, AppState, update_state
-from ft.adapter import AdapterMetadata, AdapterType
+from ft.api import *
+from ft.state import get_state, write_state
 from ft.managers.cml import CMLManager
 import cmlapi
 import os
 import json
 import pathlib
+
+from google.protobuf.json_format import MessageToDict, ParseDict
 
 
 class FineTuningJobsManagerBase(ABC):
@@ -88,9 +89,9 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
 
         # Create aggregate config file containing all config object content
         # TODO: (lora, bnb, trainerargs, ?cmlworkersargs?)
-        # Can we use pydantic here for serialization?
+        # Right now we need to do a small conversion from BnB config to the protobuf message type.
         aggregate_config = {
-            "bnb_config": request.bits_and_bytes_config.to_dict()
+            "bnb_config": MessageToDict(request.bits_and_bytes_config, preserving_proto_field_name=True)
         }
         with open("%s/%s" % (job_dir, "job.config"), 'w') as aggregate_config_file:
             aggregate_config_file.write(json.dumps(aggregate_config, indent=4))
@@ -110,7 +111,8 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
         arg_list.append("--learning_rate")
         arg_list.append(str(request.learning_rate))  # Convert to str
 
-        if request.train_test_split is not None:
+        # TODO: see if the protobuf default value is sufficient here
+        if not request.train_test_split == StartFineTuningJobRequest().train_test_split:
             arg_list.append("--train_test_split")
             arg_list.append(str(request.train_test_split))
 
@@ -154,19 +156,18 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
 
         metadata = FineTuningJobMetadata(
             out_dir=out_dir,
-            start_time=launched_job.scheduling_at,
             job_id=job_id,
             base_model_id=request.base_model_id,
             dataset_id=request.dataset_id,
             prompt_id=request.prompt_id,
-            num_workers=1,
+            num_workers=request.num_workers,
             cml_job_id=created_job.id,
             num_epochs=request.num_epochs,
             learning_rate=request.learning_rate,
-            worker_props=FineTuningWorkerProps(
+            worker_props=WorkerProps(
                 num_cpu=request.cpu,
-                gpu=request.gpu,
-                memory=request.memory
+                num_gpu=request.gpu,
+                num_memory=request.memory
             )
         )
 
@@ -177,7 +178,7 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
             adapter_metadata: AdapterMetadata = AdapterMetadata(
                 id=str(uuid4()),
                 name=request.adapter_name,
-                type=AdapterType.PROJECT,
+                type=AdapterType.ADAPTER_TYPE_PROJECT,
                 model_id=request.base_model_id,
                 location=out_dir,
                 job_id=job_id,
@@ -185,9 +186,8 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
             )
 
             state: AppState = get_state()
-            adapters: List[AdapterMetadata] = state.adapters
-            adapters.append(adapter_metadata)
-            update_state({"adapters": adapters})
+            state.adapters.append(adapter_metadata)
+            write_state(state)
 
             metadata.adapter_id = adapter_metadata.id
 

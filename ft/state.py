@@ -1,14 +1,9 @@
-from pydantic import BaseModel
 from typing import List
-from ft.dataset import DatasetMetadata
-from ft.job import FineTuningJobMetadata
-from ft.mlflow import MLflowEvaluationJobMetadata
-from ft.model import ModelMetadata
-from ft.prompt import PromptMetadata
-from ft.adapter import AdapterMetadata
 import json
-from typing import Dict, Optional
+from typing import Dict
+from ft.api import AppState
 import os
+from google.protobuf.json_format import ParseDict, MessageToDict
 
 
 # TODO: this should be an environment variable of the app.
@@ -17,50 +12,6 @@ DEFAULT_STATE_LOCATION = ".app/state.json"
 State location of the app. This contains all data that
 is a project-specific session.
 """
-
-
-class AppState(BaseModel):
-    """
-    Basic app state class. This class
-    can essentially be used as a project-wide session
-    store for an application. Note that this is
-    not explicitly a "browser" session, and stable behavior
-    is not guaranteed when multiple users try to access
-    the same project and the same session.
-
-    To combat this, any call to FineTuningApp.get_state()
-    will directly read again from the project state file.
-    """
-
-    datasets: Optional[List[DatasetMetadata]] = None
-    """
-    All available datasets associated with the application
-    """
-
-    models: Optional[List[ModelMetadata]] = None
-    """
-    All available models associated with the application
-    """
-
-    jobs: Optional[List[FineTuningJobMetadata]] = None
-    """
-    All available fine tuning jobs associated with the application
-    """
-
-    mlflow: Optional[List[MLflowEvaluationJobMetadata]] = None
-    """
-    All available mlflow jobs associated with the application
-    """
-
-    prompts: Optional[List[PromptMetadata]] = None
-    """
-    All available prompts associated with the application
-    """
-
-    adapters: Optional[List[AdapterMetadata]] = None
-    """
-    All available model adapters associated with the application
-    """
 
 
 def get_state_location():
@@ -86,7 +37,7 @@ def get_state():
 
     state_file = get_state_location()
     state_data = json.load(open(state_file))
-    state = AppState(**state_data)
+    state: AppState = ParseDict(state_data, AppState())
     return state
 
 
@@ -95,20 +46,7 @@ def write_state(state: AppState):
     Write the app state to the state file.
     """
 
-    state_data = state.model_dump_json(indent=2)
+    state_data: Dict = MessageToDict(state, preserving_proto_field_name=True)
     with open(get_state_location(), "w") as f:
-        f.write(state_data)
+        f.write(json.dumps(state_data, indent=2))
     return
-
-
-def update_state(state_update: Dict):
-    """
-    Update the app's current state with any updated
-    state dict. This is used primarily in the App's wrapper
-    functions that dispatch requests to adapters. This is to make
-    sure that state management is properly used.
-    """
-
-    state_json: Dict = get_state().model_dump()
-    state_json.update(state_update)
-    write_state(AppState(**state_json))
