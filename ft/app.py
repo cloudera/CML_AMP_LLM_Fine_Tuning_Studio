@@ -206,7 +206,7 @@ class FineTuningApp():
 
         if not job_launch_response.job == StartFineTuningJobResponse().job:
             state: AppState = get_state()
-            state.jobs.append(job_launch_response.job)
+            state.fine_tuning_jobs.append(job_launch_response.job)
             write_state(state)
 
         return job_launch_response
@@ -219,7 +219,7 @@ class FineTuningApp():
 
         if not job_launch_response.job == StartEvaluationJobResponse().job:
             state: AppState = get_state()
-            state.mlflow.append(job_launch_response.job)
+            state.evaluation_jobs.append(job_launch_response.job)
             write_state(state)
 
         return job_launch_response

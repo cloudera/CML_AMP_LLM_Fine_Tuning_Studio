@@ -1,5 +1,5 @@
 import streamlit as st
-from ft.api import DatasetMetadata, ImportDatasetRequest, DatasetType
+from ft.api import *
 from ft.app import get_app
 from ft.consts import HF_LOGO
 
@@ -32,7 +32,7 @@ def handle_database_import():
                     if import_hf_dataset_name:
                         try:
                             get_app().add_dataset(
-                                ImportDatasetRequest(
+                                AddDatasetRequest(
                                     type=DatasetType.DATASET_TYPE_HUGGINGFACE,
                                     huggingface_name=import_hf_dataset_name,
                                     location=None))
