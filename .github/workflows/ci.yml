@@ -2,8 +2,10 @@ name: CI
 
 on:
   pull_request:
-    branches: [ main, dev, release ]
-
+    branches:
+      - main
+      - dev 
+      - release
 jobs:
   test:
     runs-on: ubuntu-latest
