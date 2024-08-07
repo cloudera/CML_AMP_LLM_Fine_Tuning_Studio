@@ -1,7 +1,5 @@
 from ft.proto.fine_tuning_studio_pb2_grpc import FineTuningStudioServicer
 
-from ft.api import *
-
 
 class FineTuningStudioApp(FineTuningStudioServicer):
 

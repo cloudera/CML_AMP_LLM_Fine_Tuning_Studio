@@ -1,5 +1,4 @@
 import streamlit as st
-from ft.state import get_state
 from ft.app import get_app
 from ft.api import *
 from typing import List

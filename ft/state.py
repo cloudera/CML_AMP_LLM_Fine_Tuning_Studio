@@ -1,4 +1,3 @@
-from typing import List
 import json
 from typing import Dict
 from ft.api import AppState

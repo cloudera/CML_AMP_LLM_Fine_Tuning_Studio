@@ -1,5 +1,5 @@
 import torch
-from typing import Optional, Any
+from typing import Optional
 from transformers.utils import is_accelerate_available, is_bitsandbytes_available
 from transformers import (
     AutoTokenizer,

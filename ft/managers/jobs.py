@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from uuid import uuid4
-from typing import List
 
 from ft.api import *
 from ft.state import get_state, write_state
@@ -10,7 +9,7 @@ import os
 import json
 import pathlib
 
-from google.protobuf.json_format import MessageToDict, ParseDict
+from google.protobuf.json_format import MessageToDict
 
 
 class FineTuningJobsManagerBase(ABC):

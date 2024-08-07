@@ -1,24 +1,10 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import time
-import datasets
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from trl import SFTConfig, SFTTrainer
-from setfit.trainer import TrainerCallback, TrainerState
-from peft import LoraConfig
-import ft
-import ft.fine_tune
-import os
 from ft.app import get_app
 from ft.state import get_state
 from ft.api import *
 import json
-import torch
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
-from typing import List, Optional, Dict, Any
-from google.protobuf.json_format import MessageToDict, ParseDict
-import traceback 
+import traceback
 
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
@@ -156,7 +142,6 @@ def create_train_adapter_page():
                     st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
                     print(traceback.format_exc())
                     st.error(traceback.format_exc())
-                    
 
     with ccol2:
         st.info("""

@@ -2,9 +2,8 @@ import streamlit as st
 from ft.app import get_app
 from ft.state import get_state
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
-from typing import List, Optional, Dict, Any
+from typing import List
 import pandas as pd
-import os
 import requests
 from ft.api import *
 

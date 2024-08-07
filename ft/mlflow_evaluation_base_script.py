@@ -1,7 +1,5 @@
 import subprocess
 import time
-import pandas as pd
-from glob import glob
 from ft.eval.mlflow_driver import driver
 from ft.eval.eval_job import StartEvaluationRequest
 import argparse

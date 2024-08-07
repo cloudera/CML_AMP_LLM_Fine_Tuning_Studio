@@ -1,7 +1,6 @@
 import streamlit as st
 from ft.api import *
 from ft.app import get_app
-from ft.consts import HF_LOGO
 
 
 def create_header():

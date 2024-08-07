@@ -1,7 +1,5 @@
 # this is a different way of integration with the MLFlow transformers
 # or custom connectors to API calls/ AI inference.
-import torch
-from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 
 
 '''

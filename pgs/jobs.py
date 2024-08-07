@@ -1,6 +1,5 @@
 import streamlit as st
 from ft.state import get_state
-from ft.app import get_app
 import pandas as pd
 import os
 import requests
@@ -8,8 +7,8 @@ import json
 import cmlapi
 
 import plotly.graph_objects as go
-from typing import List
-from google.protobuf.json_format import MessageToDict, ParseDict
+from google.protobuf.json_format import MessageToDict
+
 
 def display_page_header():
     with st.container(border=True):
@@ -84,7 +83,7 @@ def fetch_cml_experiments():
             break
 
     cml_experiments_df = pd.DataFrame(all_experiments)
-    
+
     if all_experiments:
         cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
         proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")

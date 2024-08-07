@@ -9,8 +9,6 @@ from transformers import (
     TrainingArguments,
     DataCollatorForLanguageModeling
 )
-import bitsandbytes as bnb
-import torch.nn as nn
 import torch
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"

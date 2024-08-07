@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import requests
 import json
-from google.protobuf.json_format import MessageToDict, ParseDict
+from google.protobuf.json_format import MessageToDict
 
 # Container for the layout
 with st.container(border=True):

@@ -1,14 +1,12 @@
 from typing import List
 from unittest.mock import patch
 from uuid import uuid4
-import pytest
 
 
 from ft.api import *
-from ft.managers.models import ModelsManagerBase, ModelsManagerSimple
-from ft.managers.datasets import DatasetsManagerBase, DatasetsManagerSimple
-from ft.managers.jobs import FineTuningJobsManagerBase, FineTuningJobsManagerSimple
-from ft.managers.evaluation import MLflowEvaluationJobsManagerSimple
+from ft.managers.models import ModelsManagerBase
+from ft.managers.datasets import DatasetsManagerBase
+from ft.managers.jobs import FineTuningJobsManagerBase
 
 from ft.app import (
     FineTuningApp,

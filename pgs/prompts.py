@@ -1,7 +1,6 @@
 import streamlit as st
 from ft.app import get_app
 from ft.api import *
-from ft.consts import HF_LOGO
 from ft.state import get_state
 from datasets import load_dataset
 import random

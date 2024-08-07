@@ -1,5 +1,5 @@
 import streamlit as st
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any
 import pandas as pd
 import os
 import requests
