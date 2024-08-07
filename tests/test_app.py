@@ -5,7 +5,6 @@ import pytest
 
 
 from ft.api import *
-from ft.api import ImportDatasetRequest, ImportDatasetResponse, ImportModelRequest, ImportModelResponse
 from ft.managers.models import ModelsManagerBase, ModelsManagerSimple
 from ft.managers.datasets import DatasetsManagerBase, DatasetsManagerSimple
 from ft.managers.jobs import FineTuningJobsManagerBase, FineTuningJobsManagerSimple
@@ -13,9 +12,7 @@ from ft.managers.evaluation import MLflowEvaluationJobsManagerSimple
 
 from ft.app import (
     FineTuningApp,
-    FineTuningAppProps,
-    ImportDatasetRequest,
-    ImportDatasetResponse
+    FineTuningAppProps
 )
 
 from tests.mock import *
@@ -46,13 +43,13 @@ class TestAppDatasets():
         )
 
         class MockDatasetsManagerConstant(MockDatasetsManager):
-            def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
-                return ImportDatasetResponse(
+            def import_dataset(self, request: AddDatasetRequest) -> AddDatasetResponse:
+                return AddDatasetResponse(
                     dataset=dataset
                 )
         app = generate_test_app(datasets=MockDatasetsManagerConstant())
         get_state.return_value = AppState()
-        app.add_dataset(ImportDatasetRequest())
+        app.add_dataset(AddDatasetRequest())
         write_state.assert_called_with(AppState(
             datasets=[
                 dataset
@@ -63,11 +60,11 @@ class TestAppDatasets():
     @patch("ft.app.get_state")
     def test_add_dataset_no_response(self, get_state, write_state):
         class MockDatasetsManagerConstant(MockDatasetsManager):
-            def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
-                return ImportDatasetResponse()
+            def import_dataset(self, request: AddDatasetRequest) -> AddDatasetResponse:
+                return AddDatasetResponse()
         app = generate_test_app(datasets=MockDatasetsManagerConstant())
         get_state.return_value = AppState()
-        app.add_dataset(ImportDatasetRequest())
+        app.add_dataset(AddDatasetRequest())
         write_state.assert_not_called()
 
     @patch("ft.app.write_state")
@@ -171,11 +168,11 @@ class TestAppModels():
         )
 
         class MockModelsManagerConstant(MockModelsManager):
-            def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
-                return ImportModelResponse(model=model)
+            def import_model(self, request: AddModelRequest) -> AddModelResponse:
+                return AddModelResponse(model=model)
         app = generate_test_app(models=MockModelsManagerConstant())
         get_state.return_value = AppState()
-        app.import_model(ImportModelRequest())
+        app.import_model(AddModelRequest())
         write_state.assert_called_with(AppState(
             models=[
                 model
@@ -186,11 +183,11 @@ class TestAppModels():
     @patch("ft.app.get_state")
     def test_import_model_no_response(self, get_state, write_state):
         class MockModelsManagerConstant(MockModelsManager):
-            def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
-                return ImportModelResponse()
+            def import_model(self, request: AddModelRequest) -> AddModelResponse:
+                return AddModelResponse()
         app = generate_test_app(models=MockModelsManagerConstant())
         get_state.return_value = AppState()
-        app.import_model(ImportModelRequest())
+        app.import_model(AddModelRequest())
         write_state.assert_not_called()
 
     @patch("ft.app.write_state")

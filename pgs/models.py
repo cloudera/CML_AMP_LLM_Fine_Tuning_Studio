@@ -60,7 +60,7 @@ def display_model_registry_import():
             if model_idx is not None:
                 with st.spinner("Loading Model..."):
                     try:
-                        get_app().import_model(ImportModelRequest(
+                        get_app().import_model(AddModelRequest(
                             type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
                             model_registry_id=model_registry_models[model_idx].model_id
                         ))
@@ -94,7 +94,7 @@ def display_huggingface_import():
         if import_hf_model_name:
             with st.spinner("Loading Model..."):
                 try:
-                    get_app().import_model(ImportModelRequest(
+                    get_app().import_model(AddModelRequest(
                         type=ModelType.MODEL_TYPE_HUGGINGFACE,
                         huggingface_name=import_hf_model_name
                     ))

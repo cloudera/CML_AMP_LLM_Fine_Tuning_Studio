@@ -105,7 +105,7 @@ with ccol1:
                 print(model.id)
                 print(dataset.id)
                 print(adapter.id)
-                get_app().launch_mlflow_job(StartMLflowEvaluationJobRequest(
+                get_app().launch_mlflow_job(StartEvaluationJobRequest(
                     adapter_id=adapter.id,
                     base_model_id=model.id,
                     dataset_id=dataset.id,

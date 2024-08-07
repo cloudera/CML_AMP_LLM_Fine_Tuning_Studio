@@ -11,7 +11,7 @@ class MockModelsManager(ModelsManagerBase):
     def export_model(self, request: ExportModelRequest) -> ExportModelResponse:
         pass
 
-    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
+    def import_model(self, request: AddModelRequest) -> AddModelResponse:
         pass
 
     def list_models(self) -> List[ModelMetadata]:
@@ -22,7 +22,7 @@ class MockDatasetsManager(DatasetsManagerBase):
     def list_datasets(self) -> List[DatasetMetadata]:
         return super().list_datasets()
 
-    def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
+    def import_dataset(self, request: AddDatasetRequest) -> AddDatasetResponse:
         return super().import_dataset(request)
 
     def get_dataset(self, id: str) -> DatasetMetadata:
@@ -44,8 +44,8 @@ class MockEvaluatorManager(MLflowEvaluationJobsManagerBase):
     def list_ml_flow_evaluation_jobs(self):
         return super().list_ml_flow_evaluation_jobs()
 
-    def get_ml_flow_evaluation_job(self, job_id: str) -> MLflowEvaluationJobMetadata:
+    def get_ml_flow_evaluation_job(self, job_id: str) -> EvaluationJobMetadata:
         return super().get_ml_flow_evaluation_job(job_id)
 
-    def start_ml_flow_evaluation_job(self, request: StartMLflowEvaluationJobRequest):
+    def start_ml_flow_evaluation_job(self, request: StartEvaluationJobRequest):
         return super().start_ml_flow_evaluation_job(request)

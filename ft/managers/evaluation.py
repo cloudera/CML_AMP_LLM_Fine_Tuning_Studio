@@ -19,11 +19,11 @@ class MLflowEvaluationJobsManagerBase(ABC):
         pass
 
     @abstractmethod
-    def get_ml_flow_evaluation_job(self, job_id: str) -> MLflowEvaluationJobMetadata:
+    def get_ml_flow_evaluation_job(self, job_id: str) -> EvaluationJobMetadata:
         pass
 
     @abstractmethod
-    def start_ml_flow_evaluation_job(self, request: StartMLflowEvaluationJobRequest):
+    def start_ml_flow_evaluation_job(self, request: StartEvaluationJobRequest):
         pass
 
 
@@ -36,11 +36,11 @@ class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase, CMLMana
         # Method to list ML flow evaluation jobs
         pass
 
-    def get_ml_flow_evaluation_job(self, job_id: str) -> MLflowEvaluationJobMetadata:
+    def get_ml_flow_evaluation_job(self, job_id: str) -> EvaluationJobMetadata:
         # Method to get a specific ML flow evaluation job
         return super().get_ml_flow_evaluation_job(job_id)
 
-    def start_ml_flow_evaluation_job(self, request: StartMLflowEvaluationJobRequest):
+    def start_ml_flow_evaluation_job(self, request: StartEvaluationJobRequest):
         """
         Launch a CML Job which runs/orchestrates a finetuning operation.
         The CML Job itself does not run the finetuning work; it will launch a CML Worker(s) to allow
@@ -127,7 +127,7 @@ class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase, CMLMana
             job_id=created_job.id
         )
 
-        metadata = MLflowEvaluationJobMetadata(
+        metadata = EvaluationJobMetadata(
             job_id=job_id,
             base_model_id=request.base_model_id,
             dataset_id=request.dataset_id,
@@ -142,4 +142,4 @@ class MLflowEvaluationJobsManagerSimple(MLflowEvaluationJobsManagerBase, CMLMana
             evaluation_dir=result_dir
         )
 
-        return StartMLflowEvaluationJobResponse(job=metadata)
+        return StartEvaluationJobResponse(job=metadata)
