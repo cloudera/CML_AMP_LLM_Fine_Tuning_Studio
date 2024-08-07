@@ -69,7 +69,7 @@ create_tile(col4, "./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0
 st.write("\n")
 
 datasets: List[DatasetMetadata] = get_app().datasets.list_datasets()
-current_jobs = get_state().jobs
+current_jobs = get_state().fine_tuning_jobs
 current_adapters = get_state().adapters
 
 col1, col2, col3 = st.columns([5, 4, 4])
@@ -173,7 +173,7 @@ with col2:
 
 with col3:
     st.caption("**MLflow Jobs**")
-    current_jobs = get_state().mlflow
+    current_jobs = get_state().evaluation_jobs
     if current_jobs:
         jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:

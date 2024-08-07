@@ -19,7 +19,7 @@ with st.container(border=True):
 st.write("\n\n")
 
 # Fetch current jobs from state
-current_jobs = get_state().mlflow
+current_jobs = get_state().evaluation_jobs
 models = get_state().models
 adapters = get_state().adapters
 datasets = get_app().datasets.list_datasets()

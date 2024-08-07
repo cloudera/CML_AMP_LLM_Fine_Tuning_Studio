@@ -46,7 +46,7 @@ def list_checkpoints(job_id):
 
 
 def fetch_current_jobs_and_mappings():
-    current_jobs = get_state().jobs
+    current_jobs = get_state().fine_tuning_jobs
     models = get_state().models
     adapters = get_state().adapters
     datasets = get_state().datasets
@@ -84,9 +84,11 @@ def fetch_cml_experiments():
             break
 
     cml_experiments_df = pd.DataFrame(all_experiments)
-    cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
-    proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
-    cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
+    
+    if all_experiments:
+        cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
+        proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
+        cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
     return cml_experiments_df
 
 

@@ -3,6 +3,7 @@
 import grpc
 import warnings
 
+from ft.proto import fine_tuning_studio_pb2 as ft_dot_proto_dot_fine__tuning__studio__pb2
 
 GRPC_GENERATED_VERSION = '1.65.4'
 GRPC_VERSION = grpc.__version__
@@ -27,3 +28,1179 @@ if _version_not_supported:
         + f' scheduled for release on {SCHEDULED_RELEASE_DATE}.',
         RuntimeWarning
     )
+
+
+class FineTuningStudioStub(object):
+    """*
+    -----------------------
+    gRPC Service Definition
+    -----------------------
+
+    gRPC service representation of the Fine Tuning Studio app. This
+    presents an API surface to interact with the gRPC server for requests.
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.ListDatasets = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListDatasets',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListDatasetsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListDatasetsResponse.FromString,
+            _registered_method=True)
+        self.GetDataset = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetDataset',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetResponse.FromString,
+            _registered_method=True)
+        self.AddDataset = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/AddDataset',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddDatasetRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddDatasetResponse.FromString,
+            _registered_method=True)
+        self.RemoveDataset = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemoveDataset',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetResponse.FromString,
+            _registered_method=True)
+        self.ListModels = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListModels',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsResponse.FromString,
+            _registered_method=True)
+        self.GetModel = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetModel',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetModelRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetModelResponse.FromString,
+            _registered_method=True)
+        self.AddModel = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/AddModel',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddModelRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddModelResponse.FromString,
+            _registered_method=True)
+        self.ExportModel = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ExportModel',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ExportModelRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ExportModelResponse.FromString,
+            _registered_method=True)
+        self.RemoveModel = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemoveModel',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelResponse.FromString,
+            _registered_method=True)
+        self.ListAdapters = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListAdapters',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersResponse.FromString,
+            _registered_method=True)
+        self.GetAdapter = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetAdapter',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAdapterRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAdapterResponse.FromString,
+            _registered_method=True)
+        self.AddAdapter = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/AddAdapter',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddAdapterRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddAdapterResponse.FromString,
+            _registered_method=True)
+        self.RemoveAdapter = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemoveAdapter',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveAdapterRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveAdapterResponse.FromString,
+            _registered_method=True)
+        self.ListPrompts = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListPrompts',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListPromptsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListPromptsResponse.FromString,
+            _registered_method=True)
+        self.GetPrompt = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetPrompt',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetPromptRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetPromptResponse.FromString,
+            _registered_method=True)
+        self.AddPrompt = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/AddPrompt',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddPromptRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddPromptResponse.FromString,
+            _registered_method=True)
+        self.RemovePrompt = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemovePrompt',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemovePromptRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemovePromptResponse.FromString,
+            _registered_method=True)
+        self.ListFineTuningJobs = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListFineTuningJobs',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListFineTuningJobsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListFineTuningJobsResponse.FromString,
+            _registered_method=True)
+        self.GetFineTuningJob = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetFineTuningJob',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetFineTuningJobRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetFineTuningJobResponse.FromString,
+            _registered_method=True)
+        self.StartFineTuningJob = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/StartFineTuningJob',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartFineTuningJobRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartFineTuningJobResponse.FromString,
+            _registered_method=True)
+        self.RemoveFineTuningJob = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemoveFineTuningJob',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveFineTuningJobRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveFineTuningJobResponse.FromString,
+            _registered_method=True)
+        self.ListEvaluationJobs = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListEvaluationJobs',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListEvaluationJobsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListEvaluationJobsResponse.FromString,
+            _registered_method=True)
+        self.GetEvaluationJob = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetEvaluationJob',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetEvaluationJobRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetEvaluationJobResponse.FromString,
+            _registered_method=True)
+        self.StartEvaluationJob = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/StartEvaluationJob',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartEvaluationJobRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartEvaluationJobResponse.FromString,
+            _registered_method=True)
+        self.RemoveEvaluationJob = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemoveEvaluationJob',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobResponse.FromString,
+            _registered_method=True)
+        self.GetAppState = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetAppState',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateResponse.FromString,
+            _registered_method=True)
+
+
+class FineTuningStudioServicer(object):
+    """*
+    -----------------------
+    gRPC Service Definition
+    -----------------------
+
+    gRPC service representation of the Fine Tuning Studio app. This
+    presents an API surface to interact with the gRPC server for requests.
+    """
+
+    def ListDatasets(self, request, context):
+        """Dataset operations
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDataset(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AddDataset(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveDataset(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListModels(self, request, context):
+        """Model operations
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AddModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ExportModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListAdapters(self, request, context):
+        """Model adapter operations
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAdapter(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AddAdapter(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveAdapter(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListPrompts(self, request, context):
+        """Prompt operations
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetPrompt(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AddPrompt(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemovePrompt(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListFineTuningJobs(self, request, context):
+        """Training Jobs
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetFineTuningJob(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StartFineTuningJob(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveFineTuningJob(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListEvaluationJobs(self, request, context):
+        """Evaluation Jobs
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetEvaluationJob(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StartEvaluationJob(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveEvaluationJob(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAppState(self, request, context):
+        """Other general operations
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_FineTuningStudioServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+        'ListDatasets': grpc.unary_unary_rpc_method_handler(
+            servicer.ListDatasets,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListDatasetsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListDatasetsResponse.SerializeToString,
+        ),
+        'GetDataset': grpc.unary_unary_rpc_method_handler(
+            servicer.GetDataset,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetResponse.SerializeToString,
+        ),
+        'AddDataset': grpc.unary_unary_rpc_method_handler(
+            servicer.AddDataset,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddDatasetRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddDatasetResponse.SerializeToString,
+        ),
+        'RemoveDataset': grpc.unary_unary_rpc_method_handler(
+            servicer.RemoveDataset,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetResponse.SerializeToString,
+        ),
+        'ListModels': grpc.unary_unary_rpc_method_handler(
+            servicer.ListModels,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsResponse.SerializeToString,
+        ),
+        'GetModel': grpc.unary_unary_rpc_method_handler(
+            servicer.GetModel,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetModelRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetModelResponse.SerializeToString,
+        ),
+        'AddModel': grpc.unary_unary_rpc_method_handler(
+            servicer.AddModel,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddModelRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddModelResponse.SerializeToString,
+        ),
+        'ExportModel': grpc.unary_unary_rpc_method_handler(
+            servicer.ExportModel,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ExportModelRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ExportModelResponse.SerializeToString,
+        ),
+        'RemoveModel': grpc.unary_unary_rpc_method_handler(
+            servicer.RemoveModel,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelResponse.SerializeToString,
+        ),
+        'ListAdapters': grpc.unary_unary_rpc_method_handler(
+            servicer.ListAdapters,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersResponse.SerializeToString,
+        ),
+        'GetAdapter': grpc.unary_unary_rpc_method_handler(
+            servicer.GetAdapter,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAdapterRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAdapterResponse.SerializeToString,
+        ),
+        'AddAdapter': grpc.unary_unary_rpc_method_handler(
+            servicer.AddAdapter,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddAdapterRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddAdapterResponse.SerializeToString,
+        ),
+        'RemoveAdapter': grpc.unary_unary_rpc_method_handler(
+            servicer.RemoveAdapter,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveAdapterRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveAdapterResponse.SerializeToString,
+        ),
+        'ListPrompts': grpc.unary_unary_rpc_method_handler(
+            servicer.ListPrompts,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListPromptsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListPromptsResponse.SerializeToString,
+        ),
+        'GetPrompt': grpc.unary_unary_rpc_method_handler(
+            servicer.GetPrompt,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetPromptRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetPromptResponse.SerializeToString,
+        ),
+        'AddPrompt': grpc.unary_unary_rpc_method_handler(
+            servicer.AddPrompt,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddPromptRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddPromptResponse.SerializeToString,
+        ),
+        'RemovePrompt': grpc.unary_unary_rpc_method_handler(
+            servicer.RemovePrompt,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemovePromptRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemovePromptResponse.SerializeToString,
+        ),
+        'ListFineTuningJobs': grpc.unary_unary_rpc_method_handler(
+            servicer.ListFineTuningJobs,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListFineTuningJobsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListFineTuningJobsResponse.SerializeToString,
+        ),
+        'GetFineTuningJob': grpc.unary_unary_rpc_method_handler(
+            servicer.GetFineTuningJob,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetFineTuningJobRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetFineTuningJobResponse.SerializeToString,
+        ),
+        'StartFineTuningJob': grpc.unary_unary_rpc_method_handler(
+            servicer.StartFineTuningJob,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartFineTuningJobRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartFineTuningJobResponse.SerializeToString,
+        ),
+        'RemoveFineTuningJob': grpc.unary_unary_rpc_method_handler(
+            servicer.RemoveFineTuningJob,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveFineTuningJobRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveFineTuningJobResponse.SerializeToString,
+        ),
+        'ListEvaluationJobs': grpc.unary_unary_rpc_method_handler(
+            servicer.ListEvaluationJobs,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListEvaluationJobsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListEvaluationJobsResponse.SerializeToString,
+        ),
+        'GetEvaluationJob': grpc.unary_unary_rpc_method_handler(
+            servicer.GetEvaluationJob,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetEvaluationJobRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetEvaluationJobResponse.SerializeToString,
+        ),
+        'StartEvaluationJob': grpc.unary_unary_rpc_method_handler(
+            servicer.StartEvaluationJob,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartEvaluationJobRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.StartEvaluationJobResponse.SerializeToString,
+        ),
+        'RemoveEvaluationJob': grpc.unary_unary_rpc_method_handler(
+            servicer.RemoveEvaluationJob,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobResponse.SerializeToString,
+        ),
+        'GetAppState': grpc.unary_unary_rpc_method_handler(
+            servicer.GetAppState,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateResponse.SerializeToString,
+        ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+        'fine_tuning_studio.FineTuningStudio', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('fine_tuning_studio.FineTuningStudio', rpc_method_handlers)
+
+ # This class is part of an EXPERIMENTAL API.
+
+
+class FineTuningStudio(object):
+    """*
+    -----------------------
+    gRPC Service Definition
+    -----------------------
+
+    gRPC service representation of the Fine Tuning Studio app. This
+    presents an API surface to interact with the gRPC server for requests.
+    """
+
+    @staticmethod
+    def ListDatasets(request,
+                     target,
+                     options=(),
+                     channel_credentials=None,
+                     call_credentials=None,
+                     insecure=False,
+                     compression=None,
+                     wait_for_ready=None,
+                     timeout=None,
+                     metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListDatasets',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListDatasetsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListDatasetsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDataset(request,
+                   target,
+                   options=(),
+                   channel_credentials=None,
+                   call_credentials=None,
+                   insecure=False,
+                   compression=None,
+                   wait_for_ready=None,
+                   timeout=None,
+                   metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetDataset',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AddDataset(request,
+                   target,
+                   options=(),
+                   channel_credentials=None,
+                   call_credentials=None,
+                   insecure=False,
+                   compression=None,
+                   wait_for_ready=None,
+                   timeout=None,
+                   metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/AddDataset',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddDatasetRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddDatasetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveDataset(request,
+                      target,
+                      options=(),
+                      channel_credentials=None,
+                      call_credentials=None,
+                      insecure=False,
+                      compression=None,
+                      wait_for_ready=None,
+                      timeout=None,
+                      metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemoveDataset',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListModels(request,
+                   target,
+                   options=(),
+                   channel_credentials=None,
+                   call_credentials=None,
+                   insecure=False,
+                   compression=None,
+                   wait_for_ready=None,
+                   timeout=None,
+                   metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListModels',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetModel(request,
+                 target,
+                 options=(),
+                 channel_credentials=None,
+                 call_credentials=None,
+                 insecure=False,
+                 compression=None,
+                 wait_for_ready=None,
+                 timeout=None,
+                 metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetModel',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetModelRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetModelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AddModel(request,
+                 target,
+                 options=(),
+                 channel_credentials=None,
+                 call_credentials=None,
+                 insecure=False,
+                 compression=None,
+                 wait_for_ready=None,
+                 timeout=None,
+                 metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/AddModel',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddModelRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddModelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ExportModel(request,
+                    target,
+                    options=(),
+                    channel_credentials=None,
+                    call_credentials=None,
+                    insecure=False,
+                    compression=None,
+                    wait_for_ready=None,
+                    timeout=None,
+                    metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ExportModel',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ExportModelRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ExportModelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveModel(request,
+                    target,
+                    options=(),
+                    channel_credentials=None,
+                    call_credentials=None,
+                    insecure=False,
+                    compression=None,
+                    wait_for_ready=None,
+                    timeout=None,
+                    metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemoveModel',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListAdapters(request,
+                     target,
+                     options=(),
+                     channel_credentials=None,
+                     call_credentials=None,
+                     insecure=False,
+                     compression=None,
+                     wait_for_ready=None,
+                     timeout=None,
+                     metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListAdapters',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetAdapter(request,
+                   target,
+                   options=(),
+                   channel_credentials=None,
+                   call_credentials=None,
+                   insecure=False,
+                   compression=None,
+                   wait_for_ready=None,
+                   timeout=None,
+                   metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetAdapter',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetAdapterRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetAdapterResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AddAdapter(request,
+                   target,
+                   options=(),
+                   channel_credentials=None,
+                   call_credentials=None,
+                   insecure=False,
+                   compression=None,
+                   wait_for_ready=None,
+                   timeout=None,
+                   metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/AddAdapter',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddAdapterRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddAdapterResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveAdapter(request,
+                      target,
+                      options=(),
+                      channel_credentials=None,
+                      call_credentials=None,
+                      insecure=False,
+                      compression=None,
+                      wait_for_ready=None,
+                      timeout=None,
+                      metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemoveAdapter',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveAdapterRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveAdapterResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListPrompts(request,
+                    target,
+                    options=(),
+                    channel_credentials=None,
+                    call_credentials=None,
+                    insecure=False,
+                    compression=None,
+                    wait_for_ready=None,
+                    timeout=None,
+                    metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListPrompts',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListPromptsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListPromptsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetPrompt(request,
+                  target,
+                  options=(),
+                  channel_credentials=None,
+                  call_credentials=None,
+                  insecure=False,
+                  compression=None,
+                  wait_for_ready=None,
+                  timeout=None,
+                  metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetPrompt',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetPromptRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetPromptResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AddPrompt(request,
+                  target,
+                  options=(),
+                  channel_credentials=None,
+                  call_credentials=None,
+                  insecure=False,
+                  compression=None,
+                  wait_for_ready=None,
+                  timeout=None,
+                  metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/AddPrompt',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddPromptRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddPromptResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemovePrompt(request,
+                     target,
+                     options=(),
+                     channel_credentials=None,
+                     call_credentials=None,
+                     insecure=False,
+                     compression=None,
+                     wait_for_ready=None,
+                     timeout=None,
+                     metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemovePrompt',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemovePromptRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemovePromptResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListFineTuningJobs(request,
+                           target,
+                           options=(),
+                           channel_credentials=None,
+                           call_credentials=None,
+                           insecure=False,
+                           compression=None,
+                           wait_for_ready=None,
+                           timeout=None,
+                           metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListFineTuningJobs',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListFineTuningJobsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListFineTuningJobsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetFineTuningJob(request,
+                         target,
+                         options=(),
+                         channel_credentials=None,
+                         call_credentials=None,
+                         insecure=False,
+                         compression=None,
+                         wait_for_ready=None,
+                         timeout=None,
+                         metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetFineTuningJob',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetFineTuningJobRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetFineTuningJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StartFineTuningJob(request,
+                           target,
+                           options=(),
+                           channel_credentials=None,
+                           call_credentials=None,
+                           insecure=False,
+                           compression=None,
+                           wait_for_ready=None,
+                           timeout=None,
+                           metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/StartFineTuningJob',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.StartFineTuningJobRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.StartFineTuningJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveFineTuningJob(request,
+                            target,
+                            options=(),
+                            channel_credentials=None,
+                            call_credentials=None,
+                            insecure=False,
+                            compression=None,
+                            wait_for_ready=None,
+                            timeout=None,
+                            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemoveFineTuningJob',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveFineTuningJobRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveFineTuningJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListEvaluationJobs(request,
+                           target,
+                           options=(),
+                           channel_credentials=None,
+                           call_credentials=None,
+                           insecure=False,
+                           compression=None,
+                           wait_for_ready=None,
+                           timeout=None,
+                           metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListEvaluationJobs',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListEvaluationJobsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListEvaluationJobsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetEvaluationJob(request,
+                         target,
+                         options=(),
+                         channel_credentials=None,
+                         call_credentials=None,
+                         insecure=False,
+                         compression=None,
+                         wait_for_ready=None,
+                         timeout=None,
+                         metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetEvaluationJob',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetEvaluationJobRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetEvaluationJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StartEvaluationJob(request,
+                           target,
+                           options=(),
+                           channel_credentials=None,
+                           call_credentials=None,
+                           insecure=False,
+                           compression=None,
+                           wait_for_ready=None,
+                           timeout=None,
+                           metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/StartEvaluationJob',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.StartEvaluationJobRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.StartEvaluationJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveEvaluationJob(request,
+                            target,
+                            options=(),
+                            channel_credentials=None,
+                            call_credentials=None,
+                            insecure=False,
+                            compression=None,
+                            wait_for_ready=None,
+                            timeout=None,
+                            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemoveEvaluationJob',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetAppState(request,
+                    target,
+                    options=(),
+                    channel_credentials=None,
+                    call_credentials=None,
+                    insecure=False,
+                    compression=None,
+                    wait_for_ready=None,
+                    timeout=None,
+                    metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetAppState',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)

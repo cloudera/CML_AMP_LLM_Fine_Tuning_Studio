@@ -42,6 +42,16 @@ class JobStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     JOB_STATUS_FAILURE: _ClassVar[JobStatus]
 
 
+class PromptType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    PROMPT_TYPE_IN_PLACE: _ClassVar[PromptType]
+
+
+class EvaluationJobType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    EVALUATION_JOB_TYPE_MLFLOW: _ClassVar[EvaluationJobType]
+
+
 DATASET_TYPE_HUGGINGFACE: DatasetType
 DATASET_TYPE_PROJECT: DatasetType
 MODEL_TYPE_HUGGINGFACE: ModelType
@@ -57,6 +67,458 @@ JOB_STATUS_SCHEDULED: JobStatus
 JOB_STATUS_RUNNING: JobStatus
 JOB_STATUS_SUCCESS: JobStatus
 JOB_STATUS_FAILURE: JobStatus
+PROMPT_TYPE_IN_PLACE: PromptType
+EVALUATION_JOB_TYPE_MLFLOW: EvaluationJobType
+
+
+class ListDatasetsRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListDatasetsResponse(_message.Message):
+    __slots__ = ("datasets",)
+    DATASETS_FIELD_NUMBER: _ClassVar[int]
+    datasets: _containers.RepeatedCompositeFieldContainer[DatasetMetadata]
+    def __init__(self, datasets: _Optional[_Iterable[_Union[DatasetMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetDatasetRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetDatasetResponse(_message.Message):
+    __slots__ = ("dataset",)
+    DATASET_FIELD_NUMBER: _ClassVar[int]
+    dataset: DatasetMetadata
+    def __init__(self, dataset: _Optional[_Union[DatasetMetadata, _Mapping]] = ...) -> None: ...
+
+
+class AddDatasetRequest(_message.Message):
+    __slots__ = ("type", "huggingface_name", "location")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
+    type: DatasetType
+    huggingface_name: str
+    location: str
+    def __init__(self, type: _Optional[_Union[DatasetType, str]] = ...,
+                 huggingface_name: _Optional[str] = ..., location: _Optional[str] = ...) -> None: ...
+
+
+class AddDatasetResponse(_message.Message):
+    __slots__ = ("dataset",)
+    DATASET_FIELD_NUMBER: _ClassVar[int]
+    dataset: DatasetMetadata
+    def __init__(self, dataset: _Optional[_Union[DatasetMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemoveDatasetRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemoveDatasetResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListModelsRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListModelsResponse(_message.Message):
+    __slots__ = ("Models",)
+    MODELS_FIELD_NUMBER: _ClassVar[int]
+    Models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
+    def __init__(self, Models: _Optional[_Iterable[_Union[ModelMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetModelRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetModelResponse(_message.Message):
+    __slots__ = ("model",)
+    MODEL_FIELD_NUMBER: _ClassVar[int]
+    model: ModelMetadata
+    def __init__(self, model: _Optional[_Union[ModelMetadata, _Mapping]] = ...) -> None: ...
+
+
+class AddModelRequest(_message.Message):
+    __slots__ = ("type", "huggingface_name", "model_registry_id")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
+    MODEL_REGISTRY_ID_FIELD_NUMBER: _ClassVar[int]
+    type: ModelType
+    huggingface_name: str
+    model_registry_id: str
+
+    def __init__(self,
+                 type: _Optional[_Union[ModelType,
+                                        str]] = ...,
+                 huggingface_name: _Optional[str] = ...,
+                 model_registry_id: _Optional[str] = ...) -> None: ...
+
+
+class AddModelResponse(_message.Message):
+    __slots__ = ("model",)
+    MODEL_FIELD_NUMBER: _ClassVar[int]
+    model: ModelMetadata
+    def __init__(self, model: _Optional[_Union[ModelMetadata, _Mapping]] = ...) -> None: ...
+
+
+class ExportModelRequest(_message.Message):
+    __slots__ = ("type", "model_id", "adapter_id", "model_name", "artifact_location", "model_description")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
+    ARTIFACT_LOCATION_FIELD_NUMBER: _ClassVar[int]
+    MODEL_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    type: ModelType
+    model_id: str
+    adapter_id: str
+    model_name: str
+    artifact_location: str
+    model_description: str
+
+    def __init__(self,
+                 type: _Optional[_Union[ModelType,
+                                        str]] = ...,
+                 model_id: _Optional[str] = ...,
+                 adapter_id: _Optional[str] = ...,
+                 model_name: _Optional[str] = ...,
+                 artifact_location: _Optional[str] = ...,
+                 model_description: _Optional[str] = ...) -> None: ...
+
+
+class ExportModelResponse(_message.Message):
+    __slots__ = ("model",)
+    MODEL_FIELD_NUMBER: _ClassVar[int]
+    model: ModelMetadata
+    def __init__(self, model: _Optional[_Union[ModelMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemoveModelRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemoveModelResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListAdaptersRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListAdaptersResponse(_message.Message):
+    __slots__ = ("Adapters",)
+    ADAPTERS_FIELD_NUMBER: _ClassVar[int]
+    Adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
+    def __init__(self, Adapters: _Optional[_Iterable[_Union[AdapterMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetAdapterRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetAdapterResponse(_message.Message):
+    __slots__ = ("adapter",)
+    ADAPTER_FIELD_NUMBER: _ClassVar[int]
+    adapter: AdapterMetadata
+    def __init__(self, adapter: _Optional[_Union[AdapterMetadata, _Mapping]] = ...) -> None: ...
+
+
+class AddAdapterRequest(_message.Message):
+    __slots__ = ("type", "huggingface_name", "location")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
+    type: AdapterType
+    huggingface_name: str
+    location: str
+    def __init__(self, type: _Optional[_Union[AdapterType, str]] = ...,
+                 huggingface_name: _Optional[str] = ..., location: _Optional[str] = ...) -> None: ...
+
+
+class AddAdapterResponse(_message.Message):
+    __slots__ = ("adapter",)
+    ADAPTER_FIELD_NUMBER: _ClassVar[int]
+    adapter: AdapterMetadata
+    def __init__(self, adapter: _Optional[_Union[AdapterMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemoveAdapterRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemoveAdapterResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListPromptsRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListPromptsResponse(_message.Message):
+    __slots__ = ("Prompts",)
+    PROMPTS_FIELD_NUMBER: _ClassVar[int]
+    Prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
+    def __init__(self, Prompts: _Optional[_Iterable[_Union[PromptMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetPromptRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetPromptResponse(_message.Message):
+    __slots__ = ("Prompt",)
+    PROMPT_FIELD_NUMBER: _ClassVar[int]
+    Prompt: PromptMetadata
+    def __init__(self, Prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
+
+
+class AddPromptRequest(_message.Message):
+    __slots__ = ("type",)
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    type: PromptType
+    def __init__(self, type: _Optional[_Union[PromptType, str]] = ...) -> None: ...
+
+
+class AddPromptResponse(_message.Message):
+    __slots__ = ("Prompt",)
+    PROMPT_FIELD_NUMBER: _ClassVar[int]
+    Prompt: PromptMetadata
+    def __init__(self, Prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemovePromptRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemovePromptResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListFineTuningJobsRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListFineTuningJobsResponse(_message.Message):
+    __slots__ = ("jobs",)
+    JOBS_FIELD_NUMBER: _ClassVar[int]
+    jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
+    def __init__(self, jobs: _Optional[_Iterable[_Union[FineTuningJobMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetFineTuningJobRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetFineTuningJobResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: FineTuningJobMetadata
+    def __init__(self, job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
+
+
+class StartFineTuningJobRequest(_message.Message):
+    __slots__ = (
+        "adapter_name",
+        "base_model_id",
+        "dataset_id",
+        "prompt_id",
+        "num_workers",
+        "bits_and_bytes_config",
+        "auto_add_adapter",
+        "num_epochs",
+        "learning_rate",
+        "cpu",
+        "gpu",
+        "memory",
+        "train_test_split")
+    ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
+    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
+    NUM_WORKERS_FIELD_NUMBER: _ClassVar[int]
+    BITS_AND_BYTES_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    AUTO_ADD_ADAPTER_FIELD_NUMBER: _ClassVar[int]
+    NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
+    LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
+    CPU_FIELD_NUMBER: _ClassVar[int]
+    GPU_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_FIELD_NUMBER: _ClassVar[int]
+    TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
+    adapter_name: str
+    base_model_id: str
+    dataset_id: str
+    prompt_id: str
+    num_workers: int
+    bits_and_bytes_config: BnbConfig
+    auto_add_adapter: bool
+    num_epochs: int
+    learning_rate: float
+    cpu: int
+    gpu: int
+    memory: int
+    train_test_split: float
+
+    def __init__(self,
+                 adapter_name: _Optional[str] = ...,
+                 base_model_id: _Optional[str] = ...,
+                 dataset_id: _Optional[str] = ...,
+                 prompt_id: _Optional[str] = ...,
+                 num_workers: _Optional[int] = ...,
+                 bits_and_bytes_config: _Optional[_Union[BnbConfig,
+                                                         _Mapping]] = ...,
+                 auto_add_adapter: bool = ...,
+                 num_epochs: _Optional[int] = ...,
+                 learning_rate: _Optional[float] = ...,
+                 cpu: _Optional[int] = ...,
+                 gpu: _Optional[int] = ...,
+                 memory: _Optional[int] = ...,
+                 train_test_split: _Optional[float] = ...) -> None: ...
+
+
+class StartFineTuningJobResponse(_message.Message):
+    __slots__ = ("FineTuningJob",)
+    FINETUNINGJOB_FIELD_NUMBER: _ClassVar[int]
+    FineTuningJob: FineTuningJobMetadata
+    def __init__(self, FineTuningJob: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemoveFineTuningJobRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemoveFineTuningJobResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListEvaluationJobsRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListEvaluationJobsResponse(_message.Message):
+    __slots__ = ("jobs",)
+    JOBS_FIELD_NUMBER: _ClassVar[int]
+    jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
+    def __init__(self, jobs: _Optional[_Iterable[_Union[EvaluationJobMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetEvaluationJobRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetEvaluationJobResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: EvaluationJobMetadata
+    def __init__(self, job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
+
+
+class StartEvaluationJobRequest(_message.Message):
+    __slots__ = ("type", "base_model_id", "dataset_id", "adapter_id", "cpu", "gpu", "memory")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    CPU_FIELD_NUMBER: _ClassVar[int]
+    GPU_FIELD_NUMBER: _ClassVar[int]
+    MEMORY_FIELD_NUMBER: _ClassVar[int]
+    type: EvaluationJobType
+    base_model_id: str
+    dataset_id: str
+    adapter_id: str
+    cpu: int
+    gpu: int
+    memory: int
+
+    def __init__(self,
+                 type: _Optional[_Union[EvaluationJobType,
+                                        str]] = ...,
+                 base_model_id: _Optional[str] = ...,
+                 dataset_id: _Optional[str] = ...,
+                 adapter_id: _Optional[str] = ...,
+                 cpu: _Optional[int] = ...,
+                 gpu: _Optional[int] = ...,
+                 memory: _Optional[int] = ...) -> None: ...
+
+
+class StartEvaluationJobResponse(_message.Message):
+    __slots__ = ("job",)
+    JOB_FIELD_NUMBER: _ClassVar[int]
+    job: EvaluationJobMetadata
+    def __init__(self, job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemoveEvaluationJobRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemoveEvaluationJobResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class GetAppStateRequest(_message.Message):
+    __slots__ = ("user",)
+    USER_FIELD_NUMBER: _ClassVar[int]
+    user: str
+    def __init__(self, user: _Optional[str] = ...) -> None: ...
+
+
+class GetAppStateResponse(_message.Message):
+    __slots__ = ("state",)
+    STATE_FIELD_NUMBER: _ClassVar[int]
+    state: AppState
+    def __init__(self, state: _Optional[_Union[AppState, _Mapping]] = ...) -> None: ...
 
 
 class DatasetMetadata(_message.Message):
@@ -85,25 +547,6 @@ class DatasetMetadata(_message.Message):
                  huggingface_name: _Optional[str] = ...,
                  location: _Optional[str] = ...,
                  features: _Optional[_Iterable[str]] = ...) -> None: ...
-
-
-class ImportDatasetRequest(_message.Message):
-    __slots__ = ("type", "huggingface_name", "location")
-    TYPE_FIELD_NUMBER: _ClassVar[int]
-    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
-    LOCATION_FIELD_NUMBER: _ClassVar[int]
-    type: DatasetType
-    huggingface_name: str
-    location: str
-    def __init__(self, type: _Optional[_Union[DatasetType, str]] = ...,
-                 huggingface_name: _Optional[str] = ..., location: _Optional[str] = ...) -> None: ...
-
-
-class ImportDatasetResponse(_message.Message):
-    __slots__ = ("dataset",)
-    DATASET_FIELD_NUMBER: _ClassVar[int]
-    dataset: DatasetMetadata
-    def __init__(self, dataset: _Optional[_Union[DatasetMetadata, _Mapping]] = ...) -> None: ...
 
 
 class RegisteredModelMetadata(_message.Message):
@@ -150,61 +593,6 @@ class ModelMetadata(_message.Message):
                  location: _Optional[str] = ...,
                  registered_model: _Optional[_Union[RegisteredModelMetadata,
                                                     _Mapping]] = ...) -> None: ...
-
-
-class ImportModelRequest(_message.Message):
-    __slots__ = ("type", "huggingface_name", "model_registry_id")
-    TYPE_FIELD_NUMBER: _ClassVar[int]
-    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
-    MODEL_REGISTRY_ID_FIELD_NUMBER: _ClassVar[int]
-    type: ModelType
-    huggingface_name: str
-    model_registry_id: str
-
-    def __init__(self,
-                 type: _Optional[_Union[ModelType,
-                                        str]] = ...,
-                 huggingface_name: _Optional[str] = ...,
-                 model_registry_id: _Optional[str] = ...) -> None: ...
-
-
-class ImportModelResponse(_message.Message):
-    __slots__ = ("model",)
-    MODEL_FIELD_NUMBER: _ClassVar[int]
-    model: ModelMetadata
-    def __init__(self, model: _Optional[_Union[ModelMetadata, _Mapping]] = ...) -> None: ...
-
-
-class ExportModelRequest(_message.Message):
-    __slots__ = ("type", "model_id", "adapter_id", "model_name", "artifact_location", "model_description")
-    TYPE_FIELD_NUMBER: _ClassVar[int]
-    MODEL_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
-    MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
-    ARTIFACT_LOCATION_FIELD_NUMBER: _ClassVar[int]
-    MODEL_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    type: ModelType
-    model_id: str
-    adapter_id: str
-    model_name: str
-    artifact_location: str
-    model_description: str
-
-    def __init__(self,
-                 type: _Optional[_Union[ModelType,
-                                        str]] = ...,
-                 model_id: _Optional[str] = ...,
-                 adapter_id: _Optional[str] = ...,
-                 model_name: _Optional[str] = ...,
-                 artifact_location: _Optional[str] = ...,
-                 model_description: _Optional[str] = ...) -> None: ...
-
-
-class ExportModelResponse(_message.Message):
-    __slots__ = ("model",)
-    MODEL_FIELD_NUMBER: _ClassVar[int]
-    model: ModelMetadata
-    def __init__(self, model: _Optional[_Union[ModelMetadata, _Mapping]] = ...) -> None: ...
 
 
 class AdapterMetadata(_message.Message):
@@ -368,73 +756,7 @@ class BnbConfig(_message.Message):
         quant_method: _Optional[str] = ...) -> None: ...
 
 
-class StartFineTuningJobRequest(_message.Message):
-    __slots__ = (
-        "adapter_name",
-        "base_model_id",
-        "dataset_id",
-        "prompt_id",
-        "num_workers",
-        "bits_and_bytes_config",
-        "auto_add_adapter",
-        "num_epochs",
-        "learning_rate",
-        "cpu",
-        "gpu",
-        "memory",
-        "train_test_split")
-    ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
-    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
-    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
-    PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
-    NUM_WORKERS_FIELD_NUMBER: _ClassVar[int]
-    BITS_AND_BYTES_CONFIG_FIELD_NUMBER: _ClassVar[int]
-    AUTO_ADD_ADAPTER_FIELD_NUMBER: _ClassVar[int]
-    NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
-    LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
-    CPU_FIELD_NUMBER: _ClassVar[int]
-    GPU_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_FIELD_NUMBER: _ClassVar[int]
-    TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
-    adapter_name: str
-    base_model_id: str
-    dataset_id: str
-    prompt_id: str
-    num_workers: int
-    bits_and_bytes_config: BnbConfig
-    auto_add_adapter: bool
-    num_epochs: int
-    learning_rate: float
-    cpu: int
-    gpu: int
-    memory: int
-    train_test_split: float
-
-    def __init__(self,
-                 adapter_name: _Optional[str] = ...,
-                 base_model_id: _Optional[str] = ...,
-                 dataset_id: _Optional[str] = ...,
-                 prompt_id: _Optional[str] = ...,
-                 num_workers: _Optional[int] = ...,
-                 bits_and_bytes_config: _Optional[_Union[BnbConfig,
-                                                         _Mapping]] = ...,
-                 auto_add_adapter: bool = ...,
-                 num_epochs: _Optional[int] = ...,
-                 learning_rate: _Optional[float] = ...,
-                 cpu: _Optional[int] = ...,
-                 gpu: _Optional[int] = ...,
-                 memory: _Optional[int] = ...,
-                 train_test_split: _Optional[float] = ...) -> None: ...
-
-
-class StartFineTuningJobResponse(_message.Message):
-    __slots__ = ("job",)
-    JOB_FIELD_NUMBER: _ClassVar[int]
-    job: FineTuningJobMetadata
-    def __init__(self, job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
-
-
-class MLflowEvaluationJobMetadata(_message.Message):
+class EvaluationJobMetadata(_message.Message):
     __slots__ = (
         "job_id",
         "cml_job_id",
@@ -473,50 +795,18 @@ class MLflowEvaluationJobMetadata(_message.Message):
                  evaluation_dir: _Optional[str] = ...) -> None: ...
 
 
-class StartMLflowEvaluationJobRequest(_message.Message):
-    __slots__ = ("base_model_id", "dataset_id", "adapter_id", "cpu", "gpu", "memory")
-    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
-    DATASET_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
-    CPU_FIELD_NUMBER: _ClassVar[int]
-    GPU_FIELD_NUMBER: _ClassVar[int]
-    MEMORY_FIELD_NUMBER: _ClassVar[int]
-    base_model_id: str
-    dataset_id: str
-    adapter_id: str
-    cpu: int
-    gpu: int
-    memory: int
-
-    def __init__(
-        self,
-        base_model_id: _Optional[str] = ...,
-        dataset_id: _Optional[str] = ...,
-        adapter_id: _Optional[str] = ...,
-        cpu: _Optional[int] = ...,
-        gpu: _Optional[int] = ...,
-        memory: _Optional[int] = ...) -> None: ...
-
-
-class StartMLflowEvaluationJobResponse(_message.Message):
-    __slots__ = ("job",)
-    JOB_FIELD_NUMBER: _ClassVar[int]
-    job: MLflowEvaluationJobMetadata
-    def __init__(self, job: _Optional[_Union[MLflowEvaluationJobMetadata, _Mapping]] = ...) -> None: ...
-
-
 class AppState(_message.Message):
-    __slots__ = ("datasets", "models", "jobs", "mlflow", "prompts", "adapters")
+    __slots__ = ("datasets", "models", "fine_tuning_jobs", "evaluation_jobs", "prompts", "adapters")
     DATASETS_FIELD_NUMBER: _ClassVar[int]
     MODELS_FIELD_NUMBER: _ClassVar[int]
-    JOBS_FIELD_NUMBER: _ClassVar[int]
-    MLFLOW_FIELD_NUMBER: _ClassVar[int]
+    FINE_TUNING_JOBS_FIELD_NUMBER: _ClassVar[int]
+    EVALUATION_JOBS_FIELD_NUMBER: _ClassVar[int]
     PROMPTS_FIELD_NUMBER: _ClassVar[int]
     ADAPTERS_FIELD_NUMBER: _ClassVar[int]
     datasets: _containers.RepeatedCompositeFieldContainer[DatasetMetadata]
     models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
-    jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
-    mlflow: _containers.RepeatedCompositeFieldContainer[MLflowEvaluationJobMetadata]
+    fine_tuning_jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
+    evaluation_jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
     prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
     adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
 
@@ -525,10 +815,10 @@ class AppState(_message.Message):
                                                       _Mapping]]] = ...,
                  models: _Optional[_Iterable[_Union[ModelMetadata,
                                                     _Mapping]]] = ...,
-                 jobs: _Optional[_Iterable[_Union[FineTuningJobMetadata,
-                                                  _Mapping]]] = ...,
-                 mlflow: _Optional[_Iterable[_Union[MLflowEvaluationJobMetadata,
-                                                    _Mapping]]] = ...,
+                 fine_tuning_jobs: _Optional[_Iterable[_Union[FineTuningJobMetadata,
+                                                              _Mapping]]] = ...,
+                 evaluation_jobs: _Optional[_Iterable[_Union[EvaluationJobMetadata,
+                                                             _Mapping]]] = ...,
                  prompts: _Optional[_Iterable[_Union[PromptMetadata,
                                                      _Mapping]]] = ...,
                  adapters: _Optional[_Iterable[_Union[AdapterMetadata,

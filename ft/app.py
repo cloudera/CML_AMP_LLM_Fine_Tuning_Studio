@@ -94,11 +94,11 @@ class FineTuningApp():
         self.datasets = props.datasets_manager
         return
 
-    def add_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
+    def add_dataset(self, request: AddDatasetRequest) -> AddDatasetResponse:
         """
         Add a dataset to the App based on the request.
         """
-        import_response: ImportDatasetResponse = self.datasets.import_dataset(request)
+        import_response: AddDatasetResponse = self.datasets.import_dataset(request)
 
         # If we've successfully imported a new dataset, then make sure we update
         # the app's dataset state with this data. The way we detect this in protobuf
@@ -122,8 +122,8 @@ class FineTuningApp():
             datasets=datasets,
             prompts=prompts,
             adapters=state.adapters,
-            jobs=state.jobs,
-            mlflow=state.mlflow,
+            fine_tuning_jobs=state.fine_tuning_jobs,
+            evaluation_jobs=state.evaluation_jobs,
             models=state.models
         ))
 
@@ -143,16 +143,16 @@ class FineTuningApp():
             datasets=state.datasets,
             prompts=prompts,
             adapters=state.adapters,
-            jobs=state.jobs,
-            mlflow=state.mlflow,
+            fine_tuning_jobs=state.fine_tuning_jobs,
+            evaluation_jobs=state.evaluation_jobs,
             models=state.models
         ))
 
-    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
+    def import_model(self, request: AddModelRequest) -> AddModelResponse:
         """
         Add a dataset to the App based on the request.
         """
-        import_response: ImportModelResponse = self.models.import_model(request)
+        import_response: AddModelResponse = self.models.import_model(request)
 
         # If we've successfully imported a new dataset, then make sure we update
         # the app's dataset state with this data. For now, using protobuf, we will
@@ -193,8 +193,8 @@ class FineTuningApp():
             datasets=state.datasets,
             prompts=state.prompts,
             adapters=state.adapters,
-            jobs=state.jobs,
-            mlflow=state.mlflow,
+            fine_tuning_jobs=state.fine_tuning_jobs,
+            evaluation_jobs=state.evaluation_jobs,
             models=models
         ))
 
@@ -206,20 +206,20 @@ class FineTuningApp():
 
         if not job_launch_response.job == StartFineTuningJobResponse().job:
             state: AppState = get_state()
-            state.jobs.append(job_launch_response.job)
+            state.fine_tuning_jobs.append(job_launch_response.job)
             write_state(state)
 
         return job_launch_response
 
-    def launch_mlflow_job(self, request: StartMLflowEvaluationJobRequest) -> StartMLflowEvaluationJobResponse:
+    def launch_mlflow_job(self, request: StartEvaluationJobRequest) -> StartEvaluationJobResponse:
         """
         Create and launch a job for MLflow
         """
-        job_launch_response: StartMLflowEvaluationJobResponse = self.mlflow.start_ml_flow_evaluation_job(request)
+        job_launch_response: StartEvaluationJobResponse = self.mlflow.start_ml_flow_evaluation_job(request)
 
-        if not job_launch_response.job == StartMLflowEvaluationJobResponse().job:
+        if not job_launch_response.job == StartEvaluationJobResponse().job:
             state: AppState = get_state()
-            state.mlflow.append(job_launch_response.job)
+            state.evaluation_jobs.append(job_launch_response.job)
             write_state(state)
 
         return job_launch_response

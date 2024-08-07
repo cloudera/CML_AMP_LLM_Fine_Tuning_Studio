@@ -24,7 +24,7 @@ class ModelsManagerBase(ABC):
         pass
 
     @abstractmethod
-    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
+    def import_model(self, request: AddModelRequest) -> AddModelResponse:
         pass
 
     @abstractmethod
@@ -45,8 +45,8 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
     def list_models(self) -> List[ModelMetadata]:
         return get_state().models
 
-    def import_model(self, request: ImportModelRequest) -> ImportModelResponse:
-        response: ImportModelResponse = ImportModelResponse()
+    def import_model(self, request: AddModelRequest) -> AddModelResponse:
+        response: AddModelResponse = AddModelResponse()
 
         if request.type == ModelType.MODEL_TYPE_HUGGINGFACE:
             try:
@@ -67,7 +67,7 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
                     huggingface_model_name=request.huggingface_name,
                 )
 
-                response = ImportModelResponse(
+                response = AddModelResponse(
                     model=model_metadata
                 )
             except Exception as e:
@@ -96,7 +96,7 @@ class ModelsManagerSimple(ModelsManagerBase, CMLManager):
                     )
                 )
 
-                response = ImportModelResponse(
+                response = AddModelResponse(
                     model=model_metadata
                 )
             except Exception as e:

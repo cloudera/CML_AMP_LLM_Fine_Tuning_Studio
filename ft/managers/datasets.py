@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ft.api import DatasetMetadata, ImportDatasetRequest, DatasetType, ImportDatasetResponse
+from ft.api import *
 from typing import List
 from datasets import load_dataset_builder
 from ft.state import get_state
@@ -24,7 +24,7 @@ class DatasetsManagerBase(ABC):
         pass
 
     @abstractmethod
-    def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
+    def import_dataset(self, request: AddDatasetRequest) -> AddDatasetResponse:
         pass
 
 
@@ -42,11 +42,11 @@ class DatasetsManagerSimple(DatasetsManagerBase):
         assert len(datasets) == 1
         return datasets[0]
 
-    def import_dataset(self, request: ImportDatasetRequest) -> ImportDatasetResponse:
+    def import_dataset(self, request: AddDatasetRequest) -> AddDatasetResponse:
         """
         Retrieve dataset information without fully loading it into memory.
         """
-        response = ImportDatasetResponse()
+        response = AddDatasetResponse()
 
         # Create a new dataset metadata for the imported dataset.
         if request.type == DatasetType.DATASET_TYPE_HUGGINGFACE:
@@ -72,7 +72,7 @@ class DatasetsManagerSimple(DatasetsManagerBase):
                     name=request.huggingface_name,
                     description=dataset_info.description
                 )
-                response = ImportDatasetResponse(dataset=metadata)
+                response = AddDatasetResponse(dataset=metadata)
 
             except Exception as e:
                 raise ValueError(f"Failed to load dataset. {e}")
