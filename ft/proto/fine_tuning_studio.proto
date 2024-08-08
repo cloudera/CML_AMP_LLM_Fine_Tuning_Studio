@@ -688,6 +688,9 @@ message FineTuningJobMetadata {
 
   // Learning rate to use during fine-tuning.
   float learning_rate = 10;
+
+  // Output directory for the adapter
+  string out_dir = 11;
 }
 
 
