@@ -684,7 +684,8 @@ class FineTuningJobMetadata(_message.Message):
         "adapter_id",
         "worker_props",
         "num_epochs",
-        "learning_rate")
+        "learning_rate",
+        "out_dir")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -695,6 +696,7 @@ class FineTuningJobMetadata(_message.Message):
     WORKER_PROPS_FIELD_NUMBER: _ClassVar[int]
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
+    OUT_DIR_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -705,6 +707,7 @@ class FineTuningJobMetadata(_message.Message):
     worker_props: WorkerProps
     num_epochs: int
     learning_rate: float
+    out_dir: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -717,7 +720,8 @@ class FineTuningJobMetadata(_message.Message):
                  worker_props: _Optional[_Union[WorkerProps,
                                                 _Mapping]] = ...,
                  num_epochs: _Optional[int] = ...,
-                 learning_rate: _Optional[float] = ...) -> None: ...
+                 learning_rate: _Optional[float] = ...,
+                 out_dir: _Optional[str] = ...) -> None: ...
 
 
 class BnbConfig(_message.Message):
