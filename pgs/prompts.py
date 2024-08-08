@@ -1,11 +1,13 @@
 import streamlit as st
-from ft.app import get_app
 from ft.api import *
-from ft.state import get_state
 from datasets import load_dataset
 import random
 from uuid import uuid4
 from typing import List
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def display_header():
@@ -27,7 +29,7 @@ def display_create_prompt():
         with st.container(border=True):
             new_prompt_name = st.text_input("Prompt Name", placeholder="Enter a human-friendly prompt name")
 
-            datasets = get_state().datasets
+            datasets = fts.get_datasets()
             dataset_idx = st.selectbox(
                 "Dataset",
                 range(
@@ -95,16 +97,20 @@ def display_create_prompt():
 
 
 def add_prompt(name, dataset_id, template):
-    get_app().add_prompt(PromptMetadata(
-        id=str(uuid4()),
-        name=name,
-        dataset_id=dataset_id,
-        prompt_template=template
-    ))
+    fts.AddPrompt(
+        AddPromptRequest(
+            prompt=PromptMetadata(
+                id=str(uuid4()),
+                name=name,
+                dataset_id=dataset_id,
+                prompt_template=template
+            )
+        )
+    )
 
 
 def display_available_prompts():
-    prompts: List[PromptMetadata] = get_state().prompts
+    prompts: List[PromptMetadata] = fts.get_prompts()
 
     if not prompts:
         st.info("No prompts available.")
@@ -128,10 +134,18 @@ def display_prompt(prompt: PromptMetadata, container):
         c1.code(prompt.prompt_template)
 
         c2.text("Dataset:")
-        c2.caption(get_app().datasets.get_dataset(prompt.dataset_id).name)
+        c2.caption(fts.GetDataset(
+            GetDatasetRequest(
+                id=prompt.dataset_id
+            )
+        ).dataset.name)
 
         if remove:
-            get_app().remove_prompt(prompt.id)
+            fts.RemovePrompt(
+                RemovePromptRequest(
+                    id=prompt.id
+                )
+            )
             st.rerun()
 
 

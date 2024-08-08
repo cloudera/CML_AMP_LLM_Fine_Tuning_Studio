@@ -1,14 +1,12 @@
 import streamlit as st
-from ft.app import get_app
 from ft.api import *
 from typing import List
-from ft.managers.cml import CMLManager
 from cmlapi import RegisteredModelDetails
+from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 
-
-# Create a simple CML manager to use on this page.
-# TODO: this should probably be a singleton.
-cml = CMLManager()
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
+cml = get_cml_client()
 
 
 def display_header():
@@ -39,7 +37,7 @@ def display_import_section():
 def display_model_registry_import():
 
     # List the available models in the model registry.
-    model_registry_models: List[RegisteredModelDetails] = cml.cml_api_client.list_registered_models().models
+    model_registry_models: List[RegisteredModelDetails] = cml.list_registered_models().models
 
     if not model_registry_models:
         st.info("There are no registered models in this workspace.")
@@ -59,10 +57,12 @@ def display_model_registry_import():
             if model_idx is not None:
                 with st.spinner("Loading Model..."):
                     try:
-                        get_app().import_model(AddModelRequest(
-                            type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
-                            model_registry_id=model_registry_models[model_idx].model_id
-                        ))
+                        fts.AddModel(
+                            AddModelRequest(
+                                type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
+                                model_registry_id=model_registry_models[model_idx].model_id
+                            )
+                        )
                         st.success(
                             "Model imported successfully. Please check **View Models** page!",
                             icon=":material/check:")
@@ -93,10 +93,12 @@ def display_huggingface_import():
         if import_hf_model_name:
             with st.spinner("Loading Model..."):
                 try:
-                    get_app().import_model(AddModelRequest(
-                        type=ModelType.MODEL_TYPE_HUGGINGFACE,
-                        huggingface_name=import_hf_model_name
-                    ))
+                    fts.AddModel(
+                        AddModelRequest(
+                            type=ModelType.MODEL_TYPE_HUGGINGFACE,
+                            huggingface_name=import_hf_model_name
+                        )
+                    )
                     st.success(
                         "Model imported successfully. Please check **View Models** page!",
                         icon=":material/check:")

@@ -1,4 +1,8 @@
 import streamlit as st
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def display_page_header():

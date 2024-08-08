@@ -1,8 +1,10 @@
 import streamlit as st
-from ft.state import get_state
-from ft.app import get_app
 from ft.api import *
 from typing import List
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def display_header():
@@ -16,8 +18,8 @@ def display_header():
 
 
 def display_models_section():
-    models: List[ModelMetadata] = get_state().models
-    adapters: List[AdapterMetadata] = get_state().adapters
+    models: List[ModelMetadata] = fts.get_models()
+    adapters: List[AdapterMetadata] = fts.get_adapters()
 
     with st.container():
         tab1, tab2, tab3 = st.tabs(["**Huggingface**", "**Model Registry**", "**Project**"])
@@ -50,7 +52,11 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
             remove = c2.button("Remove", type="primary", key=f"{model.id}_remove", use_container_width=True)
 
             if remove:
-                get_app().remove_model(model.id)
+                fts.RemoveModel(
+                    RemoveModelRequest(
+                        id=model.id
+                    )
+                )
                 st.rerun()
 
             model_adapters = [adapter for adapter in adapters if adapter.model_id == model.id]

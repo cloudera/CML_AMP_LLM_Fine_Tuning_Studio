@@ -1,13 +1,16 @@
 import streamlit as st
-from ft.state import get_state
 import pandas as pd
 import os
 import requests
 import json
-import cmlapi
 
 import plotly.graph_objects as go
 from google.protobuf.json_format import MessageToDict
+from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
+cml = get_cml_client()
 
 
 def display_page_header():
@@ -45,11 +48,11 @@ def list_checkpoints(job_id):
 
 
 def fetch_current_jobs_and_mappings():
-    current_jobs = get_state().fine_tuning_jobs
-    models = get_state().models
-    adapters = get_state().adapters
-    datasets = get_state().datasets
-    prompts = get_state().prompts
+    current_jobs = fts.get_fine_tuning_jobs()
+    models = fts.get_models()
+    adapters = fts.get_adapters()
+    datasets = fts.get_datasets()
+    prompts = fts.get_prompts()
 
     model_dict = {model.id: model.name for model in models}
     adapter_dict = {adapter.id: adapter.name for adapter in adapters}
@@ -60,7 +63,6 @@ def fetch_current_jobs_and_mappings():
 
 
 def fetch_cml_experiments():
-    cml_api_client = cmlapi.default_client()
     cml_project = os.getenv("CDSW_PROJECT_ID")
     all_experiments = []
     page_token = None
@@ -71,7 +73,7 @@ def fetch_cml_experiments():
         if page_token:
             kwargs['page_token'] = page_token
 
-        response = cml_api_client.list_experiments(
+        response = cml.list_experiments(
             cml_project,
             **kwargs
         ).to_dict()

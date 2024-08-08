@@ -1,6 +1,9 @@
 import streamlit as st
 from ft.api import *
-from ft.app import get_app
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def create_header():
@@ -30,11 +33,13 @@ def handle_database_import():
                 with st.spinner("Loading Dataset..."):
                     if import_hf_dataset_name:
                         try:
-                            get_app().add_dataset(
+                            fts.AddDataset(
                                 AddDatasetRequest(
                                     type=DatasetType.DATASET_TYPE_HUGGINGFACE,
                                     huggingface_name=import_hf_dataset_name,
-                                    location=None))
+                                    location=None
+                                )
+                            )
                             st.success("Dataset Loaded. Please go to **View Dataset** tab!", icon=":material/check:")
                             st.toast("Dataset has been loaded successfully!", icon=":material/check:")
                         except Exception as e:

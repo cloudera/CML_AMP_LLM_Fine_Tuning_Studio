@@ -1,11 +1,14 @@
 import streamlit as st
-from ft.app import get_app
-from ft.state import get_state
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 from typing import List
 import pandas as pd
 import requests
 from ft.api import *
+from google.protobuf.json_format import MessageToDict
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def create_homepage_header():
@@ -67,9 +70,9 @@ create_tile(col4, "./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0
 
 st.write("\n")
 
-datasets: List[DatasetMetadata] = get_app().datasets.list_datasets()
-current_jobs = get_state().fine_tuning_jobs
-current_adapters = get_state().adapters
+datasets: List[DatasetMetadata] = fts.get_datasets()
+current_jobs = fts.get_fine_tuning_jobs()
+current_adapters = fts.get_adapters()
 
 col1, col2, col3 = st.columns([5, 4, 4])
 with col1:
@@ -97,7 +100,7 @@ with col1:
 with col2:
     st.caption("**Training Jobs**")
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
@@ -172,9 +175,9 @@ with col2:
 
 with col3:
     st.caption("**MLflow Jobs**")
-    current_jobs = get_state().evaluation_jobs
+    current_jobs = fts.get_evaluation_jobs()
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
@@ -265,8 +268,8 @@ with col1:
 
 with col2:
     st.caption("**Models & Adapters**")
-    models: List[ModelMetadata] = get_state().models
-    adapters: List[AdapterMetadata] = get_state().adapters
+    models: List[ModelMetadata] = fts.get_models()
+    adapters: List[AdapterMetadata] = fts.get_adapters()
 
     # Prepare data for the data editor
     data = []

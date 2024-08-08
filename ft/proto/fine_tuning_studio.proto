@@ -103,6 +103,7 @@ message AddDatasetResponse {
 }
 message RemoveDatasetRequest {
   string id = 1;
+  bool remove_prompts = 2;
 }
 message RemoveDatasetResponse {
 
@@ -114,7 +115,7 @@ message ListModelsRequest {
 
 }
 message ListModelsResponse {
-  repeated ModelMetadata Models = 1;
+  repeated ModelMetadata models = 1;
 }
 message GetModelRequest {
   string id = 1;
@@ -189,7 +190,7 @@ message ListAdaptersRequest {
 
 }
 message ListAdaptersResponse {
-  repeated AdapterMetadata Adapters = 1;
+  repeated AdapterMetadata adapters = 1;
 }
 message GetAdapterRequest {
   string id = 1;
@@ -198,16 +199,7 @@ message GetAdapterResponse {
   AdapterMetadata adapter = 1;
 }
 message AddAdapterRequest {
-  // Type of Adapter to be imported.
-  AdapterType type = 1;
-
-  // If this is a huggingface Adapter, the huggingface name
-  // should be provided.
-  string huggingface_name = 2;
-
-  // If this is a project-relative Adapter, then add project
-  // location
-  string location = 3;
+  AdapterMetadata adapter = 1;
 }
 message AddAdapterResponse {
   AdapterMetadata adapter = 1;
@@ -225,23 +217,23 @@ message ListPromptsRequest {
 
 }
 message ListPromptsResponse {
-  repeated PromptMetadata Prompts = 1;
+  repeated PromptMetadata prompts = 1;
 }
 message GetPromptRequest {
   string id = 1;
 }
 message GetPromptResponse {
-  PromptMetadata Prompt = 1;
+  PromptMetadata prompt = 1;
 }
 message AddPromptRequest {
-  // Type of Prompt to be imported.
-  PromptType type = 1;
-  
-  // TODO: add prompt information
-
+  // For now, we are requiring the entire
+  // prompt metadata to be passed (in fact, this is
+  // how the original API layer worked anyway, so
+  // this is fine)
+  PromptMetadata prompt = 1;
 }
 message AddPromptResponse {
-  PromptMetadata Prompt = 1;
+  PromptMetadata prompt = 1;
 }
 message RemovePromptRequest {
   string id = 1;
@@ -256,13 +248,13 @@ message ListFineTuningJobsRequest {
 
 }
 message ListFineTuningJobsResponse {
-  repeated FineTuningJobMetadata jobs = 1;
+  repeated FineTuningJobMetadata fine_tuning_jobs = 1;
 }
 message GetFineTuningJobRequest {
   string id = 1;
 }
 message GetFineTuningJobResponse {
-  FineTuningJobMetadata job = 1;
+  FineTuningJobMetadata fine_tuning_job = 1;
 }
 message StartFineTuningJobRequest {
   // Human-friendly identifier for the name of the output adapter.
@@ -313,7 +305,7 @@ message StartFineTuningJobRequest {
   float train_test_split = 13;
 }
 message StartFineTuningJobResponse {
-  FineTuningJobMetadata FineTuningJob = 1;
+  FineTuningJobMetadata fine_tuning_job = 1;
 }
 message RemoveFineTuningJobRequest {
   string id = 1;
@@ -328,13 +320,13 @@ message ListEvaluationJobsRequest {
 
 }
 message ListEvaluationJobsResponse {
-  repeated EvaluationJobMetadata jobs = 1;
+  repeated EvaluationJobMetadata evaluation_jobs = 1;
 }
 message GetEvaluationJobRequest {
   string id = 1;
 }
 message GetEvaluationJobResponse {
-  EvaluationJobMetadata job = 1;
+  EvaluationJobMetadata evaluation_job = 1;
 }
 message StartEvaluationJobRequest {
 

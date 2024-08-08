@@ -117,10 +117,12 @@ class AddDatasetResponse(_message.Message):
 
 
 class RemoveDatasetRequest(_message.Message):
-    __slots__ = ("id",)
+    __slots__ = ("id", "remove_prompts")
     ID_FIELD_NUMBER: _ClassVar[int]
+    REMOVE_PROMPTS_FIELD_NUMBER: _ClassVar[int]
     id: str
-    def __init__(self, id: _Optional[str] = ...) -> None: ...
+    remove_prompts: bool
+    def __init__(self, id: _Optional[str] = ..., remove_prompts: bool = ...) -> None: ...
 
 
 class RemoveDatasetResponse(_message.Message):
@@ -134,10 +136,10 @@ class ListModelsRequest(_message.Message):
 
 
 class ListModelsResponse(_message.Message):
-    __slots__ = ("Models",)
+    __slots__ = ("models",)
     MODELS_FIELD_NUMBER: _ClassVar[int]
-    Models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
-    def __init__(self, Models: _Optional[_Iterable[_Union[ModelMetadata, _Mapping]]] = ...) -> None: ...
+    models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
+    def __init__(self, models: _Optional[_Iterable[_Union[ModelMetadata, _Mapping]]] = ...) -> None: ...
 
 
 class GetModelRequest(_message.Message):
@@ -227,10 +229,10 @@ class ListAdaptersRequest(_message.Message):
 
 
 class ListAdaptersResponse(_message.Message):
-    __slots__ = ("Adapters",)
+    __slots__ = ("adapters",)
     ADAPTERS_FIELD_NUMBER: _ClassVar[int]
-    Adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
-    def __init__(self, Adapters: _Optional[_Iterable[_Union[AdapterMetadata, _Mapping]]] = ...) -> None: ...
+    adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
+    def __init__(self, adapters: _Optional[_Iterable[_Union[AdapterMetadata, _Mapping]]] = ...) -> None: ...
 
 
 class GetAdapterRequest(_message.Message):
@@ -248,15 +250,10 @@ class GetAdapterResponse(_message.Message):
 
 
 class AddAdapterRequest(_message.Message):
-    __slots__ = ("type", "huggingface_name", "location")
-    TYPE_FIELD_NUMBER: _ClassVar[int]
-    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
-    LOCATION_FIELD_NUMBER: _ClassVar[int]
-    type: AdapterType
-    huggingface_name: str
-    location: str
-    def __init__(self, type: _Optional[_Union[AdapterType, str]] = ...,
-                 huggingface_name: _Optional[str] = ..., location: _Optional[str] = ...) -> None: ...
+    __slots__ = ("adapter",)
+    ADAPTER_FIELD_NUMBER: _ClassVar[int]
+    adapter: AdapterMetadata
+    def __init__(self, adapter: _Optional[_Union[AdapterMetadata, _Mapping]] = ...) -> None: ...
 
 
 class AddAdapterResponse(_message.Message):
@@ -284,10 +281,10 @@ class ListPromptsRequest(_message.Message):
 
 
 class ListPromptsResponse(_message.Message):
-    __slots__ = ("Prompts",)
+    __slots__ = ("prompts",)
     PROMPTS_FIELD_NUMBER: _ClassVar[int]
-    Prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
-    def __init__(self, Prompts: _Optional[_Iterable[_Union[PromptMetadata, _Mapping]]] = ...) -> None: ...
+    prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
+    def __init__(self, prompts: _Optional[_Iterable[_Union[PromptMetadata, _Mapping]]] = ...) -> None: ...
 
 
 class GetPromptRequest(_message.Message):
@@ -298,24 +295,24 @@ class GetPromptRequest(_message.Message):
 
 
 class GetPromptResponse(_message.Message):
-    __slots__ = ("Prompt",)
+    __slots__ = ("prompt",)
     PROMPT_FIELD_NUMBER: _ClassVar[int]
-    Prompt: PromptMetadata
-    def __init__(self, Prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
+    prompt: PromptMetadata
+    def __init__(self, prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
 
 
 class AddPromptRequest(_message.Message):
-    __slots__ = ("type",)
-    TYPE_FIELD_NUMBER: _ClassVar[int]
-    type: PromptType
-    def __init__(self, type: _Optional[_Union[PromptType, str]] = ...) -> None: ...
+    __slots__ = ("prompt",)
+    PROMPT_FIELD_NUMBER: _ClassVar[int]
+    prompt: PromptMetadata
+    def __init__(self, prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
 
 
 class AddPromptResponse(_message.Message):
-    __slots__ = ("Prompt",)
+    __slots__ = ("prompt",)
     PROMPT_FIELD_NUMBER: _ClassVar[int]
-    Prompt: PromptMetadata
-    def __init__(self, Prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
+    prompt: PromptMetadata
+    def __init__(self, prompt: _Optional[_Union[PromptMetadata, _Mapping]] = ...) -> None: ...
 
 
 class RemovePromptRequest(_message.Message):
@@ -336,10 +333,11 @@ class ListFineTuningJobsRequest(_message.Message):
 
 
 class ListFineTuningJobsResponse(_message.Message):
-    __slots__ = ("jobs",)
-    JOBS_FIELD_NUMBER: _ClassVar[int]
-    jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
-    def __init__(self, jobs: _Optional[_Iterable[_Union[FineTuningJobMetadata, _Mapping]]] = ...) -> None: ...
+    __slots__ = ("fine_tuning_jobs",)
+    FINE_TUNING_JOBS_FIELD_NUMBER: _ClassVar[int]
+    fine_tuning_jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
+    def __init__(
+        self, fine_tuning_jobs: _Optional[_Iterable[_Union[FineTuningJobMetadata, _Mapping]]] = ...) -> None: ...
 
 
 class GetFineTuningJobRequest(_message.Message):
@@ -350,10 +348,10 @@ class GetFineTuningJobRequest(_message.Message):
 
 
 class GetFineTuningJobResponse(_message.Message):
-    __slots__ = ("job",)
-    JOB_FIELD_NUMBER: _ClassVar[int]
-    job: FineTuningJobMetadata
-    def __init__(self, job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("fine_tuning_job",)
+    FINE_TUNING_JOB_FIELD_NUMBER: _ClassVar[int]
+    fine_tuning_job: FineTuningJobMetadata
+    def __init__(self, fine_tuning_job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
 
 
 class StartFineTuningJobRequest(_message.Message):
@@ -416,10 +414,10 @@ class StartFineTuningJobRequest(_message.Message):
 
 
 class StartFineTuningJobResponse(_message.Message):
-    __slots__ = ("FineTuningJob",)
-    FINETUNINGJOB_FIELD_NUMBER: _ClassVar[int]
-    FineTuningJob: FineTuningJobMetadata
-    def __init__(self, FineTuningJob: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("fine_tuning_job",)
+    FINE_TUNING_JOB_FIELD_NUMBER: _ClassVar[int]
+    fine_tuning_job: FineTuningJobMetadata
+    def __init__(self, fine_tuning_job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
 
 
 class RemoveFineTuningJobRequest(_message.Message):
@@ -440,10 +438,11 @@ class ListEvaluationJobsRequest(_message.Message):
 
 
 class ListEvaluationJobsResponse(_message.Message):
-    __slots__ = ("jobs",)
-    JOBS_FIELD_NUMBER: _ClassVar[int]
-    jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
-    def __init__(self, jobs: _Optional[_Iterable[_Union[EvaluationJobMetadata, _Mapping]]] = ...) -> None: ...
+    __slots__ = ("evaluation_jobs",)
+    EVALUATION_JOBS_FIELD_NUMBER: _ClassVar[int]
+    evaluation_jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
+    def __init__(
+        self, evaluation_jobs: _Optional[_Iterable[_Union[EvaluationJobMetadata, _Mapping]]] = ...) -> None: ...
 
 
 class GetEvaluationJobRequest(_message.Message):
@@ -454,10 +453,10 @@ class GetEvaluationJobRequest(_message.Message):
 
 
 class GetEvaluationJobResponse(_message.Message):
-    __slots__ = ("job",)
-    JOB_FIELD_NUMBER: _ClassVar[int]
-    job: EvaluationJobMetadata
-    def __init__(self, job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("evaluation_job",)
+    EVALUATION_JOB_FIELD_NUMBER: _ClassVar[int]
+    evaluation_job: EvaluationJobMetadata
+    def __init__(self, evaluation_job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
 
 
 class StartEvaluationJobRequest(_message.Message):

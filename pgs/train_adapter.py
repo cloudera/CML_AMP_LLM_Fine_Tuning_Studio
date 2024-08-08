@@ -1,10 +1,13 @@
 import streamlit as st
-from ft.app import get_app
-from ft.state import get_state
 from ft.api import *
 import json
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 import traceback
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
+
 
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
@@ -36,7 +39,7 @@ def create_train_adapter_page():
                 adapter_name = st.text_input("Adapter Name", placeholder="Adapter name", key="adapter_name")
 
             with col2:
-                current_models = get_state().models
+                current_models = fts.get_models()
                 model_idx = st.selectbox(
                     "Base Models",
                     range(
@@ -48,7 +51,7 @@ def create_train_adapter_page():
             col1, col2 = st.columns(2)
 
             with col1:
-                current_datasets = get_state().datasets
+                current_datasets = fts.get_datasets()
                 dataset_idx = st.selectbox(
                     "Dataset",
                     range(
@@ -57,7 +60,7 @@ def create_train_adapter_page():
                     index=None)
                 if dataset_idx is not None:
                     dataset = current_datasets[dataset_idx]
-                    current_prompts = get_state().prompts
+                    current_prompts = fts.get_prompts()
                     current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
                     prompt_idx = st.selectbox(
                         "Prompts",
@@ -117,20 +120,22 @@ def create_train_adapter_page():
                     prompt = current_prompts[prompt_idx]
                     bnb_config_dict = json.loads(bnb_config)
                     bnb_config_special_type: BnbConfig = BnbConfig(**bnb_config_dict)
-                    get_app().launch_ft_job(StartFineTuningJobRequest(
-                        adapter_name=adapter_name,
-                        base_model_id=model.id,
-                        dataset_id=dataset.id,
-                        prompt_id=prompt.id,
-                        num_workers=int(1),
-                        bits_and_bytes_config=bnb_config_special_type,
-                        auto_add_adapter=True,
-                        num_epochs=int(num_epochs),
-                        learning_rate=float(learning_rate),
-                        cpu=int(cpu),
-                        gpu=gpu,
-                        memory=int(memory)
-                    ))
+                    fts.StartFineTuningJob(
+                        StartFineTuningJobRequest(
+                            adapter_name=adapter_name,
+                            base_model_id=model.id,
+                            dataset_id=dataset.id,
+                            prompt_id=prompt.id,
+                            num_workers=int(1),
+                            bits_and_bytes_config=bnb_config_special_type,
+                            auto_add_adapter=True,
+                            num_epochs=int(num_epochs),
+                            learning_rate=float(learning_rate),
+                            cpu=int(cpu),
+                            gpu=gpu,
+                            memory=int(memory)
+                        )
+                    )
                     st.success(
                         "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
                         icon=":material/check:")
