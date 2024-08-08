@@ -2,9 +2,7 @@
   "datasets": [
     {
       "id": "441509f4-137b-40ce-a303-bbd2a63f1e69",
-      "type": 0,
       "name": "Clinton/Text-to-sql-v1",
-      "description": "",
       "huggingface_name": "Clinton/Text-to-sql-v1",
       "features": [
         "instruction",
@@ -16,9 +14,7 @@
     },
     {
       "id": "ea5b3d2f-c2b6-4b73-8989-e5175b4efb03",
-      "type": 0,
       "name": "hakurei/open-instruct-v1",
-      "description": "",
       "huggingface_name": "hakurei/open-instruct-v1",
       "features": [
         "output",
@@ -28,9 +24,7 @@
     },
     {
       "id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
-      "type": 0,
       "name": "philschmid/sql-create-context-copy",
-      "description": "",
       "huggingface_name": "philschmid/sql-create-context-copy",
       "features": [
         "question",
@@ -40,9 +34,7 @@
     },
     {
       "id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
-      "type": 0,
       "name": "teknium/GPTeacher-General-Instruct",
-      "description": "",
       "huggingface_name": "teknium/GPTeacher-General-Instruct",
       "features": [
         "instruction",
@@ -52,44 +44,166 @@
     },
     {
       "id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
-      "type": 0,
       "name": "s-nlp/paradetox",
-      "description": "",
       "huggingface_name": "s-nlp/paradetox",
       "features": [
         "en_toxic_comment",
         "en_neutral_comment"
+      ]
+    },
+    {
+      "id": "1ae2ffbd-3095-4147-8692-020cfdd7cf70",
+      "name": "mhenrichsen/alpaca_2k_test",
+      "huggingface_name": "mhenrichsen/alpaca_2k_test",
+      "features": [
+        "instruction",
+        "input",
+        "output",
+        "text"
       ]
     }
   ],
   "models": [
     {
       "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
-      "type": 0,
       "name": "Qwen/Qwen2-0.5B",
       "huggingface_model_name": "Qwen/Qwen2-0.5B"
     },
     {
       "id": "275d8d87-6e07-4f68-acf4-031dd2ce5a96",
-      "type": 0,
       "name": "EleutherAI/pythia-160m",
       "huggingface_model_name": "EleutherAI/pythia-160m"
     },
     {
       "id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
-      "type": 0,
       "name": "bigscience/bloom-1b1",
       "huggingface_model_name": "bigscience/bloom-1b1"
     },
     {
       "id": "1ea746bb-dd7c-4072-a93b-c409af07820e",
-      "type": 0,
       "name": "distilbert/distilgpt2",
       "huggingface_model_name": "distilbert/distilgpt2"
+    },
+    {
+      "id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "name": "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T",
+      "huggingface_model_name": "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T"
     }
   ],
-  "fine_tuning_jobs": [],
-  "evaluation_jobs": [],
+  "fine_tuning_jobs": [
+    {
+      "job_id": "11b02c43-9d26-4fab-a54b-cb5c7c27a8b4",
+      "base_model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "dataset_id": "1ae2ffbd-3095-4147-8692-020cfdd7cf70",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776",
+      "num_workers": 1,
+      "cml_job_id": "3kzz-jm9j-hi3s-9zq8",
+      "adapter_id": "c65fe74b-9345-4fb7-b515-7fc27c6e7ba0",
+      "worker_props": {
+        "num_cpu": 2,
+        "num_memory": 8,
+        "num_gpu": 1
+      },
+      "num_epochs": 10,
+      "learning_rate": 0.0002,
+      "out_dir": "data/adapters/11b02c43-9d26-4fab-a54b-cb5c7c27a8b4",
+      "finetuning_framework": "axolotl",
+      "axolotl_train_config": {
+        "base_model": "TinyLlama/TinyLlama-1.1B-intermediate-step-1431k-3T",
+        "model_type": "LlamaForCausalLM",
+        "tokenizer_type": "LlamaTokenizer",
+        "tokenizer_use_fast": true,
+        "tokenizer_legacy": true,
+        "load_in_4bit": true,
+        "bf16": "auto",
+        "datasets": [
+          {
+            "path": "mhenrichsen/alpaca_2k_test",
+            "type": "alpaca",
+            "train_on_split": "true"
+          }
+        ],
+        "shuffle_merged_datasets": true,
+        "dataset_prepared_path": "axolotl/last_run_prepared",
+        "val_set_size": 0.05,
+        "sequence_len": 4096,
+        "pad_to_sequence_len": true,
+        "sample_packing": true,
+        "adapter": "qlora",
+        "lora_r": 32,
+        "lora_alpha": 16,
+        "lora_dropout": 0.05,
+        "lora_target_linear": true,
+        "mlflow_tracking_uri": "cml://localhost",
+        "mlflow_experiment_name": "11b02c43-9d26-4fab-a54b-cb5c7c27a8b4",
+        "output_dir": "data/adapters/11b02c43-9d26-4fab-a54b-cb5c7c27a8b4",
+        "gradient_accumulation_steps": 4,
+        "micro_batch_size": 2,
+        "num_epochs": 10,
+        "warmup_ratio": 0.05,
+        "learning_rate": 0.0002,
+        "logging_steps": 1,
+        "evals_per_epoch": 4,
+        "gradient_checkpointing": true,
+        "lr_scheduler": "cosine",
+        "optimizer": "paged_adamw_32bit",
+        "flash_attention": true
+      }
+    },
+    {
+      "job_id": "88fe3d4e-f8d3-46db-a48e-061143bac1d1",
+      "base_model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "dataset_id": "1ae2ffbd-3095-4147-8692-020cfdd7cf70",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776",
+      "num_workers": 1,
+      "cml_job_id": "6sei-iad8-hakm-1gnf",
+      "adapter_id": "e28cbcc3-fe01-438e-9610-339b6159c902",
+      "worker_props": {
+        "num_cpu": 2,
+        "num_memory": 8,
+        "num_gpu": 1
+      },
+      "num_epochs": 10,
+      "learning_rate": 0.0002,
+      "out_dir": "data/adapters/88fe3d4e-f8d3-46db-a48e-061143bac1d1"
+    },
+    {
+      "job_id": "ed90a457-377b-4fc8-aee6-a84c319eec05",
+      "base_model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "dataset_id": "1ae2ffbd-3095-4147-8692-020cfdd7cf70",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776",
+      "num_workers": 1,
+      "cml_job_id": "7o8b-axpp-01af-jad2",
+      "adapter_id": "136265dd-11c2-4144-a051-8dd6e93bb863",
+      "worker_props": {
+        "num_cpu": 2,
+        "num_memory": 8,
+        "num_gpu": 1
+      },
+      "num_epochs": 10,
+      "learning_rate": 0.0002,
+      "out_dir": "data/adapters/ed90a457-377b-4fc8-aee6-a84c319eec05",
+      "finetuning_framework": "legacy"
+    },
+    {
+      "job_id": "6c6f526b-3393-4073-b5ea-fd74e3b5414d",
+      "base_model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "dataset_id": "1ae2ffbd-3095-4147-8692-020cfdd7cf70",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776",
+      "num_workers": 1,
+      "cml_job_id": "dym7-9rgm-4tgi-2q3r",
+      "adapter_id": "c8728ec5-09c9-4405-b44a-3cbaabe8edcf",
+      "worker_props": {
+        "num_cpu": 2,
+        "num_memory": 8,
+        "num_gpu": 1
+      },
+      "num_epochs": 10,
+      "learning_rate": 0.0002,
+      "out_dir": "data/adapters/6c6f526b-3393-4073-b5ea-fd74e3b5414d",
+      "finetuning_framework": "legacy"
+    }
+  ],
   "prompts": [
     {
       "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
@@ -108,29 +222,80 @@
       "name": "PREBUILT: toxic",
       "dataset_id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
       "prompt_template": "<Toxic>: {en_toxic_comment}\n<Neutral>: {en_neutral_comment}"
+    },
+    {
+      "id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776",
+      "name": "Prompt : mhenrichsen/alpaca_2k_test",
+      "dataset_id": "1ae2ffbd-3095-4147-8692-020cfdd7cf70",
+      "prompt_template": "<Instruction>: {instruction}\n<Input>: {input}\n<Output>: {output}"
     }
   ],
   "adapters": [
     {
       "id": "e3fe6f50-5be2-4960-bc7b-612843cdf5bd",
       "name": "bloom1b1-lora-instruct",
-      "type": 0,
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-instruct"
     },
     {
       "id": "64e8a578-7067-4cb9-8bd0-efd0da901bfe",
       "name": "bloom1b1-lora-sql",
-      "type": 0,
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-sql"
     },
     {
       "id": "4ff47f49-2e72-4457-99ac-964927e1b05c",
       "name": "bloom1b1-lora-toxic",
-      "type": 0,
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-toxic"
+    },
+    {
+      "id": "e41208e0-0ff8-4ed4-b243-759a9be0a034",
+      "name": "ad-tl-mhen-axo-v1",
+      "model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "location": "data/adapters/431df060-8d0e-4bf3-a1b4-9b4c4432f6a8",
+      "job_id": "431df060-8d0e-4bf3-a1b4-9b4c4432f6a8",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776"
+    },
+    {
+      "id": "a932ed1f-aede-4c40-8abf-e49e10e7caaa",
+      "name": "ad-tl-mhen-axo-v12",
+      "model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "location": "data/adapters/2ea5c998-a6bc-4de5-bc26-b27eedb46a53",
+      "job_id": "2ea5c998-a6bc-4de5-bc26-b27eedb46a53",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776"
+    },
+    {
+      "id": "c65fe74b-9345-4fb7-b515-7fc27c6e7ba0",
+      "name": "ad-tl-mhen-axo-v12",
+      "model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "location": "data/adapters/11b02c43-9d26-4fab-a54b-cb5c7c27a8b4",
+      "job_id": "11b02c43-9d26-4fab-a54b-cb5c7c27a8b4",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776"
+    },
+    {
+      "id": "e28cbcc3-fe01-438e-9610-339b6159c902",
+      "name": "ad-tl-mhen-legacy-v12",
+      "model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "location": "data/adapters/88fe3d4e-f8d3-46db-a48e-061143bac1d1",
+      "job_id": "88fe3d4e-f8d3-46db-a48e-061143bac1d1",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776"
+    },
+    {
+      "id": "136265dd-11c2-4144-a051-8dd6e93bb863",
+      "name": "ad-tl-mhen-leg-v123",
+      "model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "location": "data/adapters/ed90a457-377b-4fc8-aee6-a84c319eec05",
+      "job_id": "ed90a457-377b-4fc8-aee6-a84c319eec05",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776"
+    },
+    {
+      "id": "c8728ec5-09c9-4405-b44a-3cbaabe8edcf",
+      "name": "ad-tl-mhen-leg-v1234",
+      "model_id": "c497cf3d-c9f0-4dc5-ba99-fd69f496f440",
+      "location": "data/adapters/6c6f526b-3393-4073-b5ea-fd74e3b5414d",
+      "job_id": "6c6f526b-3393-4073-b5ea-fd74e3b5414d",
+      "prompt_id": "d2798a61-ace9-4dfc-8e2a-5a7dac07b776"
     }
   ]
 }

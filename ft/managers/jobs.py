@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import uuid4
 
 from ft.api import *
+from ft.axolotl_config import AxolotlConfig
 from ft.state import get_state, write_state
 from ft.managers.cml import CMLManager
 import cmlapi
@@ -40,7 +41,16 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
     def get_fine_tuning_job(self, job_id: str) -> FineTuningJobMetadata:
         return super().get_fine_tuning_job(job_id)
 
+
     def start_fine_tuning_job(self, request: StartFineTuningJobRequest):
+        if request.finetuning_framework == 'legacy':
+            return self.start_legacy_fine_tuning_job(request)
+        elif request.finetuning_framework == 'axolotl':
+            return self.start_axolotl_fine_tuning_job(request)
+        else:
+            raise ValueError("Unsupported finetuning framework: {}".format(request.finetuning_framework))
+
+    def start_legacy_fine_tuning_job(self, request: StartFineTuningJobRequest):
         """
         Launch a CML Job which runs/orchestrates a finetuning operation
         The CML Job itself does not run the finetuning work, it will launch a CML Worker(s) to allow
@@ -120,6 +130,9 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
             arg_list.append("--hf_token")
             arg_list.append(hf_token)
 
+        arg_list.append("--finetuning_framework")
+        arg_list.append(request.finetuning_framework)  # Convert to str
+
         cpu = request.cpu
         gpu = request.gpu
         memory = request.memory
@@ -167,7 +180,8 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
                 num_cpu=request.cpu,
                 num_gpu=request.gpu,
                 num_memory=request.memory
-            )
+            ),
+            finetuning_framework=request.finetuning_framework
         )
 
         # TODO: ideally this should be done at the END of training
@@ -191,5 +205,123 @@ class FineTuningJobsManagerSimple(FineTuningJobsManagerBase, CMLManager):
             metadata.adapter_id = adapter_metadata.id
 
         return StartFineTuningJobResponse(
-            job=metadata
+            FineTuningJob=metadata
         )
+
+    def start_axolotl_fine_tuning_job(self, request: StartFineTuningJobRequest):
+        """
+        Launch a CML Job which runs/orchestrates a finetuning operation using the Axolotl framework.
+        The CML Job itself does not run the finetuning work; it will launch a CML Worker(s) to allow
+        more flexibility of parameters like cpu, mem, gpu.
+        """
+        axolotl_train_config = request.axolotl_train_config
+
+        job_id = str(uuid4())
+        job_dir = ".app/job_runs/{}".format(job_id)
+
+        pathlib.Path(job_dir).mkdir(parents=True, exist_ok=True)
+
+        # Lookup the template job created by the amp
+        ft_base_job_id = self.cml_api_client.list_jobs(
+            self.project_id, search_filter='{"name":"Finetuning_Base_Job"}'
+        ).jobs[0].id
+        template_job = self.cml_api_client.get_job(
+            project_id=self.project_id, job_id=ft_base_job_id
+        )
+
+        app_state = get_state()
+
+        # Set Model argument
+        hf_model = next(
+            (item.huggingface_model_name for item in app_state.models if item.id == request.base_model_id),
+            None)
+        if hf_model is None:
+            raise ValueError("Base model ID not found in application state: {}".format(request.base_model_id))
+        axolotl_train_config.base_model = hf_model
+
+        # Set Dataset argument
+        hf_dataset = next((item.huggingface_name for item in app_state.datasets if item.id == request.dataset_id), None)
+        if hf_dataset is None:
+            raise ValueError("Dataset ID not found in application state: {}".format(request.dataset_id))
+        axolotl_train_config.datasets[0].path = hf_dataset
+
+        # Set output directory
+        out_dir = os.path.join(os.getenv("CUSTOM_LORA_ADAPTERS_DIR"), job_id)
+        axolotl_train_config.output_dir = out_dir
+
+        axolotl_train_config.mlflow_tracking_uri = "cml://localhost"
+        axolotl_train_config.mlflow_experiment_name = job_id
+
+        cpu = request.cpu
+        gpu = request.gpu
+        memory = request.memory
+
+        axolotl_config = AxolotlConfig(axolotl_train_config)
+        train_yaml_path = os.path.join(job_dir, "train.yaml")
+        axolotl_config.save_to_yaml(train_yaml_path)
+
+        arg_list = [
+            "--experimentid", job_id,
+            "--finetuning_framework", str(request.finetuning_framework),
+            "--axolotl_yaml_file_path", train_yaml_path
+        ]
+
+        # Create and launch the CML job
+        job_instance = cmlapi.models.create_job_request.CreateJobRequest(
+            project_id=self.project_id,
+            name=job_id,
+            script=template_job.script,
+            runtime_identifier=template_job.runtime_identifier,
+            cpu=cpu,
+            memory=memory,
+            nvidia_gpu=gpu,
+            arguments=" ".join(arg_list)
+        )
+
+        created_job = self.cml_api_client.create_job(
+            body=job_instance, project_id=self.project_id
+        )
+
+        job_run = cmlapi.models.create_job_run_request.CreateJobRunRequest(
+            project_id=self.project_id, job_id=created_job.id
+        )
+
+        launched_job = self.cml_api_client.create_job_run(
+            body=job_run, project_id=self.project_id, job_id=created_job.id
+        )
+
+        metadata = FineTuningJobMetadata(
+            out_dir=out_dir,
+            job_id=job_id,
+            base_model_id=request.base_model_id,
+            dataset_id=request.dataset_id,
+            prompt_id=request.prompt_id,
+            num_workers=request.num_workers,
+            cml_job_id=created_job.id,
+            num_epochs=request.num_epochs,
+            learning_rate=request.learning_rate,
+            worker_props=WorkerProps(
+                num_cpu=request.cpu,
+                num_gpu=request.gpu,
+                num_memory=request.memory
+            ),
+            finetuning_framework=request.finetuning_framework,
+            axolotl_train_config=axolotl_config.get_config()
+        )
+
+        if request.auto_add_adapter:
+            adapter_metadata = AdapterMetadata(
+                id=str(uuid4()),
+                name=request.adapter_name,
+                type=AdapterType.ADAPTER_TYPE_PROJECT,
+                model_id=request.base_model_id,
+                location=out_dir,
+                job_id=job_id,
+                prompt_id=request.prompt_id,
+            )
+            state = get_state()
+            state.adapters.append(adapter_metadata)
+            write_state(state)
+            metadata.adapter_id = adapter_metadata.id
+
+        return StartFineTuningJobResponse(FineTuningJob=metadata)

@@ -311,6 +311,12 @@ message StartFineTuningJobRequest {
   // dataset and an eval dataset. Evaluation datasets are used at epoch boundaries
   // during training to compute metrics and compte loss again.
   float train_test_split = 13;
+
+  // Finetuning mramework to be used for model training.
+  string finetuning_framework = 14;
+
+  // Axolotl model training Configuration.
+  AxolotlTrainConfig axolotl_train_config = 15;
 }
 message StartFineTuningJobResponse {
   FineTuningJobMetadata FineTuningJob = 1;
@@ -689,8 +695,14 @@ message FineTuningJobMetadata {
   // Learning rate to use during fine-tuning.
   float learning_rate = 10;
 
-  // Output directory for the adapter
+  // Output Directory in whihc adapter will be stored.
   string out_dir = 11;
+
+  // Finetuning mramework to be used for model training.
+  string finetuning_framework = 12;
+
+  // Axolotl model training Configuration.
+  AxolotlTrainConfig axolotl_train_config = 13;
 }
 
 
@@ -749,4 +761,165 @@ message AppState {
   repeated EvaluationJobMetadata evaluation_jobs = 4;
   repeated PromptMetadata prompts = 5;
   repeated AdapterMetadata adapters = 6;
+}
+
+message AxolotlTrainConfig {
+  // The base model identifier or path.
+  string base_model = 1;
+
+  // Type of model to load.
+  string model_type = 2;
+
+  // Type of tokenizer to load.
+  string tokenizer_type = 3;
+
+  // Whether to trust remote code from untrusted sources.
+  bool trust_remote_code = 4;
+
+  // Whether to use the fast version of the tokenizer.
+  bool tokenizer_use_fast = 5;
+
+  // Whether to use the legacy version of the tokenizer.
+  bool tokenizer_legacy = 6;
+
+  // Whether to use GPTQ quantization.
+  bool gptq = 7;
+
+  // Whether to load the model in 8-bit precision.
+  bool load_in_8bit = 8;
+
+  // Whether to load the model in 4-bit precision.
+  bool load_in_4bit = 9;
+
+  // Configuration for bf16 (bfloat16) precision.
+  string bf16 = 10;
+
+  // Whether to use fp16 (float16) precision.
+  bool fp16 = 11;
+
+  // Whether to use tf32 precision.
+  bool tf32 = 12;
+
+  // Datasets for finetuning the model.
+  repeated DatasetConfig datasets = 13;
+
+  // Whether to shuffle merged datasets.
+  bool shuffle_merged_datasets = 14;
+
+  // Path to the prepared dataset.
+  string dataset_prepared_path = 15;
+
+  // Size of the validation set.
+  float val_set_size = 16;
+
+  // Maximum sequence length for training.
+  int32 sequence_len = 17;
+
+  // Whether to pad inputs to the sequence length.
+  bool pad_to_sequence_len = 18;
+
+  // Whether to use sample packing.
+  bool sample_packing = 19;
+
+  // Whether to use sample packing for evaluation.
+  bool eval_sample_packing = 20;
+
+  // Adapter type for the model.
+  string adapter = 21;
+
+  // Directory for LoRA models.
+  string lora_model_dir = 22;
+
+  // Rank for LoRA.
+  int32 lora_r = 23;
+
+  // Alpha for LoRA.
+  int32 lora_alpha = 24;
+
+  // Dropout rate for LoRA.
+  float lora_dropout = 25;
+
+  // Target modules for LoRA.
+  repeated string lora_target_modules = 26;
+
+  // Whether to target all linear modules for LoRA.
+  bool lora_target_linear = 27;
+
+  // Tracking URI for MLflow.
+  string mlflow_tracking_uri = 28;
+
+  // Experiment name for MLflow.
+  string mlflow_experiment_name = 29;
+
+  // Whether to log artifacts to Hugging Face.
+  bool hf_mlflow_log_artifacts = 30;
+
+  // Directory to save the output model.
+  string output_dir = 31;
+
+  // Number of gradient accumulation steps.
+  int32 gradient_accumulation_steps = 32;
+
+  // Micro batch size for training.
+  int32 micro_batch_size = 33;
+
+  // Number of training epochs.
+  int32 num_epochs = 34;
+
+  // Ratio for warmup steps.
+  float warmup_ratio = 35;
+
+  // Learning rate for training.
+  float learning_rate = 36;
+
+  // Number of logging steps.
+  int32 logging_steps = 37;
+
+  // Number of evaluations per epoch.
+  int32 evals_per_epoch = 38;
+
+  // Whether to save models in safetensors format.
+  bool save_safetensors = 39;
+
+  // Whether to train on input sequences.
+  bool train_on_inputs = 40;
+
+  // Whether to group sequences by length.
+  bool group_by_length = 41;
+
+  // Whether to use gradient checkpointing.
+  bool gradient_checkpointing = 42;
+
+  // Scheduler for learning rate.
+  string lr_scheduler = 43;
+
+  // Optimizer for training.
+  string optimizer = 44;
+
+  // Weight decay for training.
+  float weight_decay = 45;
+
+  // Whether to enable strict mode.
+  bool strict = 46;
+
+  // Whether to use xformers attention.
+  bool xformers_attention = 47;
+
+  // Whether to use flash attention.
+  bool flash_attention = 48;
+}
+
+message ListOfString {
+  repeated string value = 1;
+}
+
+message DatasetConfig {
+  // Path to the dataset.
+  string path = 1;
+
+  // Type of dataset.
+  string type = 2;
+
+  // Split of the dataset to train on.
+  string train_on_split = 3;
 }

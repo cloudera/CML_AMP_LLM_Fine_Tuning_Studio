@@ -97,7 +97,16 @@ with col1:
 with col2:
     st.caption("**Training Jobs**")
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_data = []
+        for job in current_jobs:
+            job_dict = {
+                'job_id': job.job_id,
+                'cml_job_id': job.cml_job_id,
+                'adapter_id': job.adapter_id,
+                'num_workers': job.num_workers
+            }
+            jobs_data.append(job_dict)
+        jobs_df = pd.DataFrame(jobs_data)
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
@@ -174,7 +183,16 @@ with col3:
     st.caption("**MLflow Jobs**")
     current_jobs = get_state().evaluation_jobs
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_data = []
+        for job in current_jobs:
+            job_dict = {
+                'job_id': job.job_id,
+                'cml_job_id': job.cml_job_id,
+                'adapter_id': job.adapter_id,
+                'num_workers': job.num_workers
+            }
+            jobs_data.append(job_dict)
+        jobs_df = pd.DataFrame(jobs_data)
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:

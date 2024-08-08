@@ -370,7 +370,9 @@ class StartFineTuningJobRequest(_message.Message):
         "cpu",
         "gpu",
         "memory",
-        "train_test_split")
+        "train_test_split",
+        "finetuning_framework",
+        "axolotl_train_config")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -384,6 +386,8 @@ class StartFineTuningJobRequest(_message.Message):
     GPU_FIELD_NUMBER: _ClassVar[int]
     MEMORY_FIELD_NUMBER: _ClassVar[int]
     TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
+    FINETUNING_FRAMEWORK_FIELD_NUMBER: _ClassVar[int]
+    AXOLOTL_TRAIN_CONFIG_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
@@ -397,6 +401,8 @@ class StartFineTuningJobRequest(_message.Message):
     gpu: int
     memory: int
     train_test_split: float
+    finetuning_framework: str
+    axolotl_train_config: AxolotlTrainConfig
 
     def __init__(self,
                  adapter_name: _Optional[str] = ...,
@@ -412,7 +418,10 @@ class StartFineTuningJobRequest(_message.Message):
                  cpu: _Optional[int] = ...,
                  gpu: _Optional[int] = ...,
                  memory: _Optional[int] = ...,
-                 train_test_split: _Optional[float] = ...) -> None: ...
+                 train_test_split: _Optional[float] = ...,
+                 finetuning_framework: _Optional[str] = ...,
+                 axolotl_train_config: _Optional[_Union[AxolotlTrainConfig,
+                                                        _Mapping]] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
@@ -686,7 +695,9 @@ class FineTuningJobMetadata(_message.Message):
         "worker_props",
         "num_epochs",
         "learning_rate",
-        "out_dir")
+        "out_dir",
+        "finetuning_framework",
+        "axolotl_train_config")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -698,6 +709,8 @@ class FineTuningJobMetadata(_message.Message):
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
     OUT_DIR_FIELD_NUMBER: _ClassVar[int]
+    FINETUNING_FRAMEWORK_FIELD_NUMBER: _ClassVar[int]
+    AXOLOTL_TRAIN_CONFIG_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -709,6 +722,8 @@ class FineTuningJobMetadata(_message.Message):
     num_epochs: int
     learning_rate: float
     out_dir: str
+    finetuning_framework: str
+    axolotl_train_config: AxolotlTrainConfig
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -722,7 +737,10 @@ class FineTuningJobMetadata(_message.Message):
                                                 _Mapping]] = ...,
                  num_epochs: _Optional[int] = ...,
                  learning_rate: _Optional[float] = ...,
-                 out_dir: _Optional[str] = ...) -> None: ...
+                 out_dir: _Optional[str] = ...,
+                 finetuning_framework: _Optional[str] = ...,
+                 axolotl_train_config: _Optional[_Union[AxolotlTrainConfig,
+                                                        _Mapping]] = ...) -> None: ...
 
 
 class BnbConfig(_message.Message):
@@ -827,3 +845,222 @@ class AppState(_message.Message):
                                                      _Mapping]]] = ...,
                  adapters: _Optional[_Iterable[_Union[AdapterMetadata,
                                                       _Mapping]]] = ...) -> None: ...
+
+
+class AxolotlTrainConfig(_message.Message):
+    __slots__ = (
+        "base_model",
+        "model_type",
+        "tokenizer_type",
+        "trust_remote_code",
+        "tokenizer_use_fast",
+        "tokenizer_legacy",
+        "gptq",
+        "load_in_8bit",
+        "load_in_4bit",
+        "bf16",
+        "fp16",
+        "tf32",
+        "datasets",
+        "shuffle_merged_datasets",
+        "dataset_prepared_path",
+        "val_set_size",
+        "sequence_len",
+        "pad_to_sequence_len",
+        "sample_packing",
+        "eval_sample_packing",
+        "adapter",
+        "lora_model_dir",
+        "lora_r",
+        "lora_alpha",
+        "lora_dropout",
+        "lora_target_modules",
+        "lora_target_linear",
+        "mlflow_tracking_uri",
+        "mlflow_experiment_name",
+        "hf_mlflow_log_artifacts",
+        "output_dir",
+        "gradient_accumulation_steps",
+        "micro_batch_size",
+        "num_epochs",
+        "warmup_ratio",
+        "learning_rate",
+        "logging_steps",
+        "evals_per_epoch",
+        "save_safetensors",
+        "train_on_inputs",
+        "group_by_length",
+        "gradient_checkpointing",
+        "lr_scheduler",
+        "optimizer",
+        "weight_decay",
+        "strict",
+        "xformers_attention",
+        "flash_attention")
+    BASE_MODEL_FIELD_NUMBER: _ClassVar[int]
+    MODEL_TYPE_FIELD_NUMBER: _ClassVar[int]
+    TOKENIZER_TYPE_FIELD_NUMBER: _ClassVar[int]
+    TRUST_REMOTE_CODE_FIELD_NUMBER: _ClassVar[int]
+    TOKENIZER_USE_FAST_FIELD_NUMBER: _ClassVar[int]
+    TOKENIZER_LEGACY_FIELD_NUMBER: _ClassVar[int]
+    GPTQ_FIELD_NUMBER: _ClassVar[int]
+    LOAD_IN_8BIT_FIELD_NUMBER: _ClassVar[int]
+    LOAD_IN_4BIT_FIELD_NUMBER: _ClassVar[int]
+    BF16_FIELD_NUMBER: _ClassVar[int]
+    FP16_FIELD_NUMBER: _ClassVar[int]
+    TF32_FIELD_NUMBER: _ClassVar[int]
+    DATASETS_FIELD_NUMBER: _ClassVar[int]
+    SHUFFLE_MERGED_DATASETS_FIELD_NUMBER: _ClassVar[int]
+    DATASET_PREPARED_PATH_FIELD_NUMBER: _ClassVar[int]
+    VAL_SET_SIZE_FIELD_NUMBER: _ClassVar[int]
+    SEQUENCE_LEN_FIELD_NUMBER: _ClassVar[int]
+    PAD_TO_SEQUENCE_LEN_FIELD_NUMBER: _ClassVar[int]
+    SAMPLE_PACKING_FIELD_NUMBER: _ClassVar[int]
+    EVAL_SAMPLE_PACKING_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_FIELD_NUMBER: _ClassVar[int]
+    LORA_MODEL_DIR_FIELD_NUMBER: _ClassVar[int]
+    LORA_R_FIELD_NUMBER: _ClassVar[int]
+    LORA_ALPHA_FIELD_NUMBER: _ClassVar[int]
+    LORA_DROPOUT_FIELD_NUMBER: _ClassVar[int]
+    LORA_TARGET_MODULES_FIELD_NUMBER: _ClassVar[int]
+    LORA_TARGET_LINEAR_FIELD_NUMBER: _ClassVar[int]
+    MLFLOW_TRACKING_URI_FIELD_NUMBER: _ClassVar[int]
+    MLFLOW_EXPERIMENT_NAME_FIELD_NUMBER: _ClassVar[int]
+    HF_MLFLOW_LOG_ARTIFACTS_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_DIR_FIELD_NUMBER: _ClassVar[int]
+    GRADIENT_ACCUMULATION_STEPS_FIELD_NUMBER: _ClassVar[int]
+    MICRO_BATCH_SIZE_FIELD_NUMBER: _ClassVar[int]
+    NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
+    WARMUP_RATIO_FIELD_NUMBER: _ClassVar[int]
+    LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
+    LOGGING_STEPS_FIELD_NUMBER: _ClassVar[int]
+    EVALS_PER_EPOCH_FIELD_NUMBER: _ClassVar[int]
+    SAVE_SAFETENSORS_FIELD_NUMBER: _ClassVar[int]
+    TRAIN_ON_INPUTS_FIELD_NUMBER: _ClassVar[int]
+    GROUP_BY_LENGTH_FIELD_NUMBER: _ClassVar[int]
+    GRADIENT_CHECKPOINTING_FIELD_NUMBER: _ClassVar[int]
+    LR_SCHEDULER_FIELD_NUMBER: _ClassVar[int]
+    OPTIMIZER_FIELD_NUMBER: _ClassVar[int]
+    WEIGHT_DECAY_FIELD_NUMBER: _ClassVar[int]
+    STRICT_FIELD_NUMBER: _ClassVar[int]
+    XFORMERS_ATTENTION_FIELD_NUMBER: _ClassVar[int]
+    FLASH_ATTENTION_FIELD_NUMBER: _ClassVar[int]
+    base_model: str
+    model_type: str
+    tokenizer_type: str
+    trust_remote_code: bool
+    tokenizer_use_fast: bool
+    tokenizer_legacy: bool
+    gptq: bool
+    load_in_8bit: bool
+    load_in_4bit: bool
+    bf16: str
+    fp16: bool
+    tf32: bool
+    datasets: _containers.RepeatedCompositeFieldContainer[DatasetConfig]
+    shuffle_merged_datasets: bool
+    dataset_prepared_path: str
+    val_set_size: float
+    sequence_len: int
+    pad_to_sequence_len: bool
+    sample_packing: bool
+    eval_sample_packing: bool
+    adapter: str
+    lora_model_dir: str
+    lora_r: int
+    lora_alpha: int
+    lora_dropout: float
+    lora_target_modules: _containers.RepeatedScalarFieldContainer[str]
+    lora_target_linear: bool
+    mlflow_tracking_uri: str
+    mlflow_experiment_name: str
+    hf_mlflow_log_artifacts: bool
+    output_dir: str
+    gradient_accumulation_steps: int
+    micro_batch_size: int
+    num_epochs: int
+    warmup_ratio: float
+    learning_rate: float
+    logging_steps: int
+    evals_per_epoch: int
+    save_safetensors: bool
+    train_on_inputs: bool
+    group_by_length: bool
+    gradient_checkpointing: bool
+    lr_scheduler: str
+    optimizer: str
+    weight_decay: float
+    strict: bool
+    xformers_attention: bool
+    flash_attention: bool
+
+    def __init__(self,
+                 base_model: _Optional[str] = ...,
+                 model_type: _Optional[str] = ...,
+                 tokenizer_type: _Optional[str] = ...,
+                 trust_remote_code: bool = ...,
+                 tokenizer_use_fast: bool = ...,
+                 tokenizer_legacy: bool = ...,
+                 gptq: bool = ...,
+                 load_in_8bit: bool = ...,
+                 load_in_4bit: bool = ...,
+                 bf16: _Optional[str] = ...,
+                 fp16: bool = ...,
+                 tf32: bool = ...,
+                 datasets: _Optional[_Iterable[_Union[DatasetConfig,
+                                                      _Mapping]]] = ...,
+                 shuffle_merged_datasets: bool = ...,
+                 dataset_prepared_path: _Optional[str] = ...,
+                 val_set_size: _Optional[float] = ...,
+                 sequence_len: _Optional[int] = ...,
+                 pad_to_sequence_len: bool = ...,
+                 sample_packing: bool = ...,
+                 eval_sample_packing: bool = ...,
+                 adapter: _Optional[str] = ...,
+                 lora_model_dir: _Optional[str] = ...,
+                 lora_r: _Optional[int] = ...,
+                 lora_alpha: _Optional[int] = ...,
+                 lora_dropout: _Optional[float] = ...,
+                 lora_target_modules: _Optional[_Iterable[str]] = ...,
+                 lora_target_linear: bool = ...,
+                 mlflow_tracking_uri: _Optional[str] = ...,
+                 mlflow_experiment_name: _Optional[str] = ...,
+                 hf_mlflow_log_artifacts: bool = ...,
+                 output_dir: _Optional[str] = ...,
+                 gradient_accumulation_steps: _Optional[int] = ...,
+                 micro_batch_size: _Optional[int] = ...,
+                 num_epochs: _Optional[int] = ...,
+                 warmup_ratio: _Optional[float] = ...,
+                 learning_rate: _Optional[float] = ...,
+                 logging_steps: _Optional[int] = ...,
+                 evals_per_epoch: _Optional[int] = ...,
+                 save_safetensors: bool = ...,
+                 train_on_inputs: bool = ...,
+                 group_by_length: bool = ...,
+                 gradient_checkpointing: bool = ...,
+                 lr_scheduler: _Optional[str] = ...,
+                 optimizer: _Optional[str] = ...,
+                 weight_decay: _Optional[float] = ...,
+                 strict: bool = ...,
+                 xformers_attention: bool = ...,
+                 flash_attention: bool = ...) -> None: ...
+
+
+class ListOfString(_message.Message):
+    __slots__ = ("value",)
+    VALUE_FIELD_NUMBER: _ClassVar[int]
+    value: _containers.RepeatedScalarFieldContainer[str]
+    def __init__(self, value: _Optional[_Iterable[str]] = ...) -> None: ...
+
+
+class DatasetConfig(_message.Message):
+    __slots__ = ("path", "type", "train_on_split")
+    PATH_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    TRAIN_ON_SPLIT_FIELD_NUMBER: _ClassVar[int]
+    path: str
+    type: str
+    train_on_split: str
+
+    def __init__(self, path: _Optional[str] = ..., type: _Optional[str]
+                 = ..., train_on_split: _Optional[str] = ...) -> None: ...

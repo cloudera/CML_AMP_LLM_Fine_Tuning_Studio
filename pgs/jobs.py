@@ -34,14 +34,22 @@ def get_trainer_json_data(checkpoint_dir):
     else:
         return {}
 
-
-def list_checkpoints(job_id):
+def list_checkpoints(finetuning_framework, out_dir, job_id):
     try:
-        base_path = os.path.join('outputs', job_id)
-        checkpoints = [d for d in os.listdir(base_path) if d.startswith('checkpoint-')]
+        if finetuning_framework == 'axolotl':
+            base_path = os.path.join(out_dir)
+        else:
+            base_path = os.path.join(os.getcwd(), 'outputs', job_id)
+        
+        checkpoints = {}
+        for d in os.listdir(base_path):
+            if d.startswith('checkpoint-'):
+                checkpoint_path = os.path.join(base_path, d)
+                checkpoints[d] = checkpoint_path
         return checkpoints
     except Exception as e:
-        return []
+        return {}
+
 
 
 def fetch_current_jobs_and_mappings():
@@ -229,7 +237,17 @@ def display_training_metrics(current_jobs):
     job_ids = [job.job_id for job in current_jobs]
 
     selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
-    checkpoints = sorted(list_checkpoints(selected_job_id), key=lambda x: int(x.split('-')[-1]))
+
+    # Fetch the selected job's finetuning_framework and out_dir
+    selected_job = next((job for job in current_jobs if job.job_id == selected_job_id), None)
+    if selected_job:
+        finetuning_framework = selected_job.finetuning_framework
+        out_dir = selected_job.out_dir
+    else:
+        st.error("Selected job not found.")
+        return
+
+    checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
 
     if not checkpoints:
         st.info(
@@ -237,8 +255,10 @@ def display_training_metrics(current_jobs):
             icon=":material/info:")
         return
 
-    selected_checkpoint = col2.selectbox('Select Checkpoint', checkpoints, index=0)
-    trainer_json_path = os.path.join('outputs', selected_job_id, selected_checkpoint, 'trainer_state.json')
+    checkpoint_names = list(checkpoints.keys())
+    selected_checkpoint_name = col2.selectbox('Select Checkpoint', checkpoint_names, index=0)
+    checkpoint_dir = checkpoints[selected_checkpoint_name]
+    trainer_json_path = os.path.join(checkpoint_dir, 'trainer_state.json')
 
     try:
         with open(trainer_json_path, 'r') as file:
@@ -248,7 +268,7 @@ def display_training_metrics(current_jobs):
         training_data = None
 
     if not training_data:
-        st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint}")
+        st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
         return
 
     log_history = training_data.get("log_history", [])
@@ -326,28 +346,23 @@ def display_training_metrics(current_jobs):
             st.plotly_chart(fig_eval_loss, use_container_width=True)
 
         st.caption("Job Metadata")
-        selected_job = next((job for job in current_jobs if job.job_id == selected_job_id), None)
+        job_data = {
+            "Epochs": [selected_job.num_epochs],
+            "Learning Rate": [selected_job.learning_rate],
+            "CPU": [selected_job.worker_props.num_cpu],
+            "GPU": [selected_job.worker_props.num_gpu],
+            "Memory": [selected_job.worker_props.num_memory]
+        }
 
-        if selected_job:
-            job_data = {
-                "Epochs": [selected_job.num_epochs],
-                "Learning Rate": [selected_job.learning_rate],
-                "CPU": [selected_job.worker_props.num_cpu],
-                "GPU": [selected_job.worker_props.num_gpu],
-                "Memory": [selected_job.worker_props.num_memory]
-            }
-
-            job_df = pd.DataFrame(job_data)
-            st.data_editor(job_df, use_container_width=True, hide_index=True)
-        else:
-            st.error("Selected job not found.")
+        job_df = pd.DataFrame(job_data)
+        st.data_editor(job_df, use_container_width=True, hide_index=True)
 
     with col12:
         st.json(training_data)
 
 
-# Main Application
 
+# Main Application
 
 display_page_header()
 current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()

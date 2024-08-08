@@ -181,3 +181,7 @@ mlruns
 mlflow_results
 data
 outputs
+.dotnet
+.triton
+last_run_prepared
+.experiments

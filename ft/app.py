@@ -200,9 +200,9 @@ class FineTuningApp():
         """
         job_launch_response: StartFineTuningJobResponse = self.jobs.start_fine_tuning_job(request)
 
-        if not job_launch_response.job == StartFineTuningJobResponse().job:
+        if not job_launch_response.FineTuningJob == StartFineTuningJobResponse().FineTuningJob:
             state: AppState = get_state()
-            state.fine_tuning_jobs.append(job_launch_response.job)
+            state.fine_tuning_jobs.append(job_launch_response.FineTuningJob)
             write_state(state)
 
         return job_launch_response
