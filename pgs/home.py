@@ -4,6 +4,7 @@ from typing import List
 import pandas as pd
 import requests
 from ft.api import *
+from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 
 # Instantiate the client to the FTS gRPC app server.
@@ -99,7 +100,7 @@ with col1:
 with col2:
     st.caption("**Training Jobs**")
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
@@ -176,7 +177,7 @@ with col3:
     st.caption("**MLflow Jobs**")
     current_jobs = fts.get_evaluation_jobs()
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
