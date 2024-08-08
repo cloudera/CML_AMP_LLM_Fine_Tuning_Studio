@@ -8,6 +8,8 @@ import argparse
 import os
 from typing import Tuple
 from ft.utils import attempt_hf_login
+from ft.client import FineTuningStudioClient
+from ft.api import *
 
 # Constants
 NUM_EPOCHS = 3
@@ -31,7 +33,7 @@ parser.add_argument("--bnbconfig", help="Path of the BitsAndBytes config json")
 parser.add_argument("--prompttemplate", help="Path of the PromptTemplate", required=True)
 parser.add_argument("--trainerarguments", help="Path of the trainer arguments json")
 parser.add_argument("--basemodel", help="Huggingface base model to use", required=True)
-parser.add_argument("--dataset", help="Huggingface dataset to use", required=True)
+parser.add_argument("--dataset_id", help="Dataset ID from the Fine Tuning Studio application", required=True)
 parser.add_argument("--experimentid", help="UUID to use for experiment tracking", required=True)
 parser.add_argument("--out_dir", help="Output directory for the fine-tuned model", required=True)
 parser.add_argument("--num_epochs", type=int, default=NUM_EPOCHS, help="Epochs for fine tuning job")
@@ -39,8 +41,13 @@ parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="
 parser.add_argument("--train_test_split", type=float, default=TRAIN_TEST_SPLIT,
                     help="Split of the existing dataset between training and testing.")
 parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
+parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
+parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
 
 args = parser.parse_args(arg_string.split())
+
+# Create a client connection to the FTS server
+client: FineTuningStudioClient = FineTuningStudioClient(server_ip=args.fts_server_ip, server_port=args.fts_server_port)
 
 # Attempt log in to huggingface
 attempt_hf_login(args.hf_token)
@@ -144,8 +151,17 @@ def map_dataset_with_prompt_template(dataset, prompt_template):
 try:
     prompt_text = Path(args.prompttemplate).read_text()
 
-    # Load the base dataset into memory
-    dataset = load_dataset(args.dataset)
+    # Load the base dataset into memory. Call the FTS server
+    # to extract metadata information about the dataset. Right now,
+    # only huggingface datasets are supported for fine tuning jobs.
+    dataset_id = args.dataset_id 
+    dataset_metadata: DatasetMetadata = client.GetDataset(
+        GetDatasetRequest(
+            id=dataset_id
+        )
+    )
+    assert dataset_metadata.type == DatasetType.DATASET_TYPE_HUGGINGFACE
+    dataset = load_dataset(dataset_metadata.huggingface_name)
 
     # Split the above dataset into a training dataset and a testing dataset.
     ds_train, ds_eval = split_dataset(dataset, args.train_test_split)

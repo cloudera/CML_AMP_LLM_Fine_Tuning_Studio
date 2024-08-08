@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from ft.api import *
 from ft.state import get_state, write_state
+from ft.consts import DEFAULT_FTS_GRPC_PORT
 import cmlapi
 import os
 import json
@@ -68,10 +69,8 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     arg_list.append(hf_model)
 
     # Set Dataset argument
-    # TODO: Support datasets that dont come from HF
-    arg_list.append("--dataset")
-    hf_dataset = list(filter(lambda item: item.id == request.dataset_id, app_state.datasets))[0].huggingface_name
-    arg_list.append(hf_dataset)
+    arg_list.append("--dataset_id")
+    arg_list.append(request.dataset_id)
 
     # Set Prompt Text argument
     # TODO: Ideally this is just part of the aggregate config model below
@@ -104,6 +103,15 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 
     arg_list.append("--learning_rate")
     arg_list.append(str(request.learning_rate))  # Convert to str
+    
+    # Pass the IP address of the application engine that's running the FTS gRPC server.
+    # passing this to the fine tuning job that's created allows the job to connect to 
+    # the gRPC server to request information about datasets, models, etc.
+    arg_list.append("--fts_server_ip")
+    arg_list.append(str(os.getenv("CDSW_IP_ADDRESS")))
+    arg_list.append("--fts_server_port")
+    arg_list.append(str(DEFAULT_FTS_GRPC_PORT))
+     
 
     # TODO: see if the protobuf default value is sufficient here
     if not request.train_test_split == StartFineTuningJobRequest().train_test_split:
