@@ -348,10 +348,10 @@ class GetFineTuningJobRequest(_message.Message):
 
 
 class GetFineTuningJobResponse(_message.Message):
-    __slots__ = ("job",)
-    JOB_FIELD_NUMBER: _ClassVar[int]
-    job: FineTuningJobMetadata
-    def __init__(self, job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("fine_tuning_job",)
+    FINE_TUNING_JOB_FIELD_NUMBER: _ClassVar[int]
+    fine_tuning_job: FineTuningJobMetadata
+    def __init__(self, fine_tuning_job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
 
 
 class StartFineTuningJobRequest(_message.Message):
@@ -414,10 +414,10 @@ class StartFineTuningJobRequest(_message.Message):
 
 
 class StartFineTuningJobResponse(_message.Message):
-    __slots__ = ("FineTuningJob",)
-    FINETUNINGJOB_FIELD_NUMBER: _ClassVar[int]
-    FineTuningJob: FineTuningJobMetadata
-    def __init__(self, FineTuningJob: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("fine_tuning_job",)
+    FINE_TUNING_JOB_FIELD_NUMBER: _ClassVar[int]
+    fine_tuning_job: FineTuningJobMetadata
+    def __init__(self, fine_tuning_job: _Optional[_Union[FineTuningJobMetadata, _Mapping]] = ...) -> None: ...
 
 
 class RemoveFineTuningJobRequest(_message.Message):
@@ -453,10 +453,10 @@ class GetEvaluationJobRequest(_message.Message):
 
 
 class GetEvaluationJobResponse(_message.Message):
-    __slots__ = ("job",)
-    JOB_FIELD_NUMBER: _ClassVar[int]
-    job: EvaluationJobMetadata
-    def __init__(self, job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("evaluation_job",)
+    EVALUATION_JOB_FIELD_NUMBER: _ClassVar[int]
+    evaluation_job: EvaluationJobMetadata
+    def __init__(self, evaluation_job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
 
 
 class StartEvaluationJobRequest(_message.Message):

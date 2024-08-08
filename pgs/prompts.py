@@ -29,7 +29,7 @@ def display_create_prompt():
         with st.container(border=True):
             new_prompt_name = st.text_input("Prompt Name", placeholder="Enter a human-friendly prompt name")
 
-            datasets = get_state().datasets
+            datasets = fts.get_datasets()
             dataset_idx = st.selectbox(
                 "Dataset",
                 range(
@@ -98,11 +98,13 @@ def display_create_prompt():
 
 def add_prompt(name, dataset_id, template):
     fts.AddPrompt(
-        PromptMetadata(
-            id=str(uuid4()),
-            name=name,
-            dataset_id=dataset_id,
-            prompt_template=template
+        AddPromptRequest(
+            prompt=PromptMetadata(
+                id=str(uuid4()),
+                name=name,
+                dataset_id=dataset_id,
+                prompt_template=template
+            )
         )
     )
 

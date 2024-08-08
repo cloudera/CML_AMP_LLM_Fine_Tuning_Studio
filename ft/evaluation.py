@@ -16,7 +16,7 @@ def list_evaluation_jobs(state: AppState, request: ListEvaluationJobsRequest,
     if we have a complex request object.
     """
     return ListEvaluationJobsResponse(
-        jobs=state.evaluation_jobs
+        evaluation_jobs=state.evaluation_jobs
     )
 
 
@@ -25,7 +25,7 @@ def get_evaluation_job(state: AppState, request: GetEvaluationJobRequest,
     evaluation_jobs = list(filter(lambda x: x.id == request.id, state.evaluation_jobs))
     assert len(evaluation_jobs) == 1
     return GetEvaluationJobResponse(
-        job=evaluation_jobs[0]
+        evaluation_job=evaluation_jobs[0]
     )
 
 

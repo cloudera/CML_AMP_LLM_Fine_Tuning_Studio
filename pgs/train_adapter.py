@@ -121,7 +121,7 @@ def create_train_adapter_page():
                     bnb_config_dict = json.loads(bnb_config)
                     bnb_config_special_type: BnbConfig = BnbConfig(**bnb_config_dict)
                     fts.StartFineTuningJob(
-                        StartEvaluationJobRequest(
+                        StartFineTuningJobRequest(
                             adapter_name=adapter_name,
                             base_model_id=model.id,
                             dataset_id=dataset.id,

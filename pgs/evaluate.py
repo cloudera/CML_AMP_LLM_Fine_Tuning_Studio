@@ -47,7 +47,7 @@ def generate_random():
             GetDatasetRequest(
                 id=prompts[prompt_idx].dataset_id
             )
-        ))
+        ).dataset.huggingface_name)
         if "train" in dataset:
             dataset = dataset["train"]
         idx = random.randint(0, len(dataset) - 1)
@@ -65,7 +65,7 @@ def prompt_fragment():
         "Import Prompt Template",
         range(len(prompts)),
         key="input_prompt_idx",
-        format_func=lambda x: f"{prompts[x].name} [dataset: {fts.GetDataset(GetDatasetRequest(id=prompts[x].dataset_id)).name}]",
+        format_func=lambda x: f"{prompts[x].name} [dataset: {fts.GetDataset(GetDatasetRequest(id=prompts[x].dataset_id)).dataset.name}]",
         index=None,
         on_change=update_text_area)
     cont.text_area("Prompt Template", height=120, key="input_prompt_template")

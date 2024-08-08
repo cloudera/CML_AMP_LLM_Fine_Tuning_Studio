@@ -254,7 +254,7 @@ message GetFineTuningJobRequest {
   string id = 1;
 }
 message GetFineTuningJobResponse {
-  FineTuningJobMetadata job = 1;
+  FineTuningJobMetadata fine_tuning_job = 1;
 }
 message StartFineTuningJobRequest {
   // Human-friendly identifier for the name of the output adapter.
@@ -305,7 +305,7 @@ message StartFineTuningJobRequest {
   float train_test_split = 13;
 }
 message StartFineTuningJobResponse {
-  FineTuningJobMetadata FineTuningJob = 1;
+  FineTuningJobMetadata fine_tuning_job = 1;
 }
 message RemoveFineTuningJobRequest {
   string id = 1;
@@ -326,7 +326,7 @@ message GetEvaluationJobRequest {
   string id = 1;
 }
 message GetEvaluationJobResponse {
-  EvaluationJobMetadata job = 1;
+  EvaluationJobMetadata evaluation_job = 1;
 }
 message StartEvaluationJobRequest {
 

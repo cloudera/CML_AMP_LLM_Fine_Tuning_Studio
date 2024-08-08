@@ -1,14 +1,4 @@
 import streamlit as st
-import ft.app
-from ft.app import FineTuningAppProps, FineTuningApp
-from ft.state import get_state_location
-from ft.managers import (
-    DatasetsManagerSimple,
-    ModelsManagerSimple,
-    FineTuningJobsManagerSimple,
-    MLflowEvaluationJobsManagerSimple
-)
-import streamlit.components.v1 as components
 from ft.utils import get_env_variable
 
 # Module for custom CSS
@@ -37,20 +27,6 @@ def apply_custom_css():
     </style>
     '''
     st.markdown(css, unsafe_allow_html=True)
-
-# Module for initialization of FineTuningApp
-
-
-def initialize_ft_app():
-    ft.app.INSTANCE = FineTuningApp(
-        FineTuningAppProps(
-            state_location=get_state_location(),
-            datasets_manager=DatasetsManagerSimple(),
-            models_manager=ModelsManagerSimple(),
-            jobs_manager=FineTuningJobsManagerSimple(),
-            mlflow_manager=MLflowEvaluationJobsManagerSimple()
-        )
-    )
 
 # Module for setting up navigation
 
@@ -117,6 +93,5 @@ st.set_page_config(
     layout="wide"
 )
 apply_custom_css()
-initialize_ft_app()
 setup_navigation()
 setup_sidebar()

@@ -17,7 +17,7 @@ def list_fine_tuning_jobs(state: AppState, request: ListFineTuningJobsRequest,
     TODO: we can add filtering logic here.
     """
     return ListFineTuningJobsResponse(
-        jobs=state.fine_tuning_jobs
+        fine_tuning_jobs=state.fine_tuning_jobs
     )
 
 
@@ -26,7 +26,7 @@ def get_fine_tuning_job(state: AppState, request: GetFineTuningJobRequest,
     fine_tuning_jobs = list(filter(lambda x: x.id == request.id, state.fine_tuning_jobs))
     assert len(fine_tuning_jobs) == 1
     return GetFineTuningJobResponse(
-        job=fine_tuning_jobs[0]
+        fine_tuning_job=fine_tuning_jobs[0]
     )
 
 
@@ -149,7 +149,6 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     )
 
     metadata = FineTuningJobMetadata(
-        out_dir=out_dir,
         job_id=job_id,
         base_model_id=request.base_model_id,
         dataset_id=request.dataset_id,
@@ -193,7 +192,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         write_state(state)
 
     return StartFineTuningJobResponse(
-        job=metadata
+        fine_tuning_job=metadata
     )
 
 
