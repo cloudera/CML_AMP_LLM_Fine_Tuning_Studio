@@ -1,8 +1,11 @@
 import streamlit as st
-from ft.api import DatasetMetadata, DatasetType
-from ft.app import get_app
+from ft.api import *
 from ft.consts import HF_LOGO
 from typing import List
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def display_header():
@@ -45,12 +48,16 @@ def display_datasets(
                 c21[0].code("Features: \n * " + '\n * '.join(dataset.features))
 
                 if remove:
-                    get_app().remove_dataset(dataset.id)
+                    fts.RemoveDataset(
+                        RemoveDatasetRequest(
+                            id=dataset.id
+                        )
+                    )
                     st.rerun()
 
 
 display_header()
-datasets: List[DatasetMetadata] = get_app().datasets.list_datasets()
+datasets: List[DatasetMetadata] = fts.get_datasets()
 tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**Custom Datasets**"])
 with tab1:
     display_datasets(

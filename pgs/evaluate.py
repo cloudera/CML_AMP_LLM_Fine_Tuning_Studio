@@ -1,6 +1,4 @@
 import streamlit as st
-from ft.state import get_state
-from ft.app import get_app
 from ft.api import *
 from typing import *
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -10,6 +8,11 @@ import os
 import torch
 from ft.utils import get_device
 from ft.utils import attempt_hf_login
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
+
 
 # Initialize session state
 if 'current_model_metadata' not in st.session_state:
@@ -25,7 +28,7 @@ if 'current_model' not in st.session_state:
 
 
 def update_text_area():
-    prompts = get_state().prompts
+    prompts = fts.get_prompts()
     prompt_idx = st.session_state.input_prompt_idx
 
     if prompt_idx is not None:
@@ -35,12 +38,16 @@ def update_text_area():
 
 
 def generate_random():
-    prompts = get_state().prompts
+    prompts = fts.get_prompts()
     prompt_template = st.session_state.input_prompt_template
     prompt_idx = st.session_state.input_prompt_idx
 
     if prompt_template is not None and prompt_idx is not None:
-        dataset = load_dataset(get_app().datasets.get_dataset(prompts[prompt_idx].dataset_id).huggingface_name)
+        dataset = load_dataset(fts.GetDataset(
+            GetDatasetRequest(
+                id=prompts[prompt_idx].dataset_id
+            )
+        ))
         if "train" in dataset:
             dataset = dataset["train"]
         idx = random.randint(0, len(dataset) - 1)
@@ -52,13 +59,13 @@ def generate_random():
 def prompt_fragment():
     cont = st.container()
 
-    prompts = get_state().prompts
+    prompts = fts.get_prompts()
 
     prompt_idx = cont.selectbox(
         "Import Prompt Template",
         range(len(prompts)),
         key="input_prompt_idx",
-        format_func=lambda x: f"{prompts[x].name} [dataset: {get_app().datasets.get_dataset(prompts[x].dataset_id).name}]",
+        format_func=lambda x: f"{prompts[x].name} [dataset: {fts.GetDataset(GetDatasetRequest(id=prompts[x].dataset_id)).name}]",
         index=None,
         on_change=update_text_area)
     cont.text_area("Prompt Template", height=120, key="input_prompt_template")
@@ -132,7 +139,7 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     with st.container(border=True):
-        current_models = get_state().models
+        current_models = fts.get_models()
         model_idx = st.selectbox(
             "Base Models",
             range(len(current_models)),
@@ -152,7 +159,7 @@ with col1:
                         current_model_metadata.huggingface_model_name, quantization_config=bnb_config, return_dict=True)
                     st.session_state.current_model_metadata = current_model_metadata
 
-            model_adapters: List[AdapterMetadata] = get_state().adapters
+            model_adapters: List[AdapterMetadata] = fts.get_adapters()
             model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
 
             # Filter adapters based on their presence in the /data/adapter directory

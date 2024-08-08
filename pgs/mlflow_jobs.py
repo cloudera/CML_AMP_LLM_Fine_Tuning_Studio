@@ -1,11 +1,14 @@
 import streamlit as st
-from ft.state import get_state
-from ft.app import get_app
 import pandas as pd
 import os
 import requests
 import json
 from google.protobuf.json_format import MessageToDict
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
+
 
 # Container for the layout
 with st.container(border=True):
@@ -19,10 +22,10 @@ with st.container(border=True):
 st.write("\n\n")
 
 # Fetch current jobs from state
-current_jobs = get_state().evaluation_jobs
-models = get_state().models
-adapters = get_state().adapters
-datasets = get_app().datasets.list_datasets()
+current_jobs = fts.get_evaluation_jobs()
+models = fts.get_models()
+adapters = fts.get_adapters()
+datasets = fts.get_datasets()
 
 # Create dictionaries for ID to name mapping
 model_dict = {model.id: model.name for model in models}

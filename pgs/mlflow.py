@@ -1,10 +1,13 @@
 import streamlit as st
 import os
-from ft.app import get_app
-from ft.state import get_state
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
 from typing import List
 from ft.api import *
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
+
 
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 cdsw_api_url = get_env_variable('CDSW_API_URL')
@@ -30,7 +33,7 @@ with ccol1:
 
         CURRENT_MODEL = None
 
-        current_models = get_state().models
+        current_models = fts.get_models()
         model_idx = st.selectbox(
             "Base Models",
             range(len(current_models)),
@@ -44,7 +47,7 @@ with ccol1:
         if model_idx is not None:
             current_model_metadata = current_models[model_idx]
 
-            model_adapters: List[AdapterMetadata] = get_state().adapters
+            model_adapters: List[AdapterMetadata] = fts.get_adapters()
             model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
 
             # Filter adapters based on their presence in the /data/adapter directory
@@ -70,7 +73,7 @@ with ccol1:
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
 
-        current_datasets = get_state().datasets
+        current_datasets = fts.get_datasets()
         dataset_idx = st.selectbox(
             "Datasets",
             range(len(current_datasets)),
@@ -104,14 +107,16 @@ with ccol1:
                 print(model.id)
                 print(dataset.id)
                 print(adapter.id)
-                get_app().launch_mlflow_job(StartEvaluationJobRequest(
-                    adapter_id=adapter.id,
-                    base_model_id=model.id,
-                    dataset_id=dataset.id,
-                    cpu=int(cpu),
-                    gpu=gpu,
-                    memory=int(memory)
-                ))
+                fts.StartEvaluationJob(
+                    StartEvaluationJobRequest(
+                        adapter_id=adapter.id,
+                        base_model_id=model.id,
+                        dataset_id=dataset.id,
+                        cpu=int(cpu),
+                        gpu=gpu,
+                        memory=int(memory)
+                    )
+                )
                 st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
                 st.toast("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
             except Exception as e:
