@@ -4,13 +4,17 @@ from ft.eval.data_loader import Dataloader
 from ft.pipeline import fetch_pipeline
 import pandas as pd
 from ft.eval.eval_job import EvaluationResponse
+from ft.client import FineTuningStudioClient
+from ft.api import *
 
 
-def driver(StartEvaluationRequest):
+def driver(
+        dataset_id: str = None,
+        base_model_id: str = None,
+        adapter_id: str = None,
+        client: FineTuningStudioClient = None):
 
-    dataset_name = StartEvaluationRequest.dataset_name
-    base_model_name = StartEvaluationRequest.base_model_name
-    adapter_name = StartEvaluationRequest.adapter_path
+    # TODO: remove hard-coded dependencies on GPU driver for evals
     device = "cuda"
 
     dataloader = Dataloader()
@@ -18,9 +22,17 @@ def driver(StartEvaluationRequest):
     evaluator = ModelEvaluator()
 
     # Load dataset
-    eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(dataset_name)
+    eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(dataset_id)
+
+    # Get the model and adapter metadata.
+    # given that this is a script that runs on a remote worker (not the same host
+    # as the application), need to make gRPC calls to the app server.
+    base_model: ModelMetadata = client.GetModel(GetModelRequest(id=base_model_id))
+    adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id))
+
     # Load Model Pipeline
-    pipeline = fetch_pipeline(base_model_name, adapter_name, device=device)
+    # TODO: remove dependencies on model and adapter type
+    pipeline = fetch_pipeline(base_model.huggingface_model_name, adapter.location, device=device)
 
     # Log model to MLFlow
     model_info = logger.log_model(pipeline)

@@ -180,5 +180,5 @@ class FineTuningStudioApp(FineTuningStudioServicer):
     def GetAppState(self, request, context):
         state: AppState = get_state()
         return GetAppStateResponse(
-            state=get_state()
+            state=state
         )

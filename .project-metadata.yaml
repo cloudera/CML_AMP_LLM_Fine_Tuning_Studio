@@ -1,4 +1,4 @@
-name: Fine-Tuning Application
+name: CML Fine Tuning Studio
 description: |
   This AMP demonstrates how PEFT and other fine-tuning optimization techniques can be used for efficient and effective customization of an existing LLM to perform new tasks.
 author: Cloudera Inc.
@@ -57,7 +57,7 @@ tasks:
     name: Finetuning_Base_Jobs
     short_summary: Create Template Job for creating finetuning tasks
     entity_label: fine_tune_job_template
-    script: ft/fine_tune_base_script.py
+    script: ft/scripts/fine_tune_base_script.py
     arguments: None
     long_summary: Create Template Job for creating finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
     cpu: 2
@@ -71,7 +71,7 @@ tasks:
     name: Mlflow_Evaluation_Base_Job
     short_summary: Create Template Job for creating mlflow evaluation tasks
     entity_label: mlflow_evaluation_job_template
-    script: ft/mlflow_evaluation_base_script.py
+    script: ft/scripts/mlflow_evaluation_base_script.py
     arguments: None
     long_summary: Create Template Job for creating mlflow evaluation tasks. This job is used as the template for creating and launching mlflow evaluation tasks in the application.
     cpu: 2
@@ -81,8 +81,8 @@ tasks:
       TASK_TYPE: CREATE/RUN_JOB
   
   - type: start_application
-    name: LLM Fine Tuning Application
-    subdomain: cml-llm-ft-app
+    name: CML Fine Tuning Studio
+    subdomain: cml-llm-fine-tuning-studio
     script: bin/run-app.py
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
