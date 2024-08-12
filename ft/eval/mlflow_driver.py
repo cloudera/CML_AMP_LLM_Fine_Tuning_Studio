@@ -22,7 +22,7 @@ def driver(
     evaluator = ModelEvaluator()
 
     # Load dataset
-    eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(dataset_id)
+    eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(dataset_id, client=client)
 
     # Get the model and adapter metadata.
     # given that this is a script that runs on a remote worker (not the same host
