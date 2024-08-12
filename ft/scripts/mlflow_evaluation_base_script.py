@@ -1,9 +1,9 @@
 import subprocess
 import time
 from ft.eval.mlflow_driver import driver
-from ft.eval.eval_job import StartEvaluationRequest
 import argparse
 import os
+from ft.client import FineTuningStudioClient
 
 # Function to install required packages
 
@@ -18,23 +18,26 @@ arg_string = os.environ.get('JOB_ARGUMENTS', '')
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--dataset", help="Path of the dataset")
-parser.add_argument("--basemodel", help="Path of the base model")
-parser.add_argument("--adapter_path", help="Path of the adapter")
+parser.add_argument("--dataset_id", help="Path of the dataset", default=None)
+parser.add_argument("--base_model_id", help="Path of the base model", default=None)
+parser.add_argument("--adapter_id", help="Path of the adapter", default=None)
 parser.add_argument("--result_dir", help="Path of result dir", required=True)
+parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
+parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
 
 args = parser.parse_args(arg_string.split())
 
+client: FineTuningStudioClient = FineTuningStudioClient(server_ip=args.fts_server_ip, server_port=args.fts_server_port)
+
 try:
-    # Create the evaluation request
-    request = StartEvaluationRequest(
-        adapter_path=args.adapter_path,
-        base_model_name=args.basemodel,
-        dataset_name=args.dataset
-    )
 
     # Execute the evaluation
-    response = driver(request)
+    response = driver(
+        dataset_id=args.dataset_id,
+        base_model_id=args.base_model_id,
+        adapter_id=args.adapter_id,
+        client=client
+    )
     print(response.metrics)
     print(response.csv)
 

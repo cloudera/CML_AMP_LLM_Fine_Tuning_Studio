@@ -5,6 +5,7 @@ import cmlapi
 from cmlapi import CMLServiceApi
 from ft.state import write_state
 from ft.api import *
+from ft.consts import DEFAULT_FTS_GRPC_PORT
 
 import os
 
@@ -58,33 +59,26 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
 
     arg_list = []
 
-    # Set Model argument
-    try:
-        hf_model = next(item.huggingface_model_name for item in state.models if item.id == request.base_model_id)
-    except StopIteration:
-        raise ValueError(f"Base model with ID {request.base_model_id} not found.")
-    arg_list.append("--basemodel")
-    arg_list.append(hf_model)
+    arg_list.append("--base_model_id")
+    arg_list.append(request.base_model_id)
 
-    # Set Dataset argument
-    try:
-        hf_dataset = next(item.huggingface_name for item in state.datasets if item.id == request.dataset_id)
-    except StopIteration:
-        raise ValueError(f"Dataset with ID {request.dataset_id} not found.")
-    arg_list.append("--dataset")
-    arg_list.append(hf_dataset)
+    arg_list.append("--dataset_id")
+    arg_list.append(request.dataset_id)
 
-    # Set Adapter Path argument
-    try:
-        adapter_path = next(item.location for item in state.adapters if item.id == request.adapter_id)
-    except StopIteration:
-        raise ValueError(f"Adapter with ID {request.adapter_id} not found.")
-    arg_list.append("--adapter_path")
-    arg_list.append(adapter_path)
+    arg_list.append("--base_model_id")
+    arg_list.append(request.base_model_id)
 
     # Set Evaluation Dir argument
     arg_list.append("--result_dir")
     arg_list.append(result_dir)
+
+    # Pass the IP address of the application engine that's running the FTS gRPC server.
+    # passing this to the fine tuning job that's created allows the job to connect to
+    # the gRPC server to request information about datasets, models, etc.
+    arg_list.append("--fts_server_ip")
+    arg_list.append(str(os.getenv("CDSW_IP_ADDRESS")))
+    arg_list.append("--fts_server_port")
+    arg_list.append(str(DEFAULT_FTS_GRPC_PORT))
 
     cpu = request.cpu
     gpu = request.gpu

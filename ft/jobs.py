@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from ft.api import *
-from ft.state import get_state, write_state
+from ft.state import write_state
 from ft.consts import DEFAULT_FTS_GRPC_PORT
 import cmlapi
 import os
@@ -57,7 +57,6 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     )
 
     arg_list = []
-    app_state = get_state()
 
     # Set Model argument
     # TODO: Support models that dont come from HF
@@ -65,7 +64,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     hf_model = list(
         filter(
             lambda item: item.id == request.base_model_id,
-            app_state.models))[0].huggingface_model_name
+            state.models))[0].huggingface_model_name
     arg_list.append(hf_model)
 
     # Set Dataset argument
@@ -75,7 +74,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     # Set Prompt Text argument
     # TODO: Ideally this is just part of the aggregate config model below
     arg_list.append("--prompttemplate")
-    prompt_text = list(filter(lambda item: item.id == request.prompt_id, app_state.prompts))[0].prompt_template
+    prompt_text = list(filter(lambda item: item.id == request.prompt_id, state.prompts))[0].prompt_template
     with open("%s/%s" % (job_dir, "prompt.tmpl"), 'w') as prompt_text_file:
         prompt_text_file.write(prompt_text)
     arg_list.append("%s/%s" % (job_dir, "prompt.tmpl"))
@@ -103,15 +102,14 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 
     arg_list.append("--learning_rate")
     arg_list.append(str(request.learning_rate))  # Convert to str
-    
+
     # Pass the IP address of the application engine that's running the FTS gRPC server.
-    # passing this to the fine tuning job that's created allows the job to connect to 
+    # passing this to the fine tuning job that's created allows the job to connect to
     # the gRPC server to request information about datasets, models, etc.
     arg_list.append("--fts_server_ip")
     arg_list.append(str(os.getenv("CDSW_IP_ADDRESS")))
     arg_list.append("--fts_server_port")
     arg_list.append(str(DEFAULT_FTS_GRPC_PORT))
-     
 
     # TODO: see if the protobuf default value is sufficient here
     if not request.train_test_split == StartFineTuningJobRequest().train_test_split:

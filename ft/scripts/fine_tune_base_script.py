@@ -154,7 +154,7 @@ try:
     # Load the base dataset into memory. Call the FTS server
     # to extract metadata information about the dataset. Right now,
     # only huggingface datasets are supported for fine tuning jobs.
-    dataset_id = args.dataset_id 
+    dataset_id = args.dataset_id
     dataset_metadata: DatasetMetadata = client.GetDataset(
         GetDatasetRequest(
             id=dataset_id
