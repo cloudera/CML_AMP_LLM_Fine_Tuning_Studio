@@ -76,11 +76,17 @@ def display_adapter(adapter: AdapterMetadata, container):
         c1.text(adapter.name)
         if adapter.type == AdapterType.ADAPTER_TYPE_PROJECT:
             c1.caption(adapter.location)
+        elif adapter.type == AdapterType.ADAPTER_TYPE_HUGGINGFACE:
+            c1.caption(adapter.huggingface_name)
 
         remove = c2.button("Remove", type="secondary", key=f"{adapter.id}_remove", use_container_width=True)
 
         if remove:
-            st.toast("You can't do that yet.", icon=":material/info:")
+            fts.RemoveAdapter(
+                RemoveAdapterRequest(
+                    id=adapter.id
+                )
+            )
 
 
 display_header()
