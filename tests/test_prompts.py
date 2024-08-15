@@ -59,8 +59,8 @@ def test_add_prompt_happy(write_state):
     ))
 
 
-@patch("ft.prompts.write_state")
-def test_remove_prompt_happy(write_state):
+@patch("ft.prompts.replace_state_field")
+def test_remove_prompt_happy(replace_state_field):
     state: AppState = AppState(
         prompts=[
             PromptMetadata(
@@ -73,10 +73,10 @@ def test_remove_prompt_happy(write_state):
     )
     req = RemovePromptRequest(id="p1")
     res = remove_prompt(state, req)
-    write_state.assert_called_with(AppState(
-        prompts=[
-            PromptMetadata(
-                id="p2"
-            )
-        ]
-    ))
+    replace_state_field.assert_called_with(state,
+                                           prompts=[
+                                               PromptMetadata(
+                                                   id="p2"
+                                               )
+                                           ]
+                                           )

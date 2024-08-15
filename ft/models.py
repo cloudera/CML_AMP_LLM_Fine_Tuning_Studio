@@ -3,7 +3,7 @@ from uuid import uuid4
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata, CMLServiceApi
-from ft.state import write_state
+from ft.state import write_state, replace_state_field
 from ft.pipeline import fetch_pipeline
 import mlflow
 from transformers import GenerationConfig
@@ -154,12 +154,5 @@ def export_model(state: AppState, request: ExportModelRequest, cml: CMLServiceAp
 
 def remove_model(state: AppState, request: RemoveModelRequest, cml: CMLServiceApi = None) -> RemoveModelResponse:
     models = list(filter(lambda x: not x.id == request.id, state.models))
-    write_state(AppState(
-        datasets=state.datasets,
-        prompts=state.prompts,
-        adapters=state.adapters,
-        fine_tuning_jobs=state.fine_tuning_jobs,
-        evaluation_jobs=state.evaluation_jobs,
-        models=models
-    ))
+    state = replace_state_field(state, models=models)
     return RemoveModelResponse()

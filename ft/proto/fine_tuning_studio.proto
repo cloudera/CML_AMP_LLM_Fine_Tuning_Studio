@@ -62,6 +62,12 @@ service FineTuningStudio {
   rpc StartEvaluationJob (StartEvaluationJobRequest) returns (StartEvaluationJobResponse) {}
   rpc RemoveEvaluationJob (RemoveEvaluationJobRequest) returns (RemoveEvaluationJobResponse) {}
 
+  // Quantization Configs
+  rpc ListConfigs (ListConfigsRequest) returns (ListConfigsResponse) {}
+  rpc GetConfig (GetConfigRequest) returns (GetConfigResponse) {}
+  rpc AddConfig (AddConfigRequest) returns (AddConfigResponse) {}
+  rpc RemoveConfig (RemoveConfigRequest) returns (RemoveConfigResponse) {}
+
   // Other general operations
   rpc GetAppState (GetAppStateRequest) returns (GetAppStateResponse) {}
 }
@@ -276,11 +282,6 @@ message StartFineTuningJobRequest {
   // Number of workers to use for this fine-tuning job.
   int32 num_workers = 5;
 
-  // Bits and bytes config used to quantize the model. If this
-  // is present, then a model will be loaded with BnB config
-  // enabled.
-  BnbConfig bits_and_bytes_config = 6;
-
   // Automatically add the trained job as an adapter to the app.
   bool auto_add_adapter = 7;
 
@@ -303,7 +304,22 @@ message StartFineTuningJobRequest {
   // dataset and an eval dataset. Evaluation datasets are used at epoch boundaries
   // during training to compute metrics and compte loss again.
   float train_test_split = 13;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 14;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 15;
+
+  string training_arguments_config_id = 16;
+
+  string lora_config_id = 17;
 }
+
 message StartFineTuningJobResponse {
   FineTuningJobMetadata fine_tuning_job = 1;
 }
@@ -352,6 +368,19 @@ message StartEvaluationJobRequest {
 
   // Amount of memory to allocate for this job (e.g., '16Gi').
   int32 memory = 7;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 14;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 15;
+
+  // Id for the generation args config.
+  string generation_config_id = 16;
 }
 message StartEvaluationJobResponse {
   EvaluationJobMetadata job = 1;
@@ -361,6 +390,43 @@ message RemoveEvaluationJobRequest {
 }
 message RemoveEvaluationJobResponse {
   
+}
+
+
+message ListConfigsRequest {
+
+  // Optionally only return a specific config type.
+  ConfigType type = 1;
+}
+
+message ListConfigsResponse {
+  repeated ConfigMetadata configs = 1;
+}
+
+message GetConfigRequest {
+  string id = 1;
+}
+
+message GetConfigResponse {
+  ConfigMetadata config = 1;
+}
+
+message AddConfigRequest {
+  ConfigType type = 1;
+  string config = 2;
+}
+
+message AddConfigResponse {
+  // check for id matching, etc.
+  ConfigMetadata config = 1;
+}
+
+message RemoveConfigRequest {
+  string id = 1;
+}
+
+message RemoveConfigResponse {
+
 }
 
 
@@ -475,6 +541,16 @@ enum PromptType {
 
 enum EvaluationJobType {
   EVALUATION_JOB_TYPE_MLFLOW = 0;
+}
+
+
+// Configuration type
+enum ConfigType {
+  CONFIG_TYPE_UNKNOWN = 0;
+  CONFIG_TYPE_TRAINING_ARGUMENTS = 1;
+  CONFIG_TYPE_BITSANDBYTES_CONFIG = 2;
+  CONFIG_TYPE_GENERATION_CONFIG = 3;
+  CONFIG_TYPE_LORA_CONFIG = 4;
 }
 
 /**
@@ -683,24 +759,36 @@ message FineTuningJobMetadata {
 
   // Output directory for the adapter
   string out_dir = 11;
+
+  // Training arguments for the run.
+  string training_arguments_config_id = 12;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 13;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 14;
+
+  string lora_config_id = 15;
 }
 
 
-// Bits and bytes config. Note that we need to 
-// define this here purely because we serialize this
-// config onto a protobuf, and the default data type in the
-// transformers package is not serializable to a protobuf
-// by default.
-message BnbConfig {
-  bool load_in_8bit = 1;
-  bool load_in_4bit = 2;
-  string bnb_4bit_compute_dtype = 3;
-  string bnb_4bit_quant_type = 4;
-  bool bnb_4bit_use_double_quant = 5;
-  string bnb_4bit_quant_storage = 6;
-  string quant_method = 7;
-}
+message ConfigMetadata {
+  string id = 1;
 
+  // type of configuration
+  ConfigType type = 2;
+
+  // Serialized (json) representation of the config. This
+  // can be passed directly into any of the config types
+  // at runtime, such as transformers.TrainingArguments(),
+  // peft.LoraConfig(), and so on.
+  string config = 3;
+}
 
 
 message EvaluationJobMetadata {
@@ -732,6 +820,15 @@ message EvaluationJobMetadata {
 
   // Resulting directory of evaluation
   string evaluation_dir = 8;
+
+  // BnB config of the model
+  string model_bnb_config_id = 9;
+
+  // BnB config of the adapter
+  string adapter_bnb_config_id = 10;
+
+  // Generation argument configs. 
+  string generation_config_id = 11;
 }
 
 message AppState {
@@ -741,4 +838,5 @@ message AppState {
   repeated EvaluationJobMetadata evaluation_jobs = 4;
   repeated PromptMetadata prompts = 5;
   repeated AdapterMetadata adapters = 6;
+  repeated ConfigMetadata configs = 7;
 }

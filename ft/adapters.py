@@ -5,7 +5,7 @@ from ft.api import *
 from cmlapi import CMLServiceApi
 
 
-from ft.state import write_state
+from ft.state import write_state, replace_state_field
 
 
 def list_adapters(state: AppState, request: ListAdaptersRequest, cml: CMLServiceApi = None) -> ListAdaptersResponse:
@@ -33,12 +33,5 @@ def add_adapter(state: AppState, request: AddAdapterRequest, cml: CMLServiceApi 
 
 def remove_adapter(state: AppState, request: RemoveAdapterRequest, cml: CMLServiceApi = None) -> RemoveAdapterResponse:
     adapters = list(filter(lambda x: not x.id == request.id, state.adapters))
-    write_state(AppState(
-        datasets=state.datasets,
-        prompts=state.prompts,
-        adapters=adapters,
-        fine_tuning_jobs=state.fine_tuning_jobs,
-        evaluation_jobs=state.evaluation_jobs,
-        models=state.models
-    ))
+    state = replace_state_field(state, adapters=adapters)
     return RemoveAdapterResponse()

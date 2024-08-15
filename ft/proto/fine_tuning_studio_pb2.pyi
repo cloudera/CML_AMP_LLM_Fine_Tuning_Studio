@@ -52,6 +52,15 @@ class EvaluationJobType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     EVALUATION_JOB_TYPE_MLFLOW: _ClassVar[EvaluationJobType]
 
 
+class ConfigType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    CONFIG_TYPE_UNKNOWN: _ClassVar[ConfigType]
+    CONFIG_TYPE_TRAINING_ARGUMENTS: _ClassVar[ConfigType]
+    CONFIG_TYPE_BITSANDBYTES_CONFIG: _ClassVar[ConfigType]
+    CONFIG_TYPE_GENERATION_CONFIG: _ClassVar[ConfigType]
+    CONFIG_TYPE_LORA_CONFIG: _ClassVar[ConfigType]
+
+
 DATASET_TYPE_HUGGINGFACE: DatasetType
 DATASET_TYPE_PROJECT: DatasetType
 MODEL_TYPE_HUGGINGFACE: ModelType
@@ -69,6 +78,11 @@ JOB_STATUS_SUCCESS: JobStatus
 JOB_STATUS_FAILURE: JobStatus
 PROMPT_TYPE_IN_PLACE: PromptType
 EVALUATION_JOB_TYPE_MLFLOW: EvaluationJobType
+CONFIG_TYPE_UNKNOWN: ConfigType
+CONFIG_TYPE_TRAINING_ARGUMENTS: ConfigType
+CONFIG_TYPE_BITSANDBYTES_CONFIG: ConfigType
+CONFIG_TYPE_GENERATION_CONFIG: ConfigType
+CONFIG_TYPE_LORA_CONFIG: ConfigType
 
 
 class ListDatasetsRequest(_message.Message):
@@ -361,20 +375,22 @@ class StartFineTuningJobRequest(_message.Message):
         "dataset_id",
         "prompt_id",
         "num_workers",
-        "bits_and_bytes_config",
         "auto_add_adapter",
         "num_epochs",
         "learning_rate",
         "cpu",
         "gpu",
         "memory",
-        "train_test_split")
+        "train_test_split",
+        "model_bnb_config_id",
+        "adapter_bnb_config_id",
+        "training_arguments_config_id",
+        "lora_config_id")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     NUM_WORKERS_FIELD_NUMBER: _ClassVar[int]
-    BITS_AND_BYTES_CONFIG_FIELD_NUMBER: _ClassVar[int]
     AUTO_ADD_ADAPTER_FIELD_NUMBER: _ClassVar[int]
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
@@ -382,12 +398,15 @@ class StartFineTuningJobRequest(_message.Message):
     GPU_FIELD_NUMBER: _ClassVar[int]
     MEMORY_FIELD_NUMBER: _ClassVar[int]
     TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
     prompt_id: str
     num_workers: int
-    bits_and_bytes_config: BnbConfig
     auto_add_adapter: bool
     num_epochs: int
     learning_rate: float
@@ -395,22 +414,29 @@ class StartFineTuningJobRequest(_message.Message):
     gpu: int
     memory: int
     train_test_split: float
+    model_bnb_config_id: str
+    adapter_bnb_config_id: str
+    training_arguments_config_id: str
+    lora_config_id: str
 
-    def __init__(self,
-                 adapter_name: _Optional[str] = ...,
-                 base_model_id: _Optional[str] = ...,
-                 dataset_id: _Optional[str] = ...,
-                 prompt_id: _Optional[str] = ...,
-                 num_workers: _Optional[int] = ...,
-                 bits_and_bytes_config: _Optional[_Union[BnbConfig,
-                                                         _Mapping]] = ...,
-                 auto_add_adapter: bool = ...,
-                 num_epochs: _Optional[int] = ...,
-                 learning_rate: _Optional[float] = ...,
-                 cpu: _Optional[int] = ...,
-                 gpu: _Optional[int] = ...,
-                 memory: _Optional[int] = ...,
-                 train_test_split: _Optional[float] = ...) -> None: ...
+    def __init__(
+        self,
+        adapter_name: _Optional[str] = ...,
+        base_model_id: _Optional[str] = ...,
+        dataset_id: _Optional[str] = ...,
+        prompt_id: _Optional[str] = ...,
+        num_workers: _Optional[int] = ...,
+        auto_add_adapter: bool = ...,
+        num_epochs: _Optional[int] = ...,
+        learning_rate: _Optional[float] = ...,
+        cpu: _Optional[int] = ...,
+        gpu: _Optional[int] = ...,
+        memory: _Optional[int] = ...,
+        train_test_split: _Optional[float] = ...,
+        model_bnb_config_id: _Optional[str] = ...,
+        adapter_bnb_config_id: _Optional[str] = ...,
+        training_arguments_config_id: _Optional[str] = ...,
+        lora_config_id: _Optional[str] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
@@ -460,7 +486,17 @@ class GetEvaluationJobResponse(_message.Message):
 
 
 class StartEvaluationJobRequest(_message.Message):
-    __slots__ = ("type", "base_model_id", "dataset_id", "adapter_id", "cpu", "gpu", "memory")
+    __slots__ = (
+        "type",
+        "base_model_id",
+        "dataset_id",
+        "adapter_id",
+        "cpu",
+        "gpu",
+        "memory",
+        "model_bnb_config_id",
+        "adapter_bnb_config_id",
+        "generation_config_id")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -468,6 +504,9 @@ class StartEvaluationJobRequest(_message.Message):
     CPU_FIELD_NUMBER: _ClassVar[int]
     GPU_FIELD_NUMBER: _ClassVar[int]
     MEMORY_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     type: EvaluationJobType
     base_model_id: str
     dataset_id: str
@@ -475,6 +514,9 @@ class StartEvaluationJobRequest(_message.Message):
     cpu: int
     gpu: int
     memory: int
+    model_bnb_config_id: str
+    adapter_bnb_config_id: str
+    generation_config_id: str
 
     def __init__(self,
                  type: _Optional[_Union[EvaluationJobType,
@@ -484,7 +526,10 @@ class StartEvaluationJobRequest(_message.Message):
                  adapter_id: _Optional[str] = ...,
                  cpu: _Optional[int] = ...,
                  gpu: _Optional[int] = ...,
-                 memory: _Optional[int] = ...) -> None: ...
+                 memory: _Optional[int] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...,
+                 generation_config_id: _Optional[str] = ...) -> None: ...
 
 
 class StartEvaluationJobResponse(_message.Message):
@@ -502,6 +547,62 @@ class RemoveEvaluationJobRequest(_message.Message):
 
 
 class RemoveEvaluationJobResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ListConfigsRequest(_message.Message):
+    __slots__ = ("type",)
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    type: ConfigType
+    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ...) -> None: ...
+
+
+class ListConfigsResponse(_message.Message):
+    __slots__ = ("configs",)
+    CONFIGS_FIELD_NUMBER: _ClassVar[int]
+    configs: _containers.RepeatedCompositeFieldContainer[ConfigMetadata]
+    def __init__(self, configs: _Optional[_Iterable[_Union[ConfigMetadata, _Mapping]]] = ...) -> None: ...
+
+
+class GetConfigRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class GetConfigResponse(_message.Message):
+    __slots__ = ("config",)
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    config: ConfigMetadata
+    def __init__(self, config: _Optional[_Union[ConfigMetadata, _Mapping]] = ...) -> None: ...
+
+
+class AddConfigRequest(_message.Message):
+    __slots__ = ("type", "config")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    type: ConfigType
+    config: str
+    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ..., config: _Optional[str] = ...) -> None: ...
+
+
+class AddConfigResponse(_message.Message):
+    __slots__ = ("config",)
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    config: ConfigMetadata
+    def __init__(self, config: _Optional[_Union[ConfigMetadata, _Mapping]] = ...) -> None: ...
+
+
+class RemoveConfigRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+
+class RemoveConfigResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 
@@ -685,7 +786,11 @@ class FineTuningJobMetadata(_message.Message):
         "worker_props",
         "num_epochs",
         "learning_rate",
-        "out_dir")
+        "out_dir",
+        "training_arguments_config_id",
+        "model_bnb_config_id",
+        "adapter_bnb_config_id",
+        "lora_config_id")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -697,6 +802,10 @@ class FineTuningJobMetadata(_message.Message):
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
     OUT_DIR_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -708,6 +817,10 @@ class FineTuningJobMetadata(_message.Message):
     num_epochs: int
     learning_rate: float
     out_dir: str
+    training_arguments_config_id: str
+    model_bnb_config_id: str
+    adapter_bnb_config_id: str
+    lora_config_id: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -721,42 +834,23 @@ class FineTuningJobMetadata(_message.Message):
                                                 _Mapping]] = ...,
                  num_epochs: _Optional[int] = ...,
                  learning_rate: _Optional[float] = ...,
-                 out_dir: _Optional[str] = ...) -> None: ...
+                 out_dir: _Optional[str] = ...,
+                 training_arguments_config_id: _Optional[str] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...,
+                 lora_config_id: _Optional[str] = ...) -> None: ...
 
 
-class BnbConfig(_message.Message):
-    __slots__ = (
-        "load_in_8bit",
-        "load_in_4bit",
-        "bnb_4bit_compute_dtype",
-        "bnb_4bit_quant_type",
-        "bnb_4bit_use_double_quant",
-        "bnb_4bit_quant_storage",
-        "quant_method")
-    LOAD_IN_8BIT_FIELD_NUMBER: _ClassVar[int]
-    LOAD_IN_4BIT_FIELD_NUMBER: _ClassVar[int]
-    BNB_4BIT_COMPUTE_DTYPE_FIELD_NUMBER: _ClassVar[int]
-    BNB_4BIT_QUANT_TYPE_FIELD_NUMBER: _ClassVar[int]
-    BNB_4BIT_USE_DOUBLE_QUANT_FIELD_NUMBER: _ClassVar[int]
-    BNB_4BIT_QUANT_STORAGE_FIELD_NUMBER: _ClassVar[int]
-    QUANT_METHOD_FIELD_NUMBER: _ClassVar[int]
-    load_in_8bit: bool
-    load_in_4bit: bool
-    bnb_4bit_compute_dtype: str
-    bnb_4bit_quant_type: str
-    bnb_4bit_use_double_quant: bool
-    bnb_4bit_quant_storage: str
-    quant_method: str
-
-    def __init__(
-        self,
-        load_in_8bit: bool = ...,
-        load_in_4bit: bool = ...,
-        bnb_4bit_compute_dtype: _Optional[str] = ...,
-        bnb_4bit_quant_type: _Optional[str] = ...,
-        bnb_4bit_use_double_quant: bool = ...,
-        bnb_4bit_quant_storage: _Optional[str] = ...,
-        quant_method: _Optional[str] = ...) -> None: ...
+class ConfigMetadata(_message.Message):
+    __slots__ = ("id", "type", "config")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    CONFIG_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    type: ConfigType
+    config: str
+    def __init__(self, id: _Optional[str] = ..., type: _Optional[_Union[ConfigType, str]]
+                 = ..., config: _Optional[str] = ...) -> None: ...
 
 
 class EvaluationJobMetadata(_message.Message):
@@ -768,7 +862,10 @@ class EvaluationJobMetadata(_message.Message):
         "num_workers",
         "adapter_id",
         "worker_props",
-        "evaluation_dir")
+        "evaluation_dir",
+        "model_bnb_config_id",
+        "adapter_bnb_config_id",
+        "generation_config_id")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -777,6 +874,9 @@ class EvaluationJobMetadata(_message.Message):
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     WORKER_PROPS_FIELD_NUMBER: _ClassVar[int]
     EVALUATION_DIR_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     cml_job_id: str
     base_model_id: str
@@ -785,6 +885,9 @@ class EvaluationJobMetadata(_message.Message):
     adapter_id: str
     worker_props: WorkerProps
     evaluation_dir: str
+    model_bnb_config_id: str
+    adapter_bnb_config_id: str
+    generation_config_id: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -795,23 +898,28 @@ class EvaluationJobMetadata(_message.Message):
                  adapter_id: _Optional[str] = ...,
                  worker_props: _Optional[_Union[WorkerProps,
                                                 _Mapping]] = ...,
-                 evaluation_dir: _Optional[str] = ...) -> None: ...
+                 evaluation_dir: _Optional[str] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...,
+                 generation_config_id: _Optional[str] = ...) -> None: ...
 
 
 class AppState(_message.Message):
-    __slots__ = ("datasets", "models", "fine_tuning_jobs", "evaluation_jobs", "prompts", "adapters")
+    __slots__ = ("datasets", "models", "fine_tuning_jobs", "evaluation_jobs", "prompts", "adapters", "configs")
     DATASETS_FIELD_NUMBER: _ClassVar[int]
     MODELS_FIELD_NUMBER: _ClassVar[int]
     FINE_TUNING_JOBS_FIELD_NUMBER: _ClassVar[int]
     EVALUATION_JOBS_FIELD_NUMBER: _ClassVar[int]
     PROMPTS_FIELD_NUMBER: _ClassVar[int]
     ADAPTERS_FIELD_NUMBER: _ClassVar[int]
+    CONFIGS_FIELD_NUMBER: _ClassVar[int]
     datasets: _containers.RepeatedCompositeFieldContainer[DatasetMetadata]
     models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
     fine_tuning_jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
     evaluation_jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
     prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
     adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
+    configs: _containers.RepeatedCompositeFieldContainer[ConfigMetadata]
 
     def __init__(self,
                  datasets: _Optional[_Iterable[_Union[DatasetMetadata,
@@ -825,4 +933,6 @@ class AppState(_message.Message):
                  prompts: _Optional[_Iterable[_Union[PromptMetadata,
                                                      _Mapping]]] = ...,
                  adapters: _Optional[_Iterable[_Union[AdapterMetadata,
-                                                      _Mapping]]] = ...) -> None: ...
+                                                      _Mapping]]] = ...,
+                 configs: _Optional[_Iterable[_Union[ConfigMetadata,
+                                                     _Mapping]]] = ...) -> None: ...

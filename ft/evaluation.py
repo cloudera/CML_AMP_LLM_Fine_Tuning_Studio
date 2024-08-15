@@ -3,7 +3,7 @@ import pathlib
 
 import cmlapi
 from cmlapi import CMLServiceApi
-from ft.state import write_state
+from ft.state import write_state, replace_state_field
 from ft.api import *
 from ft.consts import DEFAULT_FTS_GRPC_PORT
 
@@ -139,12 +139,5 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
 def remove_evaluation_job(state: AppState, request: RemoveEvaluationJobRequest,
                           cml: CMLServiceApi = None) -> RemoveEvaluationJobResponse:
     evaluation_jobs = list(filter(lambda x: not x.id == request.id, state.evaluation_jobs))
-    write_state(AppState(
-        datasets=state.datasets,
-        prompts=state.prompts,
-        adapters=state.adapters,
-        fine_tuning_jobs=state.fine_tuning_jobs,
-        evaluation_jobs=evaluation_jobs,
-        models=state.models
-    ))
+    state = replace_state_field(state, evaluation_jobs=evaluation_jobs)
     return RemoveEvaluationJobResponse()

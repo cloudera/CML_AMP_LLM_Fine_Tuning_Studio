@@ -3,7 +3,8 @@ from typing import Dict
 from ft.api import AppState
 import os
 from google.protobuf.json_format import ParseDict, MessageToDict
-
+from google.protobuf.message import Message
+from google.protobuf.pyext._message import RepeatedCompositeContainer
 
 # TODO: this should be an environment variable of the app.
 DEFAULT_STATE_LOCATION = ".app/state.json"
@@ -49,3 +50,24 @@ def write_state(state: AppState):
     with open(get_state_location(), "w") as f:
         f.write(json.dumps(state_data, indent=2))
     return
+
+
+def replace_state_field(message: Message, **kwargs) -> Message:
+    updated_message = type(message)()
+    updated_message.MergeFrom(message)
+
+    for field_name, new_value in kwargs.items():
+        field = getattr(updated_message, field_name)
+        if isinstance(field, (list, RepeatedCompositeContainer)):
+            # Handle repeated fields
+            del field[:]
+            if isinstance(new_value, (list, RepeatedCompositeContainer)):
+                field.extend(new_value)
+            else:
+                raise ValueError(f"The field '{field_name}' is repeated and expects a list.")
+        else:
+            # Handle single fields
+            raise KeyError(
+                f"We don't have a good way to do write single-field things like '{field_name}' to the app state.")
+    write_state(updated_message)
+    return updated_message
