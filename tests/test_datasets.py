@@ -40,8 +40,8 @@ def test_get_dataset_missing():
         res = get_dataset(state, GetDatasetRequest())
 
 
-@patch("ft.datasets.write_state")
-def test_remove_dataset_happy(write_state):
+@patch("ft.datasets.replace_state_field")
+def test_remove_dataset_happy(replace_state_field):
     state: AppState = AppState(
         datasets=[
             DatasetMetadata(
@@ -54,17 +54,17 @@ def test_remove_dataset_happy(write_state):
     )
     req = RemoveDatasetRequest(id="d1")
     res = remove_dataset(state, req)
-    write_state.assert_called_with(AppState(
-        datasets=[
-            DatasetMetadata(
-                id="d2"
-            )
-        ]
-    ))
+    replace_state_field.assert_any_call(state,
+                                        datasets=[
+                                            DatasetMetadata(
+                                                id="d2"
+                                            )
+                                        ]
+                                        )
 
 
-@patch("ft.datasets.write_state")
-def test_remove_dataset_remove_prompts(write_state):
+@patch("ft.datasets.replace_state_field")
+def test_remove_dataset_remove_prompts(replace_state_field):
     state: AppState = AppState(
         datasets=[
             DatasetMetadata(
@@ -85,18 +85,23 @@ def test_remove_dataset_remove_prompts(write_state):
             )
         ]
     )
+
+    replace_state_field.return_value = state
+
     req = RemoveDatasetRequest(id="d1", remove_prompts=True)
     res = remove_dataset(state, req)
-    write_state.assert_called_with(AppState(
-        datasets=[
-            DatasetMetadata(
-                id="d2"
-            )
-        ],
-        prompts=[
-            PromptMetadata(
-                id="p2",
-                dataset_id="d2"
-            )
-        ]
-    ))
+    replace_state_field.assert_any_call(state,
+                                        datasets=[
+                                            DatasetMetadata(
+                                                id="d2"
+                                            )
+                                        ]
+                                        )
+    replace_state_field.assert_any_call(state,
+                                        prompts=[
+                                            PromptMetadata(
+                                                id="p2",
+                                                dataset_id="d2"
+                                            )
+                                        ]
+                                        )

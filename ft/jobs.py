@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from ft.api import *
-from ft.state import write_state
+from ft.state import write_state, replace_state_field
 from ft.consts import DEFAULT_FTS_GRPC_PORT
 import cmlapi
 import os
@@ -205,12 +205,5 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 def remove_fine_tuning_job(state: AppState, request: RemoveFineTuningJobRequest,
                            cml: CMLServiceApi = None) -> RemoveFineTuningJobResponse:
     fine_tuning_jobs = list(filter(lambda x: not x.id == request.id, state.fine_tuning_jobs))
-    write_state(AppState(
-        datasets=state.datasets,
-        prompts=state.prompts,
-        adapters=state.adapters,
-        fine_tuning_jobs=fine_tuning_jobs,
-        evaluation_jobs=state.evaluation_jobs,
-        models=state.models
-    ))
+    state = replace_state_field(state, fine_tuning_jobs=fine_tuning_jobs)
     return RemoveFineTuningJobResponse()

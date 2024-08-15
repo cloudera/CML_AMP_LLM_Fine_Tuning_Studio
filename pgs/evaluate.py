@@ -87,6 +87,7 @@ def evaluate_fragment():
 
             st.session_state.current_model.disable_adapters()
 
+            # TODO: extract generation arguments from metadata store.
             with torch.cuda.amp.autocast():
                 model_out = st.session_state.current_model.generate(
                     **input_tokens,
@@ -103,6 +104,7 @@ def evaluate_fragment():
             print(tok_out)
             st.session_state.base_output = tok_out
 
+            # TODO: extract generation arguments from metadata store.
             st.session_state.current_model.enable_adapters()
             st.session_state.current_model.set_adapter(st.session_state.model_adapter.id)
             with torch.cuda.amp.autocast():
@@ -152,6 +154,8 @@ with col1:
 
             if st.session_state.current_model_metadata != current_model_metadata:
                 with st.spinner("Loading model..."):
+
+                    # TODO: extract quanitzation config from metadata store.
                     bnb_config = BitsAndBytesConfig()
                     bnb_config.load_in_4bit = True
                     bnb_config.bnb_4bit_compute_dtype = torch.float16

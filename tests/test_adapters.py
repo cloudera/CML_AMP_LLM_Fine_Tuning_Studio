@@ -59,8 +59,8 @@ def test_add_adapter_happy(write_state):
     ))
 
 
-@patch("ft.adapters.write_state")
-def test_remove_adapter_happy(write_state):
+@patch("ft.adapters.replace_state_field")
+def test_remove_adapter_happy(replace_state_field):
     state: AppState = AppState(
         adapters=[
             AdapterMetadata(
@@ -73,10 +73,11 @@ def test_remove_adapter_happy(write_state):
     )
     req = RemoveAdapterRequest(id="ad1")
     res = remove_adapter(state, req)
-    write_state.assert_called_with(AppState(
+    replace_state_field.assert_called_with(
+        state,
         adapters=[
             AdapterMetadata(
                 id="ad2"
             )
         ]
-    ))
+    )

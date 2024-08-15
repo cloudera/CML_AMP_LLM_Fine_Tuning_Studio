@@ -1,6 +1,6 @@
 from ft.api import *
 from datasets import load_dataset_builder
-from ft.state import write_state
+from ft.state import write_state, replace_state_field
 from uuid import uuid4
 from cmlapi import CMLServiceApi
 
@@ -84,13 +84,7 @@ def remove_dataset(state: AppState, request: RemoveDatasetRequest, cml: CMLServi
     prompts = state.prompts
     if request.remove_prompts:
         prompts = list(filter(lambda x: not x.dataset_id == request.id, state.prompts))
-    write_state(AppState(
-        datasets=datasets,
-        prompts=prompts,
-        adapters=state.adapters,
-        fine_tuning_jobs=state.fine_tuning_jobs,
-        evaluation_jobs=state.evaluation_jobs,
-        models=state.models
-    ))
 
+    state = replace_state_field(state, datasets=datasets)
+    state = replace_state_field(state, prompts=prompts)
     return RemoveDatasetResponse()

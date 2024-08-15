@@ -7,6 +7,7 @@ from ft.api import *
 
 import os
 
+
 from ft.datasets import (
     list_datasets,
     get_dataset,
@@ -48,6 +49,13 @@ from ft.evaluation import (
     get_evaluation_job,
     start_evaluation_job,
     remove_evaluation_job
+)
+
+from ft.configs import (
+    list_configs,
+    get_config,
+    add_config,
+    remove_config
 )
 
 
@@ -182,3 +190,19 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         return GetAppStateResponse(
             state=state
         )
+
+    def ListConfigs(self, request, context):
+        state: AppState = get_state()
+        return list_configs(state, request)
+
+    def GetConfig(self, request, context):
+        state: AppState = get_state()
+        return get_config(state, request)
+
+    def AddConfig(self, request, context):
+        state: AppState = get_state()
+        return add_config(state, request)
+
+    def RemoveConfig(self, request, context):
+        state: AppState = get_state()
+        return remove_config(state, request)

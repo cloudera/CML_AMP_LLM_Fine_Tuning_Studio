@@ -171,6 +171,26 @@ class FineTuningStudioStub(object):
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobRequest.SerializeToString,
             response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobResponse.FromString,
             _registered_method=True)
+        self.ListConfigs = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListConfigs',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListConfigsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListConfigsResponse.FromString,
+            _registered_method=True)
+        self.GetConfig = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetConfig',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetConfigRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetConfigResponse.FromString,
+            _registered_method=True)
+        self.AddConfig = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/AddConfig',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddConfigRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddConfigResponse.FromString,
+            _registered_method=True)
+        self.RemoveConfig = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/RemoveConfig',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigResponse.FromString,
+            _registered_method=True)
         self.GetAppState = channel.unary_unary(
             '/fine_tuning_studio.FineTuningStudio/GetAppState',
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.SerializeToString,
@@ -344,6 +364,31 @@ class FineTuningStudioServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ListConfigs(self, request, context):
+        """Quantization Configs
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetConfig(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def AddConfig(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def RemoveConfig(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetAppState(self, request, context):
         """Other general operations
         """
@@ -478,6 +523,26 @@ def add_FineTuningStudioServicer_to_server(servicer, server):
             servicer.RemoveEvaluationJob,
             request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobRequest.FromString,
             response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobResponse.SerializeToString,
+        ),
+        'ListConfigs': grpc.unary_unary_rpc_method_handler(
+            servicer.ListConfigs,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListConfigsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListConfigsResponse.SerializeToString,
+        ),
+        'GetConfig': grpc.unary_unary_rpc_method_handler(
+            servicer.GetConfig,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetConfigRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetConfigResponse.SerializeToString,
+        ),
+        'AddConfig': grpc.unary_unary_rpc_method_handler(
+            servicer.AddConfig,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddConfigRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.AddConfigResponse.SerializeToString,
+        ),
+        'RemoveConfig': grpc.unary_unary_rpc_method_handler(
+            servicer.RemoveConfig,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigResponse.SerializeToString,
         ),
         'GetAppState': grpc.unary_unary_rpc_method_handler(
             servicer.GetAppState,
@@ -1168,6 +1233,114 @@ class FineTuningStudio(object):
             '/fine_tuning_studio.FineTuningStudio/RemoveEvaluationJob',
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobRequest.SerializeToString,
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveEvaluationJobResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListConfigs(request,
+                    target,
+                    options=(),
+                    channel_credentials=None,
+                    call_credentials=None,
+                    insecure=False,
+                    compression=None,
+                    wait_for_ready=None,
+                    timeout=None,
+                    metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListConfigs',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListConfigsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListConfigsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetConfig(request,
+                  target,
+                  options=(),
+                  channel_credentials=None,
+                  call_credentials=None,
+                  insecure=False,
+                  compression=None,
+                  wait_for_ready=None,
+                  timeout=None,
+                  metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetConfig',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetConfigRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetConfigResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def AddConfig(request,
+                  target,
+                  options=(),
+                  channel_credentials=None,
+                  call_credentials=None,
+                  insecure=False,
+                  compression=None,
+                  wait_for_ready=None,
+                  timeout=None,
+                  metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/AddConfig',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddConfigRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.AddConfigResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def RemoveConfig(request,
+                     target,
+                     options=(),
+                     channel_credentials=None,
+                     call_credentials=None,
+                     insecure=False,
+                     compression=None,
+                     wait_for_ready=None,
+                     timeout=None,
+                     metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/RemoveConfig',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigResponse.FromString,
             options,
             channel_credentials,
             insecure,

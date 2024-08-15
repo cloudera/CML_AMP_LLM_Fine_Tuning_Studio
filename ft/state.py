@@ -3,7 +3,7 @@ from typing import Dict
 from ft.api import AppState
 import os
 from google.protobuf.json_format import ParseDict, MessageToDict
-
+from google.protobuf.message import Message
 
 # TODO: this should be an environment variable of the app.
 DEFAULT_STATE_LOCATION = ".app/state.json"
@@ -49,3 +49,16 @@ def write_state(state: AppState):
     with open(get_state_location(), "w") as f:
         f.write(json.dumps(state_data, indent=2))
     return
+
+
+def replace_state_field(message: Message, **kwargs) -> Message:
+    updated_message = type(message)()
+    updated_message.MergeFrom(message)
+
+    for field_name, new_value in kwargs.items():
+        field = getattr(updated_message, field_name)
+        del field[:]
+        field.extend(new_value)
+
+    write_state(updated_message)
+    return updated_message

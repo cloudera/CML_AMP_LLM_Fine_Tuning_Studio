@@ -4,7 +4,7 @@ from ft.api import *
 
 from cmlapi import CMLServiceApi
 
-from ft.state import write_state
+from ft.state import write_state, replace_state_field
 
 
 def list_prompts(state: AppState, request: ListPromptsRequest, cml: CMLServiceApi = None) -> ListPromptsResponse:
@@ -32,12 +32,5 @@ def add_prompt(state: AppState, request: AddPromptRequest, cml: CMLServiceApi = 
 
 def remove_prompt(state: AppState, request: RemovePromptRequest, cml: CMLServiceApi = None) -> RemovePromptResponse:
     prompts = list(filter(lambda x: not x.id == request.id, state.prompts))
-    write_state(AppState(
-        datasets=state.datasets,
-        models=state.models,
-        adapters=state.adapters,
-        prompts=prompts,
-        fine_tuning_jobs=state.fine_tuning_jobs,
-        evaluation_jobs=state.evaluation_jobs
-    ))
+    state = replace_state_field(state, prompts=prompts)
     return RemovePromptResponse()

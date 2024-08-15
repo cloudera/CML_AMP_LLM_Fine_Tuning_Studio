@@ -23,4 +23,5 @@ python -m grpc_tools.protoc \
 # should be running autopep8 formatting before every commit.
 
 autopep8 ft/proto/fine_tuning_studio_pb2.py
+autopep8 ft/proto/fine_tuning_studio_pb2_grpc.py
 autopep8 ft/proto/fine_tuning_studio_pb2.pyi
