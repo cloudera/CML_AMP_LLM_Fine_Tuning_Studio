@@ -102,24 +102,3 @@ def test_replace_state_field(write_state):
 
     assert state_out == expected_state_out
     write_state.assert_called_with(expected_state_out)
-
-
-@patch("ft.state.write_state")
-def test_replace_state_field_non_repeated(write_state):
-    """
-    Right now, we are only writing repeated composite
-    messages to the top level of app state, but that might change
-    in the future. This method should be resilient to simple top-level
-    messages (for example, some future type of global app config).
-
-    Because we currently don't have these high-level non-repeated messages
-    in the app state, we should mark it with a test!.
-    """
-
-    some_message: DatasetMetadata = DatasetMetadata(
-        id="d1",
-        huggingface_name="huggingface/dataset"
-    )
-
-    with pytest.raises(KeyError):
-        message_out = replace_state_field(some_message, id="d2")

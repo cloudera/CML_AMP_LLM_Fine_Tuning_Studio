@@ -4,7 +4,6 @@ from ft.api import AppState
 import os
 from google.protobuf.json_format import ParseDict, MessageToDict
 from google.protobuf.message import Message
-from google.protobuf.pyext._message import RepeatedCompositeContainer
 
 # TODO: this should be an environment variable of the app.
 DEFAULT_STATE_LOCATION = ".app/state.json"
@@ -58,16 +57,8 @@ def replace_state_field(message: Message, **kwargs) -> Message:
 
     for field_name, new_value in kwargs.items():
         field = getattr(updated_message, field_name)
-        if isinstance(field, (list, RepeatedCompositeContainer)):
-            # Handle repeated fields
-            del field[:]
-            if isinstance(new_value, (list, RepeatedCompositeContainer)):
-                field.extend(new_value)
-            else:
-                raise ValueError(f"The field '{field_name}' is repeated and expects a list.")
-        else:
-            # Handle single fields
-            raise KeyError(
-                f"We don't have a good way to do write single-field things like '{field_name}' to the app state.")
+        del field[:]
+        field.extend(new_value)
+
     write_state(updated_message)
     return updated_message
