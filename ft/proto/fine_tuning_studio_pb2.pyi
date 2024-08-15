@@ -565,7 +565,15 @@ class RegisteredModelMetadata(_message.Message):
 
 
 class ModelMetadata(_message.Message):
-    __slots__ = ("id", "type", "framework", "name", "huggingface_model_name", "location", "registered_model")
+    __slots__ = (
+        "id",
+        "type",
+        "framework",
+        "name",
+        "huggingface_model_name",
+        "location",
+        "registered_model",
+        "bnb_config_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     FRAMEWORK_FIELD_NUMBER: _ClassVar[int]
@@ -573,6 +581,7 @@ class ModelMetadata(_message.Message):
     HUGGINGFACE_MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     REGISTERED_MODEL_FIELD_NUMBER: _ClassVar[int]
+    BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     type: ModelType
     framework: ModelFrameworkType
@@ -580,6 +589,7 @@ class ModelMetadata(_message.Message):
     huggingface_model_name: str
     location: str
     registered_model: RegisteredModelMetadata
+    bnb_config_id: str
 
     def __init__(self,
                  id: _Optional[str] = ...,
@@ -591,7 +601,8 @@ class ModelMetadata(_message.Message):
                  huggingface_model_name: _Optional[str] = ...,
                  location: _Optional[str] = ...,
                  registered_model: _Optional[_Union[RegisteredModelMetadata,
-                                                    _Mapping]] = ...) -> None: ...
+                                                    _Mapping]] = ...,
+                 bnb_config_id: _Optional[str] = ...) -> None: ...
 
 
 class AdapterMetadata(_message.Message):
@@ -604,7 +615,8 @@ class AdapterMetadata(_message.Message):
         "huggingface_name",
         "job_id",
         "prompt_id",
-        "registered_model")
+        "registered_model",
+        "bnb_config_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -614,6 +626,7 @@ class AdapterMetadata(_message.Message):
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     REGISTERED_MODEL_FIELD_NUMBER: _ClassVar[int]
+    BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     type: AdapterType
     name: str
@@ -623,6 +636,7 @@ class AdapterMetadata(_message.Message):
     job_id: str
     prompt_id: str
     registered_model: RegisteredModelMetadata
+    bnb_config_id: str
 
     def __init__(self,
                  id: _Optional[str] = ...,
@@ -635,7 +649,8 @@ class AdapterMetadata(_message.Message):
                  job_id: _Optional[str] = ...,
                  prompt_id: _Optional[str] = ...,
                  registered_model: _Optional[_Union[RegisteredModelMetadata,
-                                                    _Mapping]] = ...) -> None: ...
+                                                    _Mapping]] = ...,
+                 bnb_config_id: _Optional[str] = ...) -> None: ...
 
 
 class PromptMetadata(_message.Message):
@@ -685,7 +700,10 @@ class FineTuningJobMetadata(_message.Message):
         "worker_props",
         "num_epochs",
         "learning_rate",
-        "out_dir")
+        "out_dir",
+        "training_arguments_id",
+        "model_bnb_config_id",
+        "adapter_bnb_config_id")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -697,6 +715,9 @@ class FineTuningJobMetadata(_message.Message):
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
     OUT_DIR_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -708,6 +729,9 @@ class FineTuningJobMetadata(_message.Message):
     num_epochs: int
     learning_rate: float
     out_dir: str
+    training_arguments_id: str
+    model_bnb_config_id: str
+    adapter_bnb_config_id: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -721,7 +745,10 @@ class FineTuningJobMetadata(_message.Message):
                                                 _Mapping]] = ...,
                  num_epochs: _Optional[int] = ...,
                  learning_rate: _Optional[float] = ...,
-                 out_dir: _Optional[str] = ...) -> None: ...
+                 out_dir: _Optional[str] = ...,
+                 training_arguments_id: _Optional[str] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...) -> None: ...
 
 
 class BnbConfig(_message.Message):
@@ -759,6 +786,134 @@ class BnbConfig(_message.Message):
         quant_method: _Optional[str] = ...) -> None: ...
 
 
+class BnbConfigMetadata(_message.Message):
+    __slots__ = ("id", "bnb_config")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    bnb_config: BnbConfig
+    def __init__(self, id: _Optional[str] = ..., bnb_config: _Optional[_Union[BnbConfig, _Mapping]] = ...) -> None: ...
+
+
+class TrainingArguments(_message.Message):
+    __slots__ = (
+        "output_dir",
+        "num_train_epochs",
+        "optim",
+        "per_device_train_batch_size",
+        "gradient_accumulation_steps",
+        "warmup_ratio",
+        "max_grad_norm",
+        "learning_rate",
+        "fp16",
+        "logging_steps",
+        "lr_scheduler_type",
+        "disable_tqdm",
+        "evaluation_strategy",
+        "eval_steps",
+        "save_strategy",
+        "report_to")
+    OUTPUT_DIR_FIELD_NUMBER: _ClassVar[int]
+    NUM_TRAIN_EPOCHS_FIELD_NUMBER: _ClassVar[int]
+    OPTIM_FIELD_NUMBER: _ClassVar[int]
+    PER_DEVICE_TRAIN_BATCH_SIZE_FIELD_NUMBER: _ClassVar[int]
+    GRADIENT_ACCUMULATION_STEPS_FIELD_NUMBER: _ClassVar[int]
+    WARMUP_RATIO_FIELD_NUMBER: _ClassVar[int]
+    MAX_GRAD_NORM_FIELD_NUMBER: _ClassVar[int]
+    LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
+    FP16_FIELD_NUMBER: _ClassVar[int]
+    LOGGING_STEPS_FIELD_NUMBER: _ClassVar[int]
+    LR_SCHEDULER_TYPE_FIELD_NUMBER: _ClassVar[int]
+    DISABLE_TQDM_FIELD_NUMBER: _ClassVar[int]
+    EVALUATION_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    EVAL_STEPS_FIELD_NUMBER: _ClassVar[int]
+    SAVE_STRATEGY_FIELD_NUMBER: _ClassVar[int]
+    REPORT_TO_FIELD_NUMBER: _ClassVar[int]
+    output_dir: str
+    num_train_epochs: int
+    optim: str
+    per_device_train_batch_size: int
+    gradient_accumulation_steps: int
+    warmup_ratio: float
+    max_grad_norm: float
+    learning_rate: float
+    fp16: bool
+    logging_steps: int
+    lr_scheduler_type: str
+    disable_tqdm: bool
+    evaluation_strategy: str
+    eval_steps: int
+    save_strategy: str
+    report_to: str
+
+    def __init__(
+        self,
+        output_dir: _Optional[str] = ...,
+        num_train_epochs: _Optional[int] = ...,
+        optim: _Optional[str] = ...,
+        per_device_train_batch_size: _Optional[int] = ...,
+        gradient_accumulation_steps: _Optional[int] = ...,
+        warmup_ratio: _Optional[float] = ...,
+        max_grad_norm: _Optional[float] = ...,
+        learning_rate: _Optional[float] = ...,
+        fp16: bool = ...,
+        logging_steps: _Optional[int] = ...,
+        lr_scheduler_type: _Optional[str] = ...,
+        disable_tqdm: bool = ...,
+        evaluation_strategy: _Optional[str] = ...,
+        eval_steps: _Optional[int] = ...,
+        save_strategy: _Optional[str] = ...,
+        report_to: _Optional[str] = ...) -> None: ...
+
+
+class TrainingArgumentsMetadata(_message.Message):
+    __slots__ = ("id", "training_arguments")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    training_arguments: TrainingArguments
+    def __init__(self, id: _Optional[str] = ...,
+                 training_arguments: _Optional[_Union[TrainingArguments, _Mapping]] = ...) -> None: ...
+
+
+class GenerationConfig(_message.Message):
+    __slots__ = ("do_sample", "temperature", "max_new_tokens", "top_p", "top_k", "repetition_penalty", "num_beams")
+    DO_SAMPLE_FIELD_NUMBER: _ClassVar[int]
+    TEMPERATURE_FIELD_NUMBER: _ClassVar[int]
+    MAX_NEW_TOKENS_FIELD_NUMBER: _ClassVar[int]
+    TOP_P_FIELD_NUMBER: _ClassVar[int]
+    TOP_K_FIELD_NUMBER: _ClassVar[int]
+    REPETITION_PENALTY_FIELD_NUMBER: _ClassVar[int]
+    NUM_BEAMS_FIELD_NUMBER: _ClassVar[int]
+    do_sample: bool
+    temperature: float
+    max_new_tokens: int
+    top_p: float
+    top_k: float
+    repetition_penalty: float
+    num_beams: int
+
+    def __init__(
+        self,
+        do_sample: bool = ...,
+        temperature: _Optional[float] = ...,
+        max_new_tokens: _Optional[int] = ...,
+        top_p: _Optional[float] = ...,
+        top_k: _Optional[float] = ...,
+        repetition_penalty: _Optional[float] = ...,
+        num_beams: _Optional[int] = ...) -> None: ...
+
+
+class GenerationConfigMetadata(_message.Message):
+    __slots__ = ("id", "generation_config")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    generation_config: GenerationConfig
+    def __init__(self, id: _Optional[str] = ...,
+                 generation_config: _Optional[_Union[GenerationConfig, _Mapping]] = ...) -> None: ...
+
+
 class EvaluationJobMetadata(_message.Message):
     __slots__ = (
         "job_id",
@@ -768,7 +923,10 @@ class EvaluationJobMetadata(_message.Message):
         "num_workers",
         "adapter_id",
         "worker_props",
-        "evaluation_dir")
+        "evaluation_dir",
+        "model_bnb_config_id",
+        "adapter_bnb_config_id",
+        "generation_arguments_id")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -777,6 +935,9 @@ class EvaluationJobMetadata(_message.Message):
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     WORKER_PROPS_FIELD_NUMBER: _ClassVar[int]
     EVALUATION_DIR_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_ARGUMENTS_ID_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     cml_job_id: str
     base_model_id: str
@@ -785,6 +946,9 @@ class EvaluationJobMetadata(_message.Message):
     adapter_id: str
     worker_props: WorkerProps
     evaluation_dir: str
+    model_bnb_config_id: str
+    adapter_bnb_config_id: str
+    generation_arguments_id: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -795,23 +959,41 @@ class EvaluationJobMetadata(_message.Message):
                  adapter_id: _Optional[str] = ...,
                  worker_props: _Optional[_Union[WorkerProps,
                                                 _Mapping]] = ...,
-                 evaluation_dir: _Optional[str] = ...) -> None: ...
+                 evaluation_dir: _Optional[str] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...,
+                 generation_arguments_id: _Optional[str] = ...) -> None: ...
 
 
 class AppState(_message.Message):
-    __slots__ = ("datasets", "models", "fine_tuning_jobs", "evaluation_jobs", "prompts", "adapters")
+    __slots__ = (
+        "datasets",
+        "models",
+        "fine_tuning_jobs",
+        "evaluation_jobs",
+        "prompts",
+        "adapters",
+        "training_arguments",
+        "bnb_configs",
+        "generation_configs")
     DATASETS_FIELD_NUMBER: _ClassVar[int]
     MODELS_FIELD_NUMBER: _ClassVar[int]
     FINE_TUNING_JOBS_FIELD_NUMBER: _ClassVar[int]
     EVALUATION_JOBS_FIELD_NUMBER: _ClassVar[int]
     PROMPTS_FIELD_NUMBER: _ClassVar[int]
     ADAPTERS_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_FIELD_NUMBER: _ClassVar[int]
+    BNB_CONFIGS_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIGS_FIELD_NUMBER: _ClassVar[int]
     datasets: _containers.RepeatedCompositeFieldContainer[DatasetMetadata]
     models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
     fine_tuning_jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
     evaluation_jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
     prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
     adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
+    training_arguments: _containers.RepeatedCompositeFieldContainer[TrainingArgumentsMetadata]
+    bnb_configs: _containers.RepeatedCompositeFieldContainer[BnbConfigMetadata]
+    generation_configs: _containers.RepeatedCompositeFieldContainer[GenerationConfigMetadata]
 
     def __init__(self,
                  datasets: _Optional[_Iterable[_Union[DatasetMetadata,
@@ -825,4 +1007,10 @@ class AppState(_message.Message):
                  prompts: _Optional[_Iterable[_Union[PromptMetadata,
                                                      _Mapping]]] = ...,
                  adapters: _Optional[_Iterable[_Union[AdapterMetadata,
-                                                      _Mapping]]] = ...) -> None: ...
+                                                      _Mapping]]] = ...,
+                 training_arguments: _Optional[_Iterable[_Union[TrainingArgumentsMetadata,
+                                                                _Mapping]]] = ...,
+                 bnb_configs: _Optional[_Iterable[_Union[BnbConfigMetadata,
+                                                         _Mapping]]] = ...,
+                 generation_configs: _Optional[_Iterable[_Union[GenerationConfigMetadata,
+                                                                _Mapping]]] = ...) -> None: ...

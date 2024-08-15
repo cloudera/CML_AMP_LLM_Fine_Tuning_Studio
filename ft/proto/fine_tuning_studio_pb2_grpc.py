@@ -345,7 +345,11 @@ class FineTuningStudioServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def GetAppState(self, request, context):
-        """Other general operations
+        """TODO: decide if we want official, first-level options to add/remove training configs.
+        this would be a more niche API surface level nicety if we decide to get more complex
+        with how we handle these configs, and if there is a customer use case.
+
+        Other general operations
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

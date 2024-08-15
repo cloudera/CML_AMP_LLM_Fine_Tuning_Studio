@@ -48,6 +48,7 @@ class AMPFineTuner:
         )
 
         # transformers.TrainingArguments defaults
+        # TODO: pass in training arguments protobuf message
         self.training_args = TrainingArguments(
             output_dir=f"outputs/{ft_job_uuid}",
             num_train_epochs=1,

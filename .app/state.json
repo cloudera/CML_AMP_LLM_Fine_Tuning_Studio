@@ -132,5 +132,54 @@
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-toxic"
     }
+  ],
+  "training_arguments": [
+    {
+      "id": "dff5bfbc-3dc9-4156-8893-8791411332dd",
+      "training_arguments": {
+        "output_dir": "outputs/trained_adapter",
+        "num_train_epochs ": 1,
+        "optim": "paged_adamw_32bit",
+        "per_device_train_batch_size": 1,
+        "gradient_accumulation_steps": 4,
+        "warmup_ratio": 0.03,
+        "max_grad_norm  ": 0.3,
+        "learning_rate  ": 2e-4,
+        "fp16 ": true,
+        "logging_steps  ": 1,
+        "lr_scheduler_type": "constant",
+        "disable_tqdm": true,
+        "evaluation_strategy ": "epoch",
+        "eval_steps": 1,
+        "save_strategy  ": "epoch",
+        "report_to ": "mlflow"
+      }
+    }
+  ],
+  "bnb_configs": [
+    {
+      "id": "0f49c8fd-7c3c-42fb-a0cd-a301ec920415",
+      "bnb_config": {
+        "load_in_4bit": true, 
+        "bnb_4bit_quant_type": "nf4",
+        "bnb_4bit_compute_dtype": "float16",
+        "bnb_4bit_use_double_quant": true,
+        "quant_method": "bitsandbytes"
+      }
+    }
+  ],
+  "generation_configs": [
+    {
+      "id": "eaaec933-a10e-4784-acae-b4938b0476e3",
+      "generation_config": {
+        "max_new_tokens": 50,
+        "repetition_penalty": 1.1,
+        "num_beams": 1,
+        "temperature": 0.7,
+        "top_p": 1.0, 
+        "top_k": 50,
+        "do_sample": true
+      }
+    }
   ]
 }

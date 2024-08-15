@@ -62,6 +62,10 @@ service FineTuningStudio {
   rpc StartEvaluationJob (StartEvaluationJobRequest) returns (StartEvaluationJobResponse) {}
   rpc RemoveEvaluationJob (RemoveEvaluationJobRequest) returns (RemoveEvaluationJobResponse) {}
 
+  // TODO: decide if we want official, first-level options to add/remove training configs. 
+  // this would be a more niche API surface level nicety if we decide to get more complex
+  // with how we handle these configs, and if there is a customer use case.
+
   // Other general operations
   rpc GetAppState (GetAppStateRequest) returns (GetAppStateResponse) {}
 }
@@ -567,6 +571,11 @@ message ModelMetadata {
   // Metadata on the registered model with CML model registry,
   // if this model is a model registry type.
   RegisteredModelMetadata registered_model = 7;
+
+  // Quanitzation config used for the model. Note that this does apply
+  // separately to the "model" layers than to the "adapter" layers. An 
+  // adapter can have different quanitzation for its layers. 
+  string bnb_config_id = 8;
 }
 
 
@@ -611,6 +620,9 @@ message AdapterMetadata {
   // Adapters should eventually have support in CML model registry. This metadata
   // will be stored here for adapters in case this is available.
   RegisteredModelMetadata registered_model = 9;
+
+  // Quanitzation config used to train or load the adapter.
+  string bnb_config_id = 10;
 }
 
 
@@ -683,6 +695,19 @@ message FineTuningJobMetadata {
 
   // Output directory for the adapter
   string out_dir = 11;
+
+  // Training arguments for the run.
+  string training_arguments_id = 12;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 13;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 14;
 }
 
 
@@ -690,7 +715,8 @@ message FineTuningJobMetadata {
 // define this here purely because we serialize this
 // config onto a protobuf, and the default data type in the
 // transformers package is not serializable to a protobuf
-// by default.
+// by default. As of writing this, we are locked down to
+// bitsandbytes==0.42.0.
 message BnbConfig {
   bool load_in_8bit = 1;
   bool load_in_4bit = 2;
@@ -701,6 +727,73 @@ message BnbConfig {
   string quant_method = 7;
 }
 
+// Wrapper message for bnb configs, in case
+// we ever want to keep track of metadata
+// of the configuration we used to train. We
+// can add more than just and ID here in the
+// future. 
+message BnbConfigMetadata {
+  string id = 1;
+  BnbConfig bnb_config = 2;
+}
+
+
+// TrainingArguments config. We define this here to provide
+// users the ability to send full training arguments parameters
+// used in transformers==4.43.3.
+message TrainingArguments {
+  string output_dir = 1;
+  int32 num_train_epochs = 2;
+  string optim = 3;
+  int32 per_device_train_batch_size = 4;
+  int32 gradient_accumulation_steps = 5;
+  float warmup_ratio = 6;
+  float max_grad_norm = 7;
+  float learning_rate = 8;
+  bool fp16 = 9;
+  int32 logging_steps = 10; 
+  string lr_scheduler_type = 11;
+  bool disable_tqdm = 12;
+  string evaluation_strategy = 13; 
+  int32 eval_steps = 14;
+  string save_strategy = 15;
+  string report_to = 16;
+}
+
+// Wrapper message for training arguments. For now, 
+// this should only be one limiting 
+message TrainingArgumentsMetadata {
+  string id = 1;
+  TrainingArguments training_arguments = 2;
+}
+
+
+// Generation Configuration arguments. more arguments
+// can be added to this list as we allow for more
+// capability and expose other arguments. There may
+// be an issue that arises here where we cannot efficiently
+// parse other kwargs, so we need to keep an ear out for any
+// customer use case arguments that do not exist here
+// and update.
+message GenerationConfig {
+  bool do_sample = 1;
+  float temperature = 2;
+  
+  // For now, force use of max_new_tokens, not max_length.
+  int32 max_new_tokens = 3;
+  float top_p = 4;
+  float top_k = 5;
+  float repetition_penalty = 6;
+  int32 num_beams = 7;
+}
+
+
+// Wrapper metadata class for generation arguments 
+// to be stored in an object.
+message GenerationConfigMetadata {
+  string id = 1; 
+  GenerationConfig generation_config = 2;
+}
 
 
 message EvaluationJobMetadata {
@@ -732,6 +825,15 @@ message EvaluationJobMetadata {
 
   // Resulting directory of evaluation
   string evaluation_dir = 8;
+
+  // BnB config of the model
+  string model_bnb_config_id = 9;
+
+  // BnB config of the adapter
+  string adapter_bnb_config_id = 10;
+
+  // Generation argument configs. 
+  string generation_arguments_id = 11;
 }
 
 message AppState {
@@ -741,4 +843,7 @@ message AppState {
   repeated EvaluationJobMetadata evaluation_jobs = 4;
   repeated PromptMetadata prompts = 5;
   repeated AdapterMetadata adapters = 6;
+  repeated TrainingArgumentsMetadata training_arguments = 7;
+  repeated BnbConfigMetadata bnb_configs = 8;
+  repeated GenerationConfigMetadata generation_configs = 9;
 }
