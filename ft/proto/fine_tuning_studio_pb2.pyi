@@ -385,7 +385,8 @@ class StartFineTuningJobRequest(_message.Message):
         "model_bnb_config_id",
         "adapter_bnb_config_id",
         "training_arguments_config_id",
-        "lora_config_id")
+        "lora_config_id",
+        "output_dir")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -402,6 +403,7 @@ class StartFineTuningJobRequest(_message.Message):
     ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     TRAINING_ARGUMENTS_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    OUTPUT_DIR_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
@@ -418,6 +420,7 @@ class StartFineTuningJobRequest(_message.Message):
     adapter_bnb_config_id: str
     training_arguments_config_id: str
     lora_config_id: str
+    output_dir: str
 
     def __init__(
         self,
@@ -436,7 +439,8 @@ class StartFineTuningJobRequest(_message.Message):
         model_bnb_config_id: _Optional[str] = ...,
         adapter_bnb_config_id: _Optional[str] = ...,
         training_arguments_config_id: _Optional[str] = ...,
-        lora_config_id: _Optional[str] = ...) -> None: ...
+        lora_config_id: _Optional[str] = ...,
+        output_dir: _Optional[str] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
@@ -552,10 +556,17 @@ class RemoveEvaluationJobResponse(_message.Message):
 
 
 class ListConfigsRequest(_message.Message):
-    __slots__ = ("type",)
+    __slots__ = ("type", "model_id", "adapter_id", "fine_tuning_job_id")
     TYPE_FIELD_NUMBER: _ClassVar[int]
+    MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    FINE_TUNING_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     type: ConfigType
-    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ...) -> None: ...
+    model_id: str
+    adapter_id: str
+    fine_tuning_job_id: str
+    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ..., model_id: _Optional[str] = ...,
+                 adapter_id: _Optional[str] = ..., fine_tuning_job_id: _Optional[str] = ...) -> None: ...
 
 
 class ListConfigsResponse(_message.Message):
@@ -580,12 +591,15 @@ class GetConfigResponse(_message.Message):
 
 
 class AddConfigRequest(_message.Message):
-    __slots__ = ("type", "config")
+    __slots__ = ("type", "config", "description")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     type: ConfigType
     config: str
-    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ..., config: _Optional[str] = ...) -> None: ...
+    description: str
+    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ...,
+                 config: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
 
 
 class AddConfigResponse(_message.Message):
@@ -842,15 +856,17 @@ class FineTuningJobMetadata(_message.Message):
 
 
 class ConfigMetadata(_message.Message):
-    __slots__ = ("id", "type", "config")
+    __slots__ = ("id", "description", "type", "config")
     ID_FIELD_NUMBER: _ClassVar[int]
+    DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     id: str
+    description: str
     type: ConfigType
     config: str
-    def __init__(self, id: _Optional[str] = ..., type: _Optional[_Union[ConfigType, str]]
-                 = ..., config: _Optional[str] = ...) -> None: ...
+    def __init__(self, id: _Optional[str] = ..., description: _Optional[str] = ...,
+                 type: _Optional[_Union[ConfigType, str]] = ..., config: _Optional[str] = ...) -> None: ...
 
 
 class EvaluationJobMetadata(_message.Message):

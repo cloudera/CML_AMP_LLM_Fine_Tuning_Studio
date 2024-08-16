@@ -73,7 +73,7 @@ def create_train_adapter_page():
                         st.code(current_prompts[prompt_idx].prompt_template)
 
             with col2:
-                adapter_location = st.text_input("Output Location", value="data/adapters/", key="output_location")
+                adapter_output_dir = st.text_input("Output Location", value="data/adapters/", key="output_location")
 
             # Advanced options
             c1, c2 = st.columns(2)
@@ -90,20 +90,54 @@ def create_train_adapter_page():
                 gpu = st.selectbox("GPU (NVIDIA)", options=[1], index=0)
 
             c1, c2 = st.columns([1, 1])
-            lora_config = c1.text_area(
+
+            # Extract out the lora config and the bnb config to use. For now,
+            # server-side there is no selection logic based on model & adapters,
+            # but there may be in the future, which is why we are specifying this here.
+            # Right now, we are just extracting out the first available config and
+            # showing that to the user.
+            lora_config_text = c1.text_area(
                 "LoRA Config",
                 json.dumps(
-                    json.load(
-                        open(".app/configs/default_lora_config.json")),
-                    indent=2),
+                    json.loads(
+                        fts.ListConfigs(
+                            ListConfigsRequest(
+                                type=ConfigType.CONFIG_TYPE_LORA_CONFIG
+                            )
+                        ).configs[0].config
+                    ),
+                    indent=2
+                ),
                 height=200)
-            bnb_config = c2.text_area(
+            bnb_config_text = c2.text_area(
                 "BitsAndBytes Config",
                 json.dumps(
-                    json.load(
-                        open(".app/configs/default_bnb_config.json")),
-                    indent=2),
+                    json.loads(
+                        fts.ListConfigs(
+                            ListConfigsRequest(
+                                type=ConfigType.CONFIG_TYPE_BITSANDBYTES_CONFIG
+                            )
+                        ).configs[0].config
+                    ),
+                    indent=2
+                ),
                 height=200)
+
+            with st.expander("Advanced Training Options"):
+                training_args_text = st.text_area(
+                    "Training Arguments",
+                    json.dumps(
+                        json.loads(
+                            fts.ListConfigs(
+                                ListConfigsRequest(
+                                    type=ConfigType.CONFIG_TYPE_TRAINING_ARGUMENTS
+                                )
+                            ).configs[0].config
+                        ),
+                        indent=2
+                    ),
+                    height=400
+                )
 
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
@@ -115,11 +149,34 @@ def create_train_adapter_page():
 
             if start_job_button:
                 try:
+                    # Extract out relevant model metadata.
                     model = current_models[model_idx]
                     dataset = current_datasets[dataset_idx]
                     prompt = current_prompts[prompt_idx]
-                    bnb_config_dict = json.loads(bnb_config)
-                    bnb_config_special_type: BnbConfig = BnbConfig(**bnb_config_dict)
+
+                    # If we've made changes to our configs, let's update them with FTS so other
+                    # components of FTS can access the configs. Note: if a pre-existing config
+                    # exactly matches these configs, the metadata (id) of the pre-existing config
+                    # will be returned.
+                    lora_config: ConfigMetadata = fts.AddConfig(
+                        AddConfigRequest(
+                            type=ConfigType.CONFIG_TYPE_LORA_CONFIG,
+                            config=lora_config_text
+                        )
+                    ).config
+                    bnb_config: ConfigMetadata = fts.AddConfig(
+                        AddConfigRequest(
+                            type=ConfigType.CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                            config=bnb_config_text
+                        )
+                    ).config
+                    training_args_config: ConfigMetadata = fts.AddConfig(
+                        AddConfigRequest(
+                            type=ConfigType.CONFIG_TYPE_TRAINING_ARGUMENTS,
+                            config=training_args_text
+                        )
+                    )
+
                     fts.StartFineTuningJob(
                         StartFineTuningJobRequest(
                             adapter_name=adapter_name,
@@ -127,13 +184,17 @@ def create_train_adapter_page():
                             dataset_id=dataset.id,
                             prompt_id=prompt.id,
                             num_workers=int(1),
-                            bits_and_bytes_config=bnb_config_special_type,
                             auto_add_adapter=True,
                             num_epochs=int(num_epochs),
                             learning_rate=float(learning_rate),
                             cpu=int(cpu),
                             gpu=gpu,
-                            memory=int(memory)
+                            memory=int(memory),
+                            model_bnb_config_id=bnb_config.id,
+                            adapter_bnb_config_id=bnb_config.id,
+                            lora_config_id=lora_config.id,
+                            training_arguments_config_id=training_args_config.id,
+                            output_dir=adapter_output_dir,
                         )
                     )
                     st.success(

@@ -14,7 +14,7 @@ streamlit==1.37.0
 pydantic>=2.8.2
 setfit==1.0.3
 huggingface_hub==0.23.5
-mlflow==2.14.3
+mlflow==2.15.1
 textstat==0.7.4
 evaluate==0.4.2
 streamlit-aggrid==1.0.5
@@ -25,5 +25,6 @@ tiktoken==0.7.0
 sentencepiece==0.2.0
 plotly==5.23.0
 grpcio==1.65.4
-protobuf==3.20.1
+protobuf==5.27.3
 autoflake==2.3.1
+grpcio-tools==1.65.4

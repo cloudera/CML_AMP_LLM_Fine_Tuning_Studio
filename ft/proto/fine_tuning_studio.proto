@@ -318,6 +318,9 @@ message StartFineTuningJobRequest {
   string training_arguments_config_id = 16;
 
   string lora_config_id = 17;
+
+  // Output directory of the final adapter.
+  string output_dir = 18;
 }
 
 message StartFineTuningJobResponse {
@@ -397,6 +400,19 @@ message ListConfigsRequest {
 
   // Optionally only return a specific config type.
   ConfigType type = 1;
+
+  // Optional, Specify a model id for any future filtering
+  // that may occur on model id.
+  string model_id = 2;
+
+  // Optional, Specify an adapter id for any future filtering
+  // that may occur on an adapter.
+  string adapter_id = 3;
+
+  // Optional, specify a training job for filtering that may
+  // be related to configs that were present on this
+  // fine tuning training job.
+  string fine_tuning_job_id = 4;
 }
 
 message ListConfigsResponse {
@@ -414,6 +430,7 @@ message GetConfigResponse {
 message AddConfigRequest {
   ConfigType type = 1;
   string config = 2;
+  string description = 3;
 }
 
 message AddConfigResponse {
@@ -678,7 +695,7 @@ message AdapterMetadata {
   string huggingface_name = 6;
 
   // Job ID of the job that was used to train/create this adapter. This is
-  // used to determine if an adapter is completely trained or not.
+  // used to determine if an adapter was trained within this framework or not.
   string job_id = 7;
 
   // Prompt ID of the prompt that was used to train this adapter.
@@ -721,9 +738,7 @@ message WorkerProps {
 
 message FineTuningJobMetadata {
 
-  // Unique job identifier of the job. For some job implementations (local
-  // fine tuning with the AMP), this job ID does not specifically have a
-  // CML counterpart or significance in the CDP ecosystem.
+  // Unique job identifier of the job.
   string job_id = 1;
 
   // The model ID of the base model that should be used as a
@@ -773,6 +788,7 @@ message FineTuningJobMetadata {
   // than an adapter.
   string adapter_bnb_config_id = 14;
 
+  // PEFT config.
   string lora_config_id = 15;
 }
 
@@ -780,22 +796,23 @@ message FineTuningJobMetadata {
 message ConfigMetadata {
   string id = 1;
 
+  // Optional description of the config
+  string description = 2;
+
   // type of configuration
-  ConfigType type = 2;
+  ConfigType type = 3;
 
   // Serialized (json) representation of the config. This
   // can be passed directly into any of the config types
   // at runtime, such as transformers.TrainingArguments(),
   // peft.LoraConfig(), and so on.
-  string config = 3;
+  string config = 4;
 }
 
 
 message EvaluationJobMetadata {
 
-  // Unique job identifier of the job. For some job implementations (local
-  // fine tuning with the AMP), this job ID does not specifically have a
-  // CML counterpart or significance in the CDP ecosystem.
+  // Unique job identifier of the job.
   string job_id = 1;
 
   // CML identifier for the created CML job.

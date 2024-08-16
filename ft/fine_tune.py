@@ -31,7 +31,13 @@ def get_unique_cache_dir():
 class AMPFineTuner:
     # Load basemodel from huggingface
     # Default: bigscience/bloom-1b1
-    def __init__(self, base_model, auth_token="", ft_job_uuid="", bnb_config=BitsAndBytesConfig()):
+    def __init__(
+            self,
+            base_model,
+            auth_token="",
+            ft_job_uuid="",
+            bnb_config=BitsAndBytesConfig(),
+            training_args=TrainingArguments()):
         mlflow.set_experiment(ft_job_uuid)
 
         # Load the base model and tokenizer
@@ -47,26 +53,7 @@ class AMPFineTuner:
             token=auth_token,
         )
 
-        # transformers.TrainingArguments defaults
-        # TODO: pass in training arguments protobuf message
-        self.training_args = TrainingArguments(
-            output_dir=f"outputs/{ft_job_uuid}",
-            num_train_epochs=1,
-            optim="paged_adamw_32bit",
-            per_device_train_batch_size=1,
-            gradient_accumulation_steps=4,
-            warmup_ratio=0.03,
-            max_grad_norm=0.3,
-            learning_rate=2e-4,
-            fp16=True,
-            logging_steps=1,
-            lr_scheduler_type="constant",
-            disable_tqdm=True,
-            evaluation_strategy="epoch",
-            eval_steps=1,
-            save_strategy="epoch",
-            report_to='mlflow',
-        )
+        self.training_args = training_args
 
     # Use PEFT library to set LoRA training config and get trainable peft model
     def set_lora_config(self, lora_config):
