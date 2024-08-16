@@ -1,4 +1,4 @@
-from transformers import BitsAndBytesConfig
+from transformers import BitsAndBytesConfig, TrainingArguments
 from pathlib import Path
 from peft import LoraConfig
 import json
@@ -23,13 +23,6 @@ arg_string = os.environ.get('JOB_ARGUMENTS', '')
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument(
-    "--aggregateconfig",
-    help="Path of the aggregate config containing: LoraConfig, BitsAndBytesConfig, prompt text, trainer arguments",
-    required=True
-)
-parser.add_argument("--loraconfig", help="Path of the LoRA config json")
-parser.add_argument("--bnbconfig", help="Path of the BitsAndBytes config json")
 parser.add_argument("--prompttemplate", help="Path of the PromptTemplate", required=True)
 parser.add_argument("--trainerarguments", help="Path of the trainer arguments json")
 parser.add_argument("--basemodel", help="Huggingface base model to use", required=True)
@@ -40,6 +33,10 @@ parser.add_argument("--num_epochs", type=int, default=NUM_EPOCHS, help="Epochs f
 parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for fine tuning job")
 parser.add_argument("--train_test_split", type=float, default=TRAIN_TEST_SPLIT,
                     help="Split of the existing dataset between training and testing.")
+parser.add_argument("--bnb_config_id", default=None, help="ID of the BnB config in FT Studio's config store.")
+parser.add_argument("--lora_config_id", default=None, help="ID of the Lora config in FT Studio's config store.")
+parser.add_argument("--training_arguments_config_id", default=None,
+                    help="ID of the training arguments in FT Studio's config store.")
 parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
 parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
 parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
@@ -47,49 +44,47 @@ parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server",
 args = parser.parse_args(arg_string.split())
 
 # Create a client connection to the FTS server
-client: FineTuningStudioClient = FineTuningStudioClient(server_ip=args.fts_server_ip, server_port=args.fts_server_port)
+fts: FineTuningStudioClient = FineTuningStudioClient(server_ip=args.fts_server_ip, server_port=args.fts_server_port)
 
 # Attempt log in to huggingface
 attempt_hf_login(args.hf_token)
 
-# Load aggregate config file
-try:
-    aggregate_config_file = Path(args.aggregateconfig).read_text()
-    aggregate_config = json.loads(aggregate_config_file)
-except (FileNotFoundError, json.JSONDecodeError) as e:
-    raise RuntimeError(f"Error loading aggregate config file: {e}")
+# Get the configurations.
+lora_config_dict = json.loads(
+    fts.GetConfig(
+        GetConfigRequest(
+            id=args.lora_config_id
+        )
+    ).config
+)
 
-# Initialize BitsAndBytesConfig
-try:
-    bnb_config = BitsAndBytesConfig(**aggregate_config['bnb_config'])
-except KeyError as e:
-    raise KeyError(f"Missing key in BitsAndBytesConfig: {e}")
+bnb_config_dict = json.loads(
+    fts.GetConfig(
+        GetConfigRequest(
+            id=args.bnb_config_id
+        )
+    ).config
+)
+
+training_args_dict = json.loads(
+    fts.GetConfig(
+        GetConfigRequest(
+            id=args.training_arguments_config_id
+        )
+    ).config
+)
 
 # Initialize the fine-tuner
 finetuner = fine_tune.AMPFineTuner(
     base_model=args.basemodel,
     ft_job_uuid=args.experimentid,
-    bnb_config=bnb_config,
+    bnb_config=BitsAndBytesConfig(**bnb_config_dict),
+    training_args=TrainingArguments(**training_args_dict),
     auth_token=args.hf_token,
 )
 
 # Set LoRA training configuration
-finetuner.set_lora_config(
-    LoraConfig(
-        r=16,
-        lora_alpha=32,
-        # target_modules=["query_key_value", "xxx"],  # Customize as needed
-        lora_dropout=0.05,
-        bias="none",
-        task_type="CAUSAL_LM"
-    )
-)
-
-# Set training arguments
-finetuner.training_args.num_train_epochs = args.num_epochs
-finetuner.training_args.warmup_ratio = 0.03
-finetuner.training_args.max_grad_norm = 0.3
-finetuner.training_args.learning_rate = args.learning_rate
+finetuner.set_lora_config(LoraConfig(**lora_config_dict))
 
 
 def load_dataset(dataset_name, dataset_fraction=100):
@@ -155,7 +150,7 @@ try:
     # to extract metadata information about the dataset. Right now,
     # only huggingface datasets are supported for fine tuning jobs.
     dataset_id = args.dataset_id
-    dataset_metadata: DatasetMetadata = client.GetDataset(
+    dataset_metadata: DatasetMetadata = fts.GetDataset(
         GetDatasetRequest(
             id=dataset_id
         )

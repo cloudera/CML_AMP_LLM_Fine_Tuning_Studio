@@ -1,7 +1,7 @@
 
 from ft.api import *
 from ft.state import write_state, replace_state_field
-
+import json
 
 from uuid import uuid4
 
@@ -24,6 +24,16 @@ def get_config(state: AppState, request: GetConfigRequest) -> GetConfigResponse:
 
 
 def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
+    """
+    Add a new configuration to the datastore. Returns a configuration metadata object
+    with a configuration id. The configuration store for adding new configs acts as a
+    cache. If there is an identical config of the same type with the same config
+    internals, then the existing configuration and id are passed back out of this
+    request. If there is no preexisting config that matches the config request, a new
+    config is added.
+    """
+
+    # Collect a list of configurations by type
     configs = list(filter(lambda x: x.type == request.type, state.configs))
 
     # If there are no configs of this type yet, then add it!
@@ -39,8 +49,9 @@ def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
             config=new_config
         )
 
-    # ensure that there are no similar configs
-    similar_configs = list(filter(lambda x: x.config == request.config, configs))
+    # ensure that there are no similar configs.
+    # we load to a dictionary to do a fully formatted comparison.
+    similar_configs = list(filter(lambda x: json.loads(x.config) == json.loads(request.config), configs))
 
     # ensure that we only have at least one similar config for a given type.
     # if we have more, then we messed up our caching mechanism somwehere
@@ -57,7 +68,8 @@ def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
         new_config: ConfigMetadata = ConfigMetadata(
             id=uuid4(),
             type=request.type,
-            config=request.config
+            description=request.description,
+            config=json.dumps(json.loads(request.config))  # Fix formatting
         )
         state.configs.append(new_config)
         write_state(state)

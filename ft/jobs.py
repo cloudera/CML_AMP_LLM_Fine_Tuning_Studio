@@ -5,11 +5,8 @@ from ft.state import write_state, replace_state_field
 from ft.consts import DEFAULT_FTS_GRPC_PORT
 import cmlapi
 import os
-import json
 import pathlib
 from cmlapi import CMLServiceApi
-
-from google.protobuf.json_format import MessageToDict
 
 
 def list_fine_tuning_jobs(state: AppState, request: ListFineTuningJobsRequest,
@@ -79,21 +76,22 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         prompt_text_file.write(prompt_text)
     arg_list.append("%s/%s" % (job_dir, "prompt.tmpl"))
 
-    # Create aggregate config file containing all config object content
-    # TODO: (lora, bnb, trainerargs, ?cmlworkersargs?)
-    # Right now we need to do a small conversion from BnB config to the protobuf message type.
-    aggregate_config = {
-        "bnb_config": MessageToDict(request.bits_and_bytes_config, preserving_proto_field_name=True)
-    }
-    with open("%s/%s" % (job_dir, "job.config"), 'w') as aggregate_config_file:
-        aggregate_config_file.write(json.dumps(aggregate_config, indent=4))
-    arg_list.append("--aggregateconfig")
-    arg_list.append("%s/%s" % (job_dir, "job.config"))
+    # Pass in all configs needed for FT join.
+    # For now, ONLY THE BNB CONFIG ID of the ADAPTER will be used, however technically
+    # we can have two different BnB configs for models vs adapters.
+    arg_list.append("--bnb_config_id")
+    arg_list.append(request.adapter_bnb_config_id)
+
+    arg_list.append("--lora_config_id")
+    arg_list.append(request.lora_config_id)
+
+    arg_list.append("--training_arguments_config_id")
+    arg_list.append(request.training_arguments_config_id)
 
     arg_list.append("--experimentid")
     arg_list.append(job_id)
 
-    out_dir = os.path.join(os.getenv("CUSTOM_LORA_ADAPTERS_DIR"), job_id)
+    out_dir = os.path.join(request.output_dir, job_id)
     arg_list.append("--out_dir")
     arg_list.append(out_dir)
 
@@ -167,7 +165,11 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
             num_cpu=request.cpu,
             num_gpu=request.gpu,
             num_memory=request.memory
-        )
+        ),
+        training_arguments_config_id=request.training_arguments_config_id,
+        lora_config_id=request.lora_config_id,
+        model_bnb_config_id=request.model_bnb_config_id,
+        adapter_bnb_config_id=request.adapter_bnb_config_id
     )
 
     # TODO: ideally this should be done at the END of training

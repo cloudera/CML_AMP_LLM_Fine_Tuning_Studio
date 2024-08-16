@@ -135,11 +135,17 @@ def test_add_config_no_prior_configs(uuid4, write_state):
 @patch("ft.configs.write_state")
 @patch("ft.configs.uuid4")
 def test_add_config_existing_configs(uuid4, write_state):
+    """
+    Tests to make sure that two identical configs do not
+    get stored into the config store. Note that formatting
+    of the config string does not matter so long as the content is
+    identical between the two configs.
+    """
 
     test_config: ConfigMetadata = ConfigMetadata(
         id="c1",
         type=ConfigType.CONFIG_TYPE_GENERATION_CONFIG,
-        config=json.dumps({"max_new_tokens": 1})
+        config='{"max_new_tokens":1}'
     )
 
     test_state: AppState = AppState(
@@ -152,7 +158,7 @@ def test_add_config_existing_configs(uuid4, write_state):
         test_state,
         AddConfigRequest(
             type=ConfigType.CONFIG_TYPE_GENERATION_CONFIG,
-            config='{"max_new_tokens": 1}'
+            config='\n   { "max_new_tokens"    : 1\n\n\n}'
         )
     ).config
 
@@ -225,7 +231,7 @@ def test_add_config_existing_unique_configs(uuid4, write_state):
         test_state,
         AddConfigRequest(
             type=ConfigType.CONFIG_TYPE_GENERATION_CONFIG,
-            config=json.dumps({"top_p": 0.42})
+            config='   \n {  "top_k"   : 50\n\n}'
         )
     )
 
@@ -244,7 +250,7 @@ def test_add_config_existing_unique_configs(uuid4, write_state):
             ConfigMetadata(
                 id="c3",
                 type=ConfigType.CONFIG_TYPE_GENERATION_CONFIG,
-                config=json.dumps({"top_p": 0.42})
+                config='{"top_k": 50}'
             )
         ]
     ))

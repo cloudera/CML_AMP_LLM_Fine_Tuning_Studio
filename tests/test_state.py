@@ -6,7 +6,6 @@ import json
 
 from ft.api import *
 
-import pytest
 
 from ft.state import (
     get_state_location,
