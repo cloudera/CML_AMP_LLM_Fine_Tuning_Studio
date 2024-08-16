@@ -165,7 +165,11 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
             num_cpu=request.cpu,
             num_gpu=request.gpu,
             num_memory=request.memory
-        )
+        ),
+        training_arguments_config_id=request.training_arguments_config_id,
+        lora_config_id=request.lora_config_id,
+        model_bnb_config_id=request.model_bnb_config_id,
+        adapter_bnb_config_id=request.adapter_bnb_config_id
     )
 
     # TODO: ideally this should be done at the END of training
