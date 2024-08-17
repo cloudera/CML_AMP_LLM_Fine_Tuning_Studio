@@ -6,6 +6,7 @@ import pandas as pd
 from ft.eval.eval_job import EvaluationResponse
 from ft.client import FineTuningStudioClient
 from ft.api import *
+import json
 
 
 def driver(
@@ -33,9 +34,10 @@ def driver(
     adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id))
 
     # Load in the generation config and bnb config.
-    bnb_config_dict = client.GetConfig(GetConfigRequest(id=bnb_config_id)) if bnb_config_id else None
-    generation_config_dict = client.GetConfig(GetConfigRequest(
-        id=generation_config_id)) if generation_config_id else None
+    bnb_config_dict = json.loads(client.GetConfig(GetConfigRequest(
+        id=bnb_config_id)).config.config) if bnb_config_id else None
+    generation_config_dict = json.loads(client.GetConfig(GetConfigRequest(
+        id=generation_config_id)).config.config) if generation_config_id else None
 
     # Load Model Pipeline
     # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
