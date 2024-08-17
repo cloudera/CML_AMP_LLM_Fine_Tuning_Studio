@@ -29,6 +29,7 @@ parser.add_argument("--basemodel", help="Huggingface base model to use", require
 parser.add_argument("--dataset_id", help="Dataset ID from the Fine Tuning Studio application", required=True)
 parser.add_argument("--experimentid", help="UUID to use for experiment tracking", required=True)
 parser.add_argument("--out_dir", help="Output directory for the fine-tuned model", required=True)
+parser.add_argument("--train_out_dir", help="Output directory for the training runs", required=True)
 parser.add_argument("--num_epochs", type=int, default=NUM_EPOCHS, help="Epochs for fine tuning job")
 parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for fine tuning job")
 parser.add_argument("--train_test_split", type=float, default=TRAIN_TEST_SPLIT,
@@ -55,7 +56,7 @@ lora_config_dict = json.loads(
         GetConfigRequest(
             id=args.lora_config_id
         )
-    ).config
+    ).config.config
 )
 
 bnb_config_dict = json.loads(
@@ -63,7 +64,7 @@ bnb_config_dict = json.loads(
         GetConfigRequest(
             id=args.bnb_config_id
         )
-    ).config
+    ).config.config
 )
 
 training_args_dict = json.loads(
@@ -71,8 +72,14 @@ training_args_dict = json.loads(
         GetConfigRequest(
             id=args.training_arguments_config_id
         )
-    ).config
+    ).config.config
 )
+
+# Override the training args based on the provided output dir. The reason
+# this happens within the job (rather than passing the training job dir as part
+# of the output config) is that we set the training config BEFORE we have this
+# desired job ID field available. This is a side effect of using the UI.
+training_args_dict["output_dir"] = args.train_out_dir
 
 # Initialize the fine-tuner
 finetuner = fine_tune.AMPFineTuner(
@@ -154,7 +161,7 @@ try:
         GetDatasetRequest(
             id=dataset_id
         )
-    )
+    ).dataset
     assert dataset_metadata.type == DatasetType.DATASET_TYPE_HUGGINGFACE
     dataset = load_dataset(dataset_metadata.huggingface_name)
 

@@ -41,6 +41,7 @@ def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
         new_config: ConfigMetadata = ConfigMetadata(
             id=uuid4(),
             type=request.type,
+            description=request.description,
             config=request.config
         )
         state.configs.append(new_config)
@@ -66,7 +67,7 @@ def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
         )
     else:
         new_config: ConfigMetadata = ConfigMetadata(
-            id=uuid4(),
+            id=str(uuid4()),
             type=request.type,
             description=request.description,
             config=json.dumps(json.loads(request.config))  # Fix formatting

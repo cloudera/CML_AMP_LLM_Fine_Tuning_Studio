@@ -9,12 +9,14 @@ DESCRIPTOR: _descriptor.FileDescriptor
 
 class DatasetType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    DATASET_TYPE_UNKNOWN: _ClassVar[DatasetType]
     DATASET_TYPE_HUGGINGFACE: _ClassVar[DatasetType]
     DATASET_TYPE_PROJECT: _ClassVar[DatasetType]
 
 
 class ModelType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    MODEL_TYPE_UNKNOWN: _ClassVar[ModelType]
     MODEL_TYPE_HUGGINGFACE: _ClassVar[ModelType]
     MODEL_TYPE_PROJECT: _ClassVar[ModelType]
     MODEL_TYPE_MODEL_REGISTRY: _ClassVar[ModelType]
@@ -22,6 +24,7 @@ class ModelType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 
 class ModelFrameworkType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    MODEL_FRAMEWORK_TYPE_UNKNOWN: _ClassVar[ModelFrameworkType]
     MODEL_FRAMEWORK_TYPE_PYTORCH: _ClassVar[ModelFrameworkType]
     MODEL_FRAMEWORK_TYPE_TENSORFLOW: _ClassVar[ModelFrameworkType]
     MODEL_FRAMEWORK_TYPE_ONNX: _ClassVar[ModelFrameworkType]
@@ -29,6 +32,7 @@ class ModelFrameworkType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 
 class AdapterType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    ADAPTER_TYPE_UNKNOWN: _ClassVar[AdapterType]
     ADAPTER_TYPE_PROJECT: _ClassVar[AdapterType]
     ADAPTER_TYPE_HUGGINGFACE: _ClassVar[AdapterType]
     ADAPTER_TYPE_MODEL_REGISTRY: _ClassVar[AdapterType]
@@ -36,6 +40,7 @@ class AdapterType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 
 class JobStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    JOB_STATUS_UNKNOWN: _ClassVar[JobStatus]
     JOB_STATUS_SCHEDULED: _ClassVar[JobStatus]
     JOB_STATUS_RUNNING: _ClassVar[JobStatus]
     JOB_STATUS_SUCCESS: _ClassVar[JobStatus]
@@ -44,11 +49,13 @@ class JobStatus(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
 
 class PromptType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    PROMPT_TYPE_UNKNOWN: _ClassVar[PromptType]
     PROMPT_TYPE_IN_PLACE: _ClassVar[PromptType]
 
 
 class EvaluationJobType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
+    EVALUATION_JOB_TYPE_UNKNOWN: _ClassVar[EvaluationJobType]
     EVALUATION_JOB_TYPE_MLFLOW: _ClassVar[EvaluationJobType]
 
 
@@ -61,22 +68,29 @@ class ConfigType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CONFIG_TYPE_LORA_CONFIG: _ClassVar[ConfigType]
 
 
+DATASET_TYPE_UNKNOWN: DatasetType
 DATASET_TYPE_HUGGINGFACE: DatasetType
 DATASET_TYPE_PROJECT: DatasetType
+MODEL_TYPE_UNKNOWN: ModelType
 MODEL_TYPE_HUGGINGFACE: ModelType
 MODEL_TYPE_PROJECT: ModelType
 MODEL_TYPE_MODEL_REGISTRY: ModelType
+MODEL_FRAMEWORK_TYPE_UNKNOWN: ModelFrameworkType
 MODEL_FRAMEWORK_TYPE_PYTORCH: ModelFrameworkType
 MODEL_FRAMEWORK_TYPE_TENSORFLOW: ModelFrameworkType
 MODEL_FRAMEWORK_TYPE_ONNX: ModelFrameworkType
+ADAPTER_TYPE_UNKNOWN: AdapterType
 ADAPTER_TYPE_PROJECT: AdapterType
 ADAPTER_TYPE_HUGGINGFACE: AdapterType
 ADAPTER_TYPE_MODEL_REGISTRY: AdapterType
+JOB_STATUS_UNKNOWN: JobStatus
 JOB_STATUS_SCHEDULED: JobStatus
 JOB_STATUS_RUNNING: JobStatus
 JOB_STATUS_SUCCESS: JobStatus
 JOB_STATUS_FAILURE: JobStatus
+PROMPT_TYPE_UNKNOWN: PromptType
 PROMPT_TYPE_IN_PLACE: PromptType
+EVALUATION_JOB_TYPE_UNKNOWN: EvaluationJobType
 EVALUATION_JOB_TYPE_MLFLOW: EvaluationJobType
 CONFIG_TYPE_UNKNOWN: ConfigType
 CONFIG_TYPE_TRAINING_ARGUMENTS: ConfigType
@@ -754,22 +768,25 @@ class AdapterMetadata(_message.Message):
 
 
 class PromptMetadata(_message.Message):
-    __slots__ = ("id", "name", "dataset_id", "prompt_template")
+    __slots__ = ("id", "type", "name", "dataset_id", "prompt_template")
     ID_FIELD_NUMBER: _ClassVar[int]
+    TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_TEMPLATE_FIELD_NUMBER: _ClassVar[int]
     id: str
+    type: PromptType
     name: str
     dataset_id: str
     prompt_template: str
 
-    def __init__(
-        self,
-        id: _Optional[str] = ...,
-        name: _Optional[str] = ...,
-        dataset_id: _Optional[str] = ...,
-        prompt_template: _Optional[str] = ...) -> None: ...
+    def __init__(self,
+                 id: _Optional[str] = ...,
+                 type: _Optional[_Union[PromptType,
+                                        str]] = ...,
+                 name: _Optional[str] = ...,
+                 dataset_id: _Optional[str] = ...,
+                 prompt_template: _Optional[str] = ...) -> None: ...
 
 
 class WorkerProps(_message.Message):

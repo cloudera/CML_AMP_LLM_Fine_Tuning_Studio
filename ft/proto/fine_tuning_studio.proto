@@ -477,13 +477,15 @@ protobuf enum definitions
 // their enums. Hence the prefix of the enum.
 enum DatasetType {
 
+  DATASET_TYPE_UNKNOWN = 0;
+
   // Dataset is stored on HF hub and can be 
   // downloaded whenever needed.
-  DATASET_TYPE_HUGGINGFACE = 0;
+  DATASET_TYPE_HUGGINGFACE = 1;
 
   // Dataset is locally stored in project files
   // and can be referenced by a dataset location.
-  DATASET_TYPE_PROJECT = 1;
+  DATASET_TYPE_PROJECT = 2;
 }
 
 // Type of model. This AMP currently supports
@@ -492,18 +494,20 @@ enum DatasetType {
 // files within a CML workspace.
 enum ModelType {
 
+  MODEL_TYPE_UNKNOWN = 0;
+
   // Huggingface model.
-  MODEL_TYPE_HUGGINGFACE = 0;
+  MODEL_TYPE_HUGGINGFACE = 1;
 
   // Model imported from project files.
   //
   // TODO: determine a way to extract model framework from the content
   // of the provided file directory (or by other parameters
   // in the model metadata request)
-  MODEL_TYPE_PROJECT = 1;
+  MODEL_TYPE_PROJECT = 2;
 
   // Model was imported from CML Model Registry.
-  MODEL_TYPE_MODEL_REGISTRY = 2;
+  MODEL_TYPE_MODEL_REGISTRY = 3;
 
 }
 
@@ -516,48 +520,55 @@ enum ModelType {
 // at this time. we should support other frameworks.
 enum ModelFrameworkType {
 
+  MODEL_FRAMEWORK_TYPE_UNKNOWN = 0;
+
   // Pytorch
-  MODEL_FRAMEWORK_TYPE_PYTORCH = 0;
+  MODEL_FRAMEWORK_TYPE_PYTORCH = 1;
 
   // Tensorflow
-  MODEL_FRAMEWORK_TYPE_TENSORFLOW = 1;
+  MODEL_FRAMEWORK_TYPE_TENSORFLOW = 2;
 
   // ONNX
-  MODEL_FRAMEWORK_TYPE_ONNX = 2;
+  MODEL_FRAMEWORK_TYPE_ONNX = 3;
 
 }
 
 // Type of PEFT adapter.
 enum AdapterType {
 
+  ADAPTER_TYPE_UNKNOWN = 0;
+
   // Project-relative PEFT adapter imported from project
   // files, probably created after a fine-tuning
   // job was ran in our app.
-  ADAPTER_TYPE_PROJECT = 0;
+  ADAPTER_TYPE_PROJECT = 1;
 
   // Huggingface-stored adapter that can be pulled
   // down from HF hub.
-  ADAPTER_TYPE_HUGGINGFACE = 1;
+  ADAPTER_TYPE_HUGGINGFACE = 2;
 
   // Adapter stored within the CML model registry.
-  ADAPTER_TYPE_MODEL_REGISTRY = 2;
+  ADAPTER_TYPE_MODEL_REGISTRY = 3;
 }
 
 
 enum JobStatus {
-  JOB_STATUS_SCHEDULED = 0;
-  JOB_STATUS_RUNNING = 1;
-  JOB_STATUS_SUCCESS = 2;
-  JOB_STATUS_FAILURE = 3;
+  JOB_STATUS_UNKNOWN = 0;
+  JOB_STATUS_SCHEDULED = 1;
+  JOB_STATUS_RUNNING = 2;
+  JOB_STATUS_SUCCESS = 3;
+  JOB_STATUS_FAILURE = 4;
 }
 
 enum PromptType {
-  PROMPT_TYPE_IN_PLACE = 0;
+  PROMPT_TYPE_UNKNOWN = 0;
+  PROMPT_TYPE_IN_PLACE = 1;
 }
 
 
 enum EvaluationJobType {
-  EVALUATION_JOB_TYPE_MLFLOW = 0;
+  EVALUATION_JOB_TYPE_UNKNOWN = 0;
+  EVALUATION_JOB_TYPE_MLFLOW = 1;
 }
 
 
@@ -712,18 +723,21 @@ message PromptMetadata {
   // Unique ID of the prompt in question.
   string id = 1;
 
+  // Type of prompt template.
+  PromptType type = 2;
+
   // Human-friendly name of this prompt template
   // for use-cases elsewhere
-  string name = 2;
+  string name = 3;
 
   // ID of the dataset that uses this prompt.
   // This dataset should contain column names
   // that correspond to the items that are
   // in the list of slots.
-  string dataset_id = 3;
+  string dataset_id = 4;
 
   // Python formatted prompt string template.
-  string prompt_template = 4;
+  string prompt_template = 5;
 }
 
 

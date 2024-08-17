@@ -1,26 +1,24 @@
 import torch
-from typing import Optional
 from transformers.utils import is_accelerate_available, is_bitsandbytes_available
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
     GenerationConfig,
+    BitsAndBytesConfig,
     pipeline
 )
 from peft import PeftModel
+from typing import Dict
 
 
 # TODO: pass in BitsAndBytes configuration as written in mlflow_pyfunc.py
 def load_adapted_hf_generation_pipeline(
         base_model_name,
         lora_model_name,
-        temperature: float = 0.7,
-        top_p: float = 1.,
-        max_tokens: int = 60,
         batch_size: int = 2,
         device: str = "cuda",
-        load_in_8bit: bool = False,
-        generation_kwargs: Optional[dict] = None,
+        bnb_config_dict: Dict = None,
+        gen_config_dict: Dict = None,
 ):
     """
     Load a huggingface model & adapt with PEFT.
@@ -30,23 +28,23 @@ def load_adapted_hf_generation_pipeline(
     if device == "cuda":
         if not is_accelerate_available():
             raise ValueError("Install `accelerate`")
-    if load_in_8bit and not is_bitsandbytes_available():
+    if bnb_config_dict and not is_bitsandbytes_available():
         raise ValueError("Install `bitsandbytes`")
 
     tokenizer = AutoTokenizer.from_pretrained(base_model_name)
     task = "text-generation"
 
+    bnb_config: BitsAndBytesConfig = BitsAndBytesConfig(**bnb_config_dict) if bnb_config_dict else None
+
     if device == "cuda":
         model = AutoModelForCausalLM.from_pretrained(
             base_model_name,
-            load_in_8bit=load_in_8bit,
-            torch_dtype=torch.float16,
+            quantization_config=bnb_config,
             device_map="auto",
         )
         model = PeftModel.from_pretrained(
             model,
             lora_model_name,
-            torch_dtype=torch.float16,
         )
     elif device == "mps":
         model = AutoModelForCausalLM.from_pretrained(
@@ -74,18 +72,9 @@ def load_adapted_hf_generation_pipeline(
     model.config.bos_token_id = 1
     model.config.eos_token_id = 2
 
-    if not load_in_8bit:
-        model.half()
     model.eval()
 
-    generation_kwargs = generation_kwargs if generation_kwargs is not None else {}
-    config = GenerationConfig(
-        do_sample=True,
-        temperature=temperature,
-        max_new_tokens=max_tokens,
-        top_p=top_p,
-        **generation_kwargs,
-    )
+    config = GenerationConfig(**gen_config_dict)
     pipe = pipeline(
         task,
         model=model,
@@ -98,11 +87,13 @@ def load_adapted_hf_generation_pipeline(
     return pipe
 
 
-def fetch_pipeline(model_name, adapter_name, device="gpu"):
+def fetch_pipeline(model_name, adapter_name, device="gpu", bnb_config_dict: Dict = None, gen_config_dict: Dict = None):
     return load_adapted_hf_generation_pipeline(
         base_model_name=model_name,
         lora_model_name=adapter_name,
-        device=device
+        device=device,
+        bnb_config_dict=bnb_config_dict,
+        gen_config_dict=gen_config_dict,
     )
 
 
