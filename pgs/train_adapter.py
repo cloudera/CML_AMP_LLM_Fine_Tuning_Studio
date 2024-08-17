@@ -175,7 +175,7 @@ def create_train_adapter_page():
                             type=ConfigType.CONFIG_TYPE_TRAINING_ARGUMENTS,
                             config=training_args_text
                         )
-                    )
+                    ).config
 
                     fts.StartFineTuningJob(
                         StartFineTuningJobRequest(

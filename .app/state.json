@@ -2,9 +2,8 @@
   "datasets": [
     {
       "id": "441509f4-137b-40ce-a303-bbd2a63f1e69",
-      "type": 0,
+      "type": "DATASET_TYPE_HUGGINGFACE",
       "name": "Clinton/Text-to-sql-v1",
-      "description": "",
       "huggingface_name": "Clinton/Text-to-sql-v1",
       "features": [
         "instruction",
@@ -16,9 +15,8 @@
     },
     {
       "id": "ea5b3d2f-c2b6-4b73-8989-e5175b4efb03",
-      "type": 0,
+      "type": "DATASET_TYPE_HUGGINGFACE",
       "name": "hakurei/open-instruct-v1",
-      "description": "",
       "huggingface_name": "hakurei/open-instruct-v1",
       "features": [
         "output",
@@ -28,9 +26,8 @@
     },
     {
       "id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
-      "type": 0,
+      "type": "DATASET_TYPE_HUGGINGFACE",
       "name": "philschmid/sql-create-context-copy",
-      "description": "",
       "huggingface_name": "philschmid/sql-create-context-copy",
       "features": [
         "question",
@@ -40,9 +37,8 @@
     },
     {
       "id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
-      "type": 0,
+      "type": "DATASET_TYPE_HUGGINGFACE",
       "name": "teknium/GPTeacher-General-Instruct",
-      "description": "",
       "huggingface_name": "teknium/GPTeacher-General-Instruct",
       "features": [
         "instruction",
@@ -52,9 +48,8 @@
     },
     {
       "id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
-      "type": 0,
+      "type": "DATASET_TYPE_HUGGINGFACE",
       "name": "s-nlp/paradetox",
-      "description": "",
       "huggingface_name": "s-nlp/paradetox",
       "features": [
         "en_toxic_comment",
@@ -65,46 +60,47 @@
   "models": [
     {
       "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
-      "type": 0,
+      "type": "MODEL_TYPE_HUGGINGFACE",
       "name": "Qwen/Qwen2-0.5B",
       "huggingface_model_name": "Qwen/Qwen2-0.5B"
     },
     {
       "id": "275d8d87-6e07-4f68-acf4-031dd2ce5a96",
-      "type": 0,
+      "type": "MODEL_TYPE_HUGGINGFACE",
       "name": "EleutherAI/pythia-160m",
       "huggingface_model_name": "EleutherAI/pythia-160m"
     },
     {
       "id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
-      "type": 0,
+      "type": "MODEL_TYPE_HUGGINGFACE",
       "name": "bigscience/bloom-1b1",
       "huggingface_model_name": "bigscience/bloom-1b1"
     },
     {
       "id": "1ea746bb-dd7c-4072-a93b-c409af07820e",
-      "type": 0,
+      "type": "MODEL_TYPE_HUGGINGFACE",
       "name": "distilbert/distilgpt2",
       "huggingface_model_name": "distilbert/distilgpt2"
     }
   ],
-  "fine_tuning_jobs": [],
-  "evaluation_jobs": [],
   "prompts": [
     {
       "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
+      "type": "PROMPT_TYPE_IN_PLACE",
       "name": "PREBUILT: philschmid/sql-create-context-copy",
       "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
       "prompt_template": "<TABLE>: {context}\n<QUESTION>: {question}\n<SQL>: {answer}"
     },
     {
       "id": "7ee0f633-faf0-4827-b4cf-2eab4795fc53",
+      "type": "PROMPT_TYPE_IN_PLACE",
       "name": "PREBUILT: instruct",
       "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
       "prompt_template": "<Instruction>: {instruction}\n<Input>: {input}\n<Response>: {response}\n"
     },
     {
       "id": "d1a4bb2b-e5c0-4fd7-abd3-0f53c5c00d17",
+      "type": "PROMPT_TYPE_IN_PLACE",
       "name": "PREBUILT: toxic",
       "dataset_id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
       "prompt_template": "<Toxic>: {en_toxic_comment}\n<Neutral>: {en_neutral_comment}"
@@ -113,22 +109,22 @@
   "adapters": [
     {
       "id": "e3fe6f50-5be2-4960-bc7b-612843cdf5bd",
+      "type": "ADAPTER_TYPE_PROJECT",
       "name": "bloom1b1-lora-instruct",
-      "type": 0,
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-instruct"
     },
     {
       "id": "64e8a578-7067-4cb9-8bd0-efd0da901bfe",
+      "type": "ADAPTER_TYPE_PROJECT",
       "name": "bloom1b1-lora-sql",
-      "type": 0,
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-sql"
     },
     {
       "id": "4ff47f49-2e72-4457-99ac-964927e1b05c",
+      "type": "ADAPTER_TYPE_PROJECT",
       "name": "bloom1b1-lora-toxic",
-      "type": 0,
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-toxic"
     }
@@ -136,22 +132,22 @@
   "configs": [
     {
       "id": "5b91913e-3758-4f55-a411-6f3c09af196f",
-      "type": 4,
+      "type": "CONFIG_TYPE_LORA_CONFIG",
       "config": "{\"r\": 16, \"lora_alpha\": 32, \"lora_dropout\": 0.05, \"bias\": \"none\", \"task_type\": \"CAUSAL_LM\"}"
     },
     {
       "id": "538b9d54-6812-4b44-afad-9cb0bd3844ac",
-      "type": 2,
+      "type": "CONFIG_TYPE_BITSANDBYTES_CONFIG",
       "config": "{\"load_in_4bit\": true, \"bnb_4bit_quant_type\": \"nf4\", \"bnb_4bit_compute_dtype\": \"float16\", \"bnb_4bit_use_double_quant\": true, \"quant_method\": \"bitsandbytes\"}"
     },
     {
       "id": "c6bda90d-38df-4515-983d-970785254b80",
-      "type": 1,
+      "type": "CONFIG_TYPE_TRAINING_ARGUMENTS",
       "config": "{\"num_train_epochs\": 1, \"optim\": \"paged_adamw_32bit\", \"per_device_train_batch_size\": 1, \"gradient_accumulation_steps\": 4, \"warmup_ratio\": 0.03, \"max_grad_norm\": 0.3, \"learning_rate\": 0.0002, \"fp16\": true, \"logging_steps\": 1, \"lr_scheduler_type\": \"constant\", \"disable_tqdm\": true, \"evaluation_strategy\": \"epoch\", \"eval_steps\": 1, \"save_strategy\": \"epoch\", \"report_to\": \"mlflow\"}"
     },
     {
       "id": "aa14660d-d89a-43c0-b323-b09af2f97487",
-      "type": 3,
+      "type": "CONFIG_TYPE_GENERATION_CONFIG",
       "config": "{\"do_sample\": true, \"temperature\": 0.8, \"max_new_tokens\": 60, \"top_p\": 1, \"top_k\": 50, \"num_beams\": 1, \"repetition_penalty\": 1.1}"
     }
   ]
