@@ -4,6 +4,7 @@ from ft.utils import get_env_variable, fetch_resource_usage_data, process_resour
 from typing import List
 from ft.api import *
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+import json
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -83,7 +84,7 @@ with ccol1:
 
         # Advanced options
         st.markdown("---")
-        st.caption("**Advance Options**")
+        st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
         with c1:
             cpu = st.text_input("CPU(vCPU)", value="2", key="cpu")
@@ -93,6 +94,48 @@ with ccol1:
         gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
 
         button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None
+
+        if button_enabled:
+            with st.expander("Configs"):
+                cc1, cc2 = st.columns([1, 1])
+
+                # Extract out a BnB config and a generation config that will be used for
+                # this specific mlflow evaluation run. Right now there is no selection logic on
+                # these configs for a specific model type, but there may be in the future. For now,
+                # just use the first selected configuration for each.
+                bnb_config_text = cc1.text_area(
+                    "Quantization Config",
+                    json.dumps(
+                        json.loads(
+                            fts.ListConfigs(
+                                ListConfigsRequest(
+                                    type=CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                                    model_id=current_models[model_idx].id,
+                                    adapter_id=model_adapters[model_adapter_idx].id
+                                )
+                            ).configs[0].config
+                        ),
+                        indent=2
+                    ),
+                    height=200
+                )
+                generation_config_text = cc2.text_area(
+                    "Generation Config",
+                    json.dumps(
+                        json.loads(
+                            fts.ListConfigs(
+                                ListConfigsRequest(
+                                    type=CONFIG_TYPE_GENERATION_CONFIG,
+                                    model_id=current_models[model_idx].id,
+                                    adapter_id=model_adapters[model_adapter_idx].id
+                                )
+                            ).configs[0].config
+                        ),
+                        indent=2
+                    ),
+                    height=200
+                )
+
         start_job_button = st.button(
             "Start MLflow Evaluation Job",
             type="primary",
@@ -104,17 +147,34 @@ with ccol1:
                 model = current_models[model_idx]
                 dataset = current_datasets[dataset_idx]
                 adapter = model_adapters[model_adapter_idx]
-                print(model.id)
-                print(dataset.id)
-                print(adapter.id)
+
+                # If there were any changes made to the generation or bnb config,
+                # add these new configs to the config store.
+                bnb_config_md: ConfigMetadata = fts.AddConfig(
+                    AddConfigRequest(
+                        type=CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                        config=bnb_config_text
+                    )
+                ).config
+                generation_config_md: ConfigMetadata = fts.AddConfig(
+                    AddConfigRequest(
+                        type=CONFIG_TYPE_GENERATION_CONFIG,
+                        config=generation_config_text
+                    )
+                ).config
+
                 fts.StartEvaluationJob(
                     StartEvaluationJobRequest(
+                        type=EvaluationJobType.EVALUATION_JOB_TYPE_MLFLOW,
                         adapter_id=adapter.id,
                         base_model_id=model.id,
                         dataset_id=dataset.id,
                         cpu=int(cpu),
                         gpu=gpu,
-                        memory=int(memory)
+                        memory=int(memory),
+                        model_bnb_config_id=bnb_config_md.id,
+                        adapter_bnb_config_id=bnb_config_md.id,
+                        generation_config_id=generation_config_md.id
                     )
                 )
                 st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")

@@ -12,6 +12,8 @@ def driver(
         dataset_id: str = None,
         base_model_id: str = None,
         adapter_id: str = None,
+        bnb_config_id: str = None,
+        generation_config_id: str = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
@@ -30,9 +32,24 @@ def driver(
     base_model: ModelMetadata = client.GetModel(GetModelRequest(id=base_model_id))
     adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id))
 
+    # Load in the generation config and bnb config.
+    bnb_config_dict = client.GetConfig(GetConfigRequest(id=bnb_config_id)) if bnb_config_id else None
+    generation_config_dict = client.GetConfig(GetConfigRequest(
+        id=generation_config_id)) if generation_config_id else None
+
     # Load Model Pipeline
-    # TODO: remove dependencies on model and adapter type
-    pipeline = fetch_pipeline(base_model.huggingface_model_name, adapter.location, device=device)
+    # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
+    # is available in the project files location, and that the base model is available
+    # on huggingface.
+    assert base_model.type == MODEL_TYPE_HUGGINGFACE
+    assert adapter.type == ADAPTER_TYPE_PROJECT
+    pipeline = fetch_pipeline(
+        base_model.huggingface_model_name,
+        adapter.location,
+        device=device,
+        bnb_config_dict=bnb_config_dict,
+        gen_config_dict=generation_config_dict
+    )
 
     # Log model to MLFlow
     model_info = logger.log_model(pipeline)

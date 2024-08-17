@@ -9,12 +9,15 @@ import torch
 from ft.utils import get_device
 from ft.utils import attempt_hf_login
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+import json
 
-# Instantiate the client to the FTS gRPC app server.
+# Instantiate (or get the pre-existing) client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
 
-# Initialize session state
+# Initialize session state. This is the recommended
+# way to initialize session state parameters in Streamlit.
+# https://docs.streamlit.io/develop/concepts/architecture/session-state
 if 'current_model_metadata' not in st.session_state:
     st.session_state.current_model_metadata = None
 if 'model_adapter' not in st.session_state:
@@ -77,6 +80,7 @@ def prompt_fragment():
 
 def evaluate_fragment():
     cont = st.container()
+
     generate_button = cont.button("Generate", type="primary", use_container_width=True)
 
     if generate_button:
@@ -85,41 +89,30 @@ def evaluate_fragment():
 
             input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to(get_device())
 
+            # Disable the model adapters so we can see baseline mdoel performance.
             st.session_state.current_model.disable_adapters()
 
-            # TODO: extract generation arguments from metadata store.
-            with torch.cuda.amp.autocast():
+            generation_config_dict = json.loads(st.session_state.generation_config_text)
+
+            with torch.amp.autocast('cuda'):
                 model_out = st.session_state.current_model.generate(
                     **input_tokens,
-                    max_new_tokens=50,
-                    repetition_penalty=1.1,
-                    num_beams=1,
-                    temperature=0.7,
-                    top_p=1.0,
-                    top_k=50,
-                    do_sample=True,
+                    **generation_config_dict,
                 )
 
             tok_out = tokenizer.decode(model_out[0], skip_special_tokens=False)[len(st.session_state.input_prompt):]
-            print(tok_out)
             st.session_state.base_output = tok_out
 
-            # TODO: extract generation arguments from metadata store.
+            # Enable adapters and set them equal to the adapter names, which
+            # we have set as the adapter id.
             st.session_state.current_model.enable_adapters()
             st.session_state.current_model.set_adapter(st.session_state.model_adapter.id)
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast('cuda'):
                 model_out = st.session_state.current_model.generate(
                     **input_tokens,
-                    max_new_tokens=50,
-                    repetition_penalty=1.1,
-                    num_beams=1,
-                    temperature=0.7,
-                    top_p=1.0,
-                    top_k=50,
-                    do_sample=True,
+                    **generation_config_dict,
                 )
             tok_out2 = tokenizer.decode(model_out[0], skip_special_tokens=False)[len(st.session_state.input_prompt):]
-            print(tok_out2)
             st.session_state.base_output2 = tok_out2
 
 
@@ -155,10 +148,20 @@ with col1:
             if st.session_state.current_model_metadata != current_model_metadata:
                 with st.spinner("Loading model..."):
 
-                    # TODO: extract quanitzation config from metadata store.
-                    bnb_config = BitsAndBytesConfig()
-                    bnb_config.load_in_4bit = True
-                    bnb_config.bnb_4bit_compute_dtype = torch.float16
+                    # Grab a BnB config for this model. Note that the ListConfigs call
+                    # does not currently filter configs based on model/adapter id's, but
+                    # may do so in the future. For now, just take the first available
+                    # BnB config from the list.
+                    bnb_config_dict = json.loads(
+                        fts.ListConfigs(
+                            ListConfigsRequest(
+                                type=ConfigType.CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                                model_id=current_model_metadata.id
+                            )
+                        ).configs[0].config
+                    )
+                    bnb_config: BitsAndBytesConfig = BitsAndBytesConfig(**bnb_config_dict)
+
                     st.session_state.current_model = AutoModelForCausalLM.from_pretrained(
                         current_model_metadata.huggingface_model_name, quantization_config=bnb_config, return_dict=True)
                     st.session_state.current_model_metadata = current_model_metadata
@@ -202,6 +205,32 @@ with col1:
 
 
 with col2:
+
+    # Generation config expander
+    if st.session_state.current_model_metadata and st.session_state.model_adapter:
+        with st.expander("Generation Arguments:"):
+
+            # Extract out the generation args for this model. Right now, there is no config-selection
+            # logic based on model id or otherwise, but there may be in the future. For now, just take
+            # the first generation config in the config store and use it here.
+            generation_config_text = st.text_area(
+                "Generation Config",
+                json.dumps(
+                    json.loads(
+                        fts.ListConfigs(
+                            ListConfigsRequest(
+                                type=ConfigType.CONFIG_TYPE_GENERATION_CONFIG,
+                                model_id=st.session_state.current_model_metadata.id,
+                                adapter_id=st.session_state.model_adapter.id
+                            )
+                        ).configs[0].config
+                    ),
+                    indent=2
+                ),
+                height=200,
+                key='generation_config_text'
+            )
+
     cont = st.container(border=True)
     if st.session_state.current_model_metadata:
         cont.text(f"Base [model: {st.session_state.current_model_metadata.name}]")

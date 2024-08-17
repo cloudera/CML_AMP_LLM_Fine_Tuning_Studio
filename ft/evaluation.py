@@ -80,6 +80,16 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
     arg_list.append("--fts_server_port")
     arg_list.append(str(DEFAULT_FTS_GRPC_PORT))
 
+    # Pass in configurations.
+    arg_list.append("--adapter_bnb_config_id")
+    arg_list.append(request.adapter_bnb_config_id)
+
+    arg_list.append("--model_bnb_config_id")
+    arg_list.append(request.model_bnb_config_id)
+
+    arg_list.append("--generation_config_id")
+    arg_list.append(request.generation_config_id)
+
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory

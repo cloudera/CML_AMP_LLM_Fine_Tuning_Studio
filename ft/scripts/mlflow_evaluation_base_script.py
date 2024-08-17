@@ -24,6 +24,10 @@ parser.add_argument("--adapter_id", help="Path of the adapter", default=None)
 parser.add_argument("--result_dir", help="Path of result dir", required=True)
 parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
 parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
+parser.add_argument("--adapter_bnb_config_id", help="ID of the adapter quantization config", default=None)
+parser.add_argument("--model_bnb_config_id", help="ID of the model quantization config", default=None)
+parser.add_argument("--generation_config_id", help="ID of the generation config", default=None)
+
 
 args = parser.parse_args(arg_string.split())
 
@@ -36,6 +40,8 @@ try:
         dataset_id=args.dataset_id,
         base_model_id=args.base_model_id,
         adapter_id=args.adapter_id,
+        bnb_config_id=args.adapter_bnb_config_id,  # only use bnb config of the adapter for all model layers, for now
+        generation_config_id=args.generation_config_id,
         client=client
     )
     print(response.metrics)
