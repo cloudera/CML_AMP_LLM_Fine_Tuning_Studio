@@ -5,8 +5,6 @@ from trl import SFTTrainer
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
-    BitsAndBytesConfig,
-    TrainingArguments,
     DataCollatorForLanguageModeling
 )
 import torch
@@ -36,8 +34,8 @@ class AMPFineTuner:
             base_model,
             auth_token="",
             ft_job_uuid="",
-            bnb_config=BitsAndBytesConfig(),
-            training_args=TrainingArguments()):
+            bnb_config=None,
+            training_args=None):
         mlflow.set_experiment(ft_job_uuid)
 
         # Load the base model and tokenizer

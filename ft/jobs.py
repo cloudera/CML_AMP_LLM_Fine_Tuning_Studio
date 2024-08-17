@@ -95,6 +95,9 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     arg_list.append("--out_dir")
     arg_list.append(out_dir)
 
+    arg_list.append("--train_out_dir")
+    arg_list.append(os.path.join("outputs", job_id))
+
     arg_list.append("--num_epochs")
     arg_list.append(str(request.num_epochs))  # Convert to str
 
@@ -154,6 +157,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 
     metadata = FineTuningJobMetadata(
         job_id=job_id,
+        out_dir=request.output_dir,
         base_model_id=request.base_model_id,
         dataset_id=request.dataset_id,
         prompt_id=request.prompt_id,

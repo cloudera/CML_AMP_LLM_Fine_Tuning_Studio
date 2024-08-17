@@ -124,6 +124,12 @@ def create_train_adapter_page():
                 height=200)
 
             with st.expander("Advanced Training Options"):
+                st.info("""
+                        NOTE: the following fields in the below JSON will be overridden by the values set in the UI above:
+                        * Output Location (TrainingArguments.output_dir)
+                        * Number of Epochs (TrainingArguments.num_train_epochs)
+                        * Learning Rate (TrainingArguments.learning_rate)
+                        """)
                 training_args_text = st.text_area(
                     "Training Arguments",
                     json.dumps(
@@ -170,10 +176,21 @@ def create_train_adapter_page():
                             config=bnb_config_text
                         )
                     ).config
+
+                    # Override the fields that were set in the UI. Note that the
+                    # output dir passed to the training job should only become
+                    # available when we have a UUID, which becomes available
+                    # further down the road. Because of this, we are adding multiple
+                    # training args configs to the config store right off the bat, which
+                    # we may want to clean later.
+                    training_args_config_dict = json.loads(training_args_text)
+                    training_args_config_dict["learning_rate"] = float(learning_rate)
+                    training_args_config_dict["num_train_epochs"] = int(num_epochs)
+
                     training_args_config: ConfigMetadata = fts.AddConfig(
                         AddConfigRequest(
                             type=ConfigType.CONFIG_TYPE_TRAINING_ARGUMENTS,
-                            config=training_args_text
+                            config=json.dumps(training_args_config_dict)
                         )
                     ).config
 
