@@ -1,12 +1,14 @@
 from ft.eval.mlflow_evaluator import ModelEvaluator
 from ft.eval.mlflow_logger import ModelLogger
 from ft.eval.data_loader import Dataloader
+from ft.eval.mlflow_pyfunc import MLFlowTransformers
 from ft.pipeline import fetch_pipeline
 import pandas as pd
 from ft.eval.eval_job import EvaluationResponse
 from ft.client import FineTuningStudioClient
 from ft.api import *
 import json
+import torch
 
 
 def driver(
@@ -19,7 +21,7 @@ def driver(
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
     device = "cuda"
-
+    num_gpu_devices = torch.cuda.device_count()
     dataloader = Dataloader()
     logger = ModelLogger()
     evaluator = ModelEvaluator()
@@ -45,16 +47,31 @@ def driver(
     # on huggingface.
     assert base_model.type == MODEL_TYPE_HUGGINGFACE
     assert adapter.type == ADAPTER_TYPE_PROJECT
-    pipeline = fetch_pipeline(
-        base_model.huggingface_model_name,
-        adapter.location,
-        device=device,
-        bnb_config_dict=bnb_config_dict,
-        gen_config_dict=generation_config_dict
-    )
+    model_info = None
+    if num_gpu_devices == 1:
+        pipeline = fetch_pipeline(
+            base_model.huggingface_model_name,
+            adapter.location,
+            device=device,
+            bnb_config_dict=bnb_config_dict,
+            gen_config_dict=generation_config_dict
+        )
 
-    # Log model to MLFlow
-    model_info = logger.log_model(pipeline)
+        # Log model to MLFlow
+        model_info = logger.log_model_pipeline(pipeline)
+    elif num_gpu_devices > 1:
+        mlt = MLFlowTransformers()
+        try:
+            # Inside try cache to avoid failures with wrong adapters
+            peft_model, tokenizer = mlt.get_peft_model_and_tokenizer(base_model.huggingface_model_name, adapter.location, bnb_config_dict)
+            model_info = logger.log_model_multi_gpu(peft_model,tokenizer)
+        except:
+            # need to improve logic for this
+            print("Failed to load peft model. Hence running eval on only base model.")
+            base_model, tokenizer = mlt.get_base_model_and_tokenizer(base_model.huggingface_model_name, bnb_config_dict)
+            model_info = logger.log_model_multi_gpu(base_model, tokenizer)
+    else:
+        raise ValueError("The driver script is currently set up to handle only GPU evaluation.")
 
     # Evaluate model
     results = evaluator.evaluate_model(model_info, eval_dataset, eval_column_name)

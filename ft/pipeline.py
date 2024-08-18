@@ -11,7 +11,6 @@ from peft import PeftModel
 from typing import Dict
 
 
-# TODO: pass in BitsAndBytes configuration as written in mlflow_pyfunc.py
 def load_adapted_hf_generation_pipeline(
         base_model_name,
         lora_model_name,
@@ -35,45 +34,56 @@ def load_adapted_hf_generation_pipeline(
     task = "text-generation"
 
     bnb_config: BitsAndBytesConfig = BitsAndBytesConfig(**bnb_config_dict) if bnb_config_dict else None
-
     if device == "cuda":
         model = AutoModelForCausalLM.from_pretrained(
             base_model_name,
             quantization_config=bnb_config,
             device_map="auto",
         )
-        model = PeftModel.from_pretrained(
-            model,
-            lora_model_name,
-        )
+        try: 
+            model = PeftModel.from_pretrained(
+                model,
+                lora_model_name,
+                torch_dtype=torch.float16,
+            )
+        except ValueError:
+            raise ValueError("Could not load Lora model due to invalid path or incompatibility")
+        except TypeError as e:
+            print(f"Error loading Lora model due to error: {e}. Loading base model Only")
     elif device == "mps":
         model = AutoModelForCausalLM.from_pretrained(
             base_model_name,
             device_map={"": device},
             torch_dtype=torch.float16,
         )
-        model = PeftModel.from_pretrained(
-            model,
-            lora_model_name,
-            device_map={"": device},
-            torch_dtype=torch.float16,
-        )
+        try: 
+            model = PeftModel.from_pretrained(
+                model,
+                lora_model_name,
+                device_map={"": device},
+                torch_dtype=torch.float16,
+            )
+        except ValueError:
+            raise ValueError("Could not load Lora model due to invalid path or incompatibility")
+        except TypeError as e:
+            print(f"Error loading Lora model due to error: {e}. Loading base model Only")
     else:
         model = AutoModelForCausalLM.from_pretrained(
             base_model_name, low_cpu_mem_usage=False
         )
-        model = PeftModel.from_pretrained(
-            model,
-            lora_model_name
-        )
-
-    # unwind broken decapoda-research config
-    model.config.pad_token_id = tokenizer.pad_token_id = 0  # unk
-    model.config.bos_token_id = 1
-    model.config.eos_token_id = 2
+        try:
+            model = PeftModel.from_pretrained(
+                model,
+                lora_model_name
+            )
+        except ValueError:
+            raise ValueError("Could not load Lora model due to invalid path or incompatibility")
+        except TypeError as e:
+            print(f"Error loading Lora model due to error: {e}. Loading base model Only")
 
     model.eval()
 
+    generation_kwargs = generation_kwargs if generation_kwargs is not None else {}
     config = GenerationConfig(**gen_config_dict)
     pipe = pipeline(
         task,
@@ -87,7 +97,7 @@ def load_adapted_hf_generation_pipeline(
     return pipe
 
 
-def fetch_pipeline(model_name, adapter_name, device="gpu", bnb_config_dict: Dict = None, gen_config_dict: Dict = None):
+def fetch_pipeline(model_name, adapter_name, device="cuda", bnb_config_dict: Dict = None, gen_config_dict: Dict = None):
     return load_adapted_hf_generation_pipeline(
         base_model_name=model_name,
         lora_model_name=adapter_name,
@@ -103,6 +113,6 @@ if __name__ == "__main__":
     pipe = load_adapted_hf_generation_pipeline(
         base_model_name=FOUNDATION_MODEL,
         lora_model_name=ADAPTER_NAME,
-        device="cpu"
+        device="cuda"
     )
     print(pipe("Hello"))
