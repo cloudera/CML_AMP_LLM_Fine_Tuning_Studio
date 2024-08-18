@@ -39,13 +39,7 @@ def create_train_adapter_page():
                 adapter_name = st.text_input("Adapter Name", placeholder="Adapter name", key="adapter_name")
 
             with col2:
-                current_models = fts.get_models()
-                model_idx = st.selectbox(
-                    "Base Models",
-                    range(
-                        len(current_models)),
-                    format_func=lambda x: current_models[x].name,
-                    index=None)
+                adapter_output_dir = st.text_input("Output Location", value="data/adapters/", key="output_location")
 
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
@@ -73,7 +67,13 @@ def create_train_adapter_page():
                         st.code(current_prompts[prompt_idx].prompt_template)
 
             with col2:
-                adapter_output_dir = st.text_input("Output Location", value="data/adapters/", key="output_location")
+                current_models = fts.get_models()
+                model_idx = st.selectbox(
+                    "Base Models",
+                    range(
+                        len(current_models)),
+                    format_func=lambda x: current_models[x].name,
+                    index=None)
 
             # Advanced options
             c1, c2 = st.columns(2)
@@ -88,6 +88,11 @@ def create_train_adapter_page():
                 memory = st.text_input("Memory (GiB)", value="8", key="memory")
             with c3:
                 gpu = st.selectbox("GPU (NVIDIA)", options=[1], index=0)
+
+            auto_add_adapter: bool = st.checkbox("Add Adapter to Fine Tuning Studio after Training", value=True)
+            c1, c2 = st.columns([1, 1])
+            dataset_fraction = c1.slider("Dataset Fraction", min_value=0.0, max_value=1.0, value=1.0)
+            dataset_train_test_split = c2.slider("Dataset Train/Test Split", min_value=0.0, max_value=1.0, value=0.9)
 
             c1, c2 = st.columns([1, 1])
 
@@ -201,7 +206,7 @@ def create_train_adapter_page():
                             dataset_id=dataset.id,
                             prompt_id=prompt.id,
                             num_workers=int(1),
-                            auto_add_adapter=True,
+                            auto_add_adapter=auto_add_adapter,
                             num_epochs=int(num_epochs),
                             learning_rate=float(learning_rate),
                             cpu=int(cpu),
@@ -212,6 +217,8 @@ def create_train_adapter_page():
                             lora_config_id=lora_config.id,
                             training_arguments_config_id=training_args_config.id,
                             output_dir=adapter_output_dir,
+                            dataset_fraction=dataset_fraction,
+                            train_test_split=dataset_train_test_split
                         )
                     )
                     st.success(
