@@ -57,12 +57,8 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 
     # Set Model argument
     # TODO: Support models that dont come from HF
-    arg_list.append("--basemodel")
-    hf_model = list(
-        filter(
-            lambda item: item.id == request.base_model_id,
-            state.models))[0].huggingface_model_name
-    arg_list.append(hf_model)
+    arg_list.append("--base_model_id")
+    arg_list.append(request.base_model_id)
 
     # Set Dataset argument
     arg_list.append("--dataset_id")
@@ -70,11 +66,8 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 
     # Set Prompt Text argument
     # TODO: Ideally this is just part of the aggregate config model below
-    arg_list.append("--prompttemplate")
-    prompt_text = list(filter(lambda item: item.id == request.prompt_id, state.prompts))[0].prompt_template
-    with open("%s/%s" % (job_dir, "prompt.tmpl"), 'w') as prompt_text_file:
-        prompt_text_file.write(prompt_text)
-    arg_list.append("%s/%s" % (job_dir, "prompt.tmpl"))
+    arg_list.append("--prompt_id")
+    arg_list.append(request.prompt_id)
 
     # Pass in all configs needed for FT join.
     # For now, ONLY THE BNB CONFIG ID of the ADAPTER will be used, however technically
@@ -104,6 +97,13 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     arg_list.append("--learning_rate")
     arg_list.append(str(request.learning_rate))  # Convert to str
 
+    arg_list.append("--adapter_name")
+    arg_list.append(request.adapter_name)
+
+    # Auto add the adapter to the database
+    if request.auto_add_adapter:
+        arg_list.append("--auto_add_adapter")
+
     # Pass the IP address of the application engine that's running the FTS gRPC server.
     # passing this to the fine tuning job that's created allows the job to connect to
     # the gRPC server to request information about datasets, models, etc.
@@ -112,10 +112,13 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     arg_list.append("--fts_server_port")
     arg_list.append(str(DEFAULT_FTS_GRPC_PORT))
 
-    # TODO: see if the protobuf default value is sufficient here
     if not request.train_test_split == StartFineTuningJobRequest().train_test_split:
         arg_list.append("--train_test_split")
         arg_list.append(str(request.train_test_split))
+
+    if not request.dataset_fraction == StartFineTuningJobRequest().dataset_fraction:
+        arg_list.append("--dataset_fraction")
+        arg_list.append(str(request.dataset_fraction))
 
     hf_token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN")
     if (not hf_token == "") and (hf_token is not None):
@@ -175,25 +178,6 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         model_bnb_config_id=request.model_bnb_config_id,
         adapter_bnb_config_id=request.adapter_bnb_config_id
     )
-
-    # TODO: ideally this should be done at the END of training
-    # to ensure we're only loading WORKING adapters. Optionally,
-    # we can track adapter training status in the metadata
-    if request.auto_add_adapter:
-        adapter_metadata: AdapterMetadata = AdapterMetadata(
-            id=str(uuid4()),
-            name=request.adapter_name,
-            type=AdapterType.ADAPTER_TYPE_PROJECT,
-            model_id=request.base_model_id,
-            location=out_dir,
-            job_id=job_id,
-            prompt_id=request.prompt_id,
-        )
-
-        state.adapters.append(adapter_metadata)
-        write_state(state)
-
-        metadata.adapter_id = adapter_metadata.id
 
     # This check should always pass for now, but in the future,
     # we may consider handling "default" metadata message as a

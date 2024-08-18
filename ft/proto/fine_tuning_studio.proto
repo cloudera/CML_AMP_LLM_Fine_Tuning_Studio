@@ -205,7 +205,35 @@ message GetAdapterResponse {
   AdapterMetadata adapter = 1;
 }
 message AddAdapterRequest {
-  AdapterMetadata adapter = 1;
+    // Type of model adapter.
+    AdapterType type = 1;
+
+    // Human friendly name of the adapter for tracking.
+    string name = 2;
+  
+    // Corresponding model ID that this adapter is designed for. This is the
+    // model ID in the FT app.
+    string model_id = 3;
+  
+    // Project-relative directory where the PEFT adapter data is stored.
+    // This dataclass currently just stores the location of the PEFT adapter
+    // in the local directory which can then be used to load an adapter.
+    string location = 4;
+  
+    // Huggingface PEFT adapter name (identifier used to find
+    // the adapter on HF hub).
+    string huggingface_name = 5;
+  
+    // Job ID of the job that was used to train/create this adapter. This is
+    // used to determine if an adapter was trained within this framework or not.
+    string job_id = 6;
+  
+    // Prompt ID of the prompt that was used to train this adapter.
+    string prompt_id = 7;
+  
+    // Adapters should eventually have support in CML model registry. This metadata
+    // will be stored here for adapters in case this is available.
+    RegisteredModelMetadata registered_model = 8;
 }
 message AddAdapterResponse {
   AdapterMetadata adapter = 1;
@@ -321,6 +349,9 @@ message StartFineTuningJobRequest {
 
   // Output directory of the final adapter.
   string output_dir = 18;
+
+  // Optional dataset fraction to reduce/downsample the total dataset size. 
+  float dataset_fraction = 19;
 }
 
 message StartFineTuningJobResponse {

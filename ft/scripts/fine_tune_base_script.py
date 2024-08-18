@@ -1,5 +1,4 @@
 from transformers import BitsAndBytesConfig, TrainingArguments
-from pathlib import Path
 from peft import LoraConfig
 import json
 import datasets
@@ -12,10 +11,9 @@ from ft.client import FineTuningStudioClient
 from ft.api import *
 
 # Constants
-NUM_EPOCHS = 3
-LEARNING_RATE = 2e-4
 DATA_TEXT_FIELD = "prediction"
-TRAIN_TEST_SPLIT = 0.1
+TRAIN_TEST_SPLIT = 0.9
+DATASET_FRACTION = 1.0
 SEED = 42
 
 # Parse arguments from environment variable
@@ -23,17 +21,16 @@ arg_string = os.environ.get('JOB_ARGUMENTS', '')
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--prompttemplate", help="Path of the PromptTemplate", required=True)
-parser.add_argument("--trainerarguments", help="Path of the trainer arguments json")
-parser.add_argument("--basemodel", help="Huggingface base model to use", required=True)
+parser.add_argument("--prompt_id", help="ID of the prompt template to use.", required=True)
+parser.add_argument("--base_model_id", help="Base model ID to use.", required=True)
 parser.add_argument("--dataset_id", help="Dataset ID from the Fine Tuning Studio application", required=True)
 parser.add_argument("--experimentid", help="UUID to use for experiment tracking", required=True)
 parser.add_argument("--out_dir", help="Output directory for the fine-tuned model", required=True)
 parser.add_argument("--train_out_dir", help="Output directory for the training runs", required=True)
-parser.add_argument("--num_epochs", type=int, default=NUM_EPOCHS, help="Epochs for fine tuning job")
-parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate for fine tuning job")
 parser.add_argument("--train_test_split", type=float, default=TRAIN_TEST_SPLIT,
                     help="Split of the existing dataset between training and testing.")
+parser.add_argument("--dataset_fraction", type=float, default=DATASET_FRACTION,
+                    help="Fraction of the dataset to downsample to.")
 parser.add_argument("--bnb_config_id", default=None, help="ID of the BnB config in FT Studio's config store.")
 parser.add_argument("--lora_config_id", default=None, help="ID of the Lora config in FT Studio's config store.")
 parser.add_argument("--training_arguments_config_id", default=None,
@@ -41,6 +38,11 @@ parser.add_argument("--training_arguments_config_id", default=None,
 parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
 parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
 parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
+parser.add_argument("--adapter_name", help="Human friendly name of the adapter to train", default=None)
+parser.add_argument(
+    "--auto_add_adapter",
+    action="store_true",
+    help="Automatically add an adapter to database if training succeeds.")
 
 args = parser.parse_args(arg_string.split())
 
@@ -75,6 +77,31 @@ training_args_dict = json.loads(
     ).config.config
 )
 
+# Load the base dataset into memory. Call the FTS server
+# to extract metadata information about the dataset. Right now,
+# only huggingface datasets are supported for fine tuning jobs.
+dataset_id = args.dataset_id
+dataset_metadata: DatasetMetadata = fts.GetDataset(
+    GetDatasetRequest(
+        id=dataset_id
+    )
+).dataset
+assert dataset_metadata.type == DatasetType.DATASET_TYPE_HUGGINGFACE
+
+# Extract other fields like base model and prompt.
+base_model_md: ModelMetadata = fts.GetModel(
+    GetModelRequest(
+        id=args.base_model_id
+    )
+).model
+
+# Extract prompt template information.
+prompt_md: PromptMetadata = fts.GetPrompt(
+    GetPromptRequest(
+        id=args.prompt_id
+    )
+).prompt
+
 # Override the training args based on the provided output dir. The reason
 # this happens within the job (rather than passing the training job dir as part
 # of the output config) is that we set the training config BEFORE we have this
@@ -83,7 +110,7 @@ training_args_dict["output_dir"] = args.train_out_dir
 
 # Initialize the fine-tuner
 finetuner = fine_tune.AMPFineTuner(
-    base_model=args.basemodel,
+    base_model=base_model_md.id,
     ft_job_uuid=args.experimentid,
     bnb_config=BitsAndBytesConfig(**bnb_config_dict),
     training_args=TrainingArguments(**training_args_dict),
@@ -118,13 +145,13 @@ def split_dataset(ds: datasets.Dataset, split_fraction: float = TRAIN_TEST_SPLIT
     primarily used to create a train dataset and an evaluation dataset.
 
     Parameters:
-        split_fraction (float): the dataset split. The first dataset returned will be of size S*(1-split_fraction).
+        split_fraction (float): the dataset split. The first dataset returned will be of size S*split_fraction.
         seed (int): randomized seed for dataset splitting.
 
     Returns:
         Tuple[Dataset, Dataset], the two split datasets.
     """
-    dataset_split = ds.train_test_split(test_size=split_fraction, shuffle=True, seed=SEED)
+    dataset_split = ds.train_test_split(test_size=(1.0 - split_fraction), shuffle=True, seed=SEED)
     return dataset_split['train'], dataset_split['test']
 
 
@@ -151,19 +178,9 @@ def map_dataset_with_prompt_template(dataset, prompt_template):
 
 # Load and map dataset
 try:
-    prompt_text = Path(args.prompttemplate).read_text()
+    prompt_text = prompt_md.prompt_template
 
-    # Load the base dataset into memory. Call the FTS server
-    # to extract metadata information about the dataset. Right now,
-    # only huggingface datasets are supported for fine tuning jobs.
-    dataset_id = args.dataset_id
-    dataset_metadata: DatasetMetadata = fts.GetDataset(
-        GetDatasetRequest(
-            id=dataset_id
-        )
-    ).dataset
-    assert dataset_metadata.type == DatasetType.DATASET_TYPE_HUGGINGFACE
-    dataset = load_dataset(dataset_metadata.huggingface_name)
+    dataset = load_dataset(dataset_metadata.huggingface_name, dataset_fraction=100 * args.dataset_fraction)
 
     # Split the above dataset into a training dataset and a testing dataset.
     ds_train, ds_eval = split_dataset(dataset, args.train_test_split)
@@ -181,3 +198,18 @@ finetuner.train(
     eval_dataset=ds_eval,
     dataset_text_field=DATA_TEXT_FIELD,
     output_dir=args.out_dir)
+
+
+# Upon success, add the adapter to metadata if it's
+# requested to do so.
+if args.auto_add_adapter:
+    fts.AddAdapter(
+        AddAdapterRequest(
+            type=ADAPTER_TYPE_PROJECT,
+            name=args.adapter_name,
+            model_id=base_model_md.id,
+            location=args.out_dir,
+            job_id=args.experimentid,
+            prompt_id=prompt_md.id
+        )
+    )

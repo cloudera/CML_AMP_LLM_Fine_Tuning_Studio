@@ -278,10 +278,35 @@ class GetAdapterResponse(_message.Message):
 
 
 class AddAdapterRequest(_message.Message):
-    __slots__ = ("adapter",)
-    ADAPTER_FIELD_NUMBER: _ClassVar[int]
-    adapter: AdapterMetadata
-    def __init__(self, adapter: _Optional[_Union[AdapterMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("type", "name", "model_id", "location", "huggingface_name", "job_id", "prompt_id", "registered_model")
+    TYPE_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
+    MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
+    HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
+    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
+    REGISTERED_MODEL_FIELD_NUMBER: _ClassVar[int]
+    type: AdapterType
+    name: str
+    model_id: str
+    location: str
+    huggingface_name: str
+    job_id: str
+    prompt_id: str
+    registered_model: RegisteredModelMetadata
+
+    def __init__(self,
+                 type: _Optional[_Union[AdapterType,
+                                        str]] = ...,
+                 name: _Optional[str] = ...,
+                 model_id: _Optional[str] = ...,
+                 location: _Optional[str] = ...,
+                 huggingface_name: _Optional[str] = ...,
+                 job_id: _Optional[str] = ...,
+                 prompt_id: _Optional[str] = ...,
+                 registered_model: _Optional[_Union[RegisteredModelMetadata,
+                                                    _Mapping]] = ...) -> None: ...
 
 
 class AddAdapterResponse(_message.Message):
@@ -400,7 +425,8 @@ class StartFineTuningJobRequest(_message.Message):
         "adapter_bnb_config_id",
         "training_arguments_config_id",
         "lora_config_id",
-        "output_dir")
+        "output_dir",
+        "dataset_fraction")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -418,6 +444,7 @@ class StartFineTuningJobRequest(_message.Message):
     TRAINING_ARGUMENTS_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_DIR_FIELD_NUMBER: _ClassVar[int]
+    DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
@@ -435,6 +462,7 @@ class StartFineTuningJobRequest(_message.Message):
     training_arguments_config_id: str
     lora_config_id: str
     output_dir: str
+    dataset_fraction: float
 
     def __init__(
         self,
@@ -454,7 +482,8 @@ class StartFineTuningJobRequest(_message.Message):
         adapter_bnb_config_id: _Optional[str] = ...,
         training_arguments_config_id: _Optional[str] = ...,
         lora_config_id: _Optional[str] = ...,
-        output_dir: _Optional[str] = ...) -> None: ...
+        output_dir: _Optional[str] = ...,
+        dataset_fraction: _Optional[float] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
