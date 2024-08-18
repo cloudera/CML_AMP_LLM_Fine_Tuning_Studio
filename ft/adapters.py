@@ -39,7 +39,6 @@ def add_adapter(state: AppState, request: AddAdapterRequest, cml: CMLServiceApi 
         huggingface_name=request.huggingface_name,
         job_id=request.job_id,
         prompt_id=request.prompt_id,
-        registered_model=request.registered_model
     )
 
     state.adapters.append(adapter_md)

@@ -230,10 +230,6 @@ message AddAdapterRequest {
   
     // Prompt ID of the prompt that was used to train this adapter.
     string prompt_id = 7;
-  
-    // Adapters should eventually have support in CML model registry. This metadata
-    // will be stored here for adapters in case this is available.
-    RegisteredModelMetadata registered_model = 8;
 }
 message AddAdapterResponse {
   AdapterMetadata adapter = 1;
@@ -835,6 +831,9 @@ message FineTuningJobMetadata {
 
   // PEFT config.
   string lora_config_id = 15;
+
+  float dataset_fraction = 16;
+  float train_test_split = 17;
 }
 
 

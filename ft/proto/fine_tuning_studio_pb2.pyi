@@ -278,7 +278,7 @@ class GetAdapterResponse(_message.Message):
 
 
 class AddAdapterRequest(_message.Message):
-    __slots__ = ("type", "name", "model_id", "location", "huggingface_name", "job_id", "prompt_id", "registered_model")
+    __slots__ = ("type", "name", "model_id", "location", "huggingface_name", "job_id", "prompt_id")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -286,7 +286,6 @@ class AddAdapterRequest(_message.Message):
     HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
-    REGISTERED_MODEL_FIELD_NUMBER: _ClassVar[int]
     type: AdapterType
     name: str
     model_id: str
@@ -294,7 +293,6 @@ class AddAdapterRequest(_message.Message):
     huggingface_name: str
     job_id: str
     prompt_id: str
-    registered_model: RegisteredModelMetadata
 
     def __init__(self,
                  type: _Optional[_Union[AdapterType,
@@ -304,9 +302,7 @@ class AddAdapterRequest(_message.Message):
                  location: _Optional[str] = ...,
                  huggingface_name: _Optional[str] = ...,
                  job_id: _Optional[str] = ...,
-                 prompt_id: _Optional[str] = ...,
-                 registered_model: _Optional[_Union[RegisteredModelMetadata,
-                                                    _Mapping]] = ...) -> None: ...
+                 prompt_id: _Optional[str] = ...) -> None: ...
 
 
 class AddAdapterResponse(_message.Message):
@@ -850,7 +846,9 @@ class FineTuningJobMetadata(_message.Message):
         "training_arguments_config_id",
         "model_bnb_config_id",
         "adapter_bnb_config_id",
-        "lora_config_id")
+        "lora_config_id",
+        "dataset_fraction",
+        "train_test_split")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -866,6 +864,8 @@ class FineTuningJobMetadata(_message.Message):
     MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
+    TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -881,6 +881,8 @@ class FineTuningJobMetadata(_message.Message):
     model_bnb_config_id: str
     adapter_bnb_config_id: str
     lora_config_id: str
+    dataset_fraction: float
+    train_test_split: float
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -898,7 +900,9 @@ class FineTuningJobMetadata(_message.Message):
                  training_arguments_config_id: _Optional[str] = ...,
                  model_bnb_config_id: _Optional[str] = ...,
                  adapter_bnb_config_id: _Optional[str] = ...,
-                 lora_config_id: _Optional[str] = ...) -> None: ...
+                 lora_config_id: _Optional[str] = ...,
+                 dataset_fraction: _Optional[float] = ...,
+                 train_test_split: _Optional[float] = ...) -> None: ...
 
 
 class ConfigMetadata(_message.Message):

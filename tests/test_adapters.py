@@ -54,8 +54,7 @@ def test_add_adapter_happy(uuid4, write_state):
         adapters=[
             AdapterMetadata(
                 id="ad1",
-                name="my adapter",
-                registered_model=RegisteredModelMetadata()
+                name="my adapter"
             )
         ]
     ))

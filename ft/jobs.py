@@ -91,12 +91,6 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     arg_list.append("--train_out_dir")
     arg_list.append(os.path.join("outputs", job_id))
 
-    arg_list.append("--num_epochs")
-    arg_list.append(str(request.num_epochs))  # Convert to str
-
-    arg_list.append("--learning_rate")
-    arg_list.append(str(request.learning_rate))  # Convert to str
-
     arg_list.append("--adapter_name")
     arg_list.append(request.adapter_name)
 
@@ -168,6 +162,8 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         cml_job_id=created_job.id,
         num_epochs=request.num_epochs,
         learning_rate=request.learning_rate,
+        dataset_fraction=request.dataset_fraction,
+        train_test_split=request.train_test_split,
         worker_props=WorkerProps(
             num_cpu=request.cpu,
             num_gpu=request.gpu,

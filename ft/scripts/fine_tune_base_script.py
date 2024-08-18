@@ -110,7 +110,7 @@ training_args_dict["output_dir"] = args.train_out_dir
 
 # Initialize the fine-tuner
 finetuner = fine_tune.AMPFineTuner(
-    base_model=base_model_md.id,
+    base_model=base_model_md.huggingface_model_name,
     ft_job_uuid=args.experimentid,
     bnb_config=BitsAndBytesConfig(**bnb_config_dict),
     training_args=TrainingArguments(**training_args_dict),
@@ -180,7 +180,7 @@ def map_dataset_with_prompt_template(dataset, prompt_template):
 try:
     prompt_text = prompt_md.prompt_template
 
-    dataset = load_dataset(dataset_metadata.huggingface_name, dataset_fraction=100 * args.dataset_fraction)
+    dataset = load_dataset(dataset_metadata.huggingface_name, dataset_fraction=int(100 * args.dataset_fraction))
 
     # Split the above dataset into a training dataset and a testing dataset.
     ds_train, ds_eval = split_dataset(dataset, args.train_test_split)
