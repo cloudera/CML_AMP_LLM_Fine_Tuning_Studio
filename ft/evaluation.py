@@ -5,7 +5,6 @@ import cmlapi
 from cmlapi import CMLServiceApi
 from ft.state import write_state, replace_state_field
 from ft.api import *
-from ft.consts import DEFAULT_FTS_GRPC_PORT
 
 import os
 
@@ -71,14 +70,6 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
     # Set Evaluation Dir argument
     arg_list.append("--result_dir")
     arg_list.append(result_dir)
-
-    # Pass the IP address of the application engine that's running the FTS gRPC server.
-    # passing this to the fine tuning job that's created allows the job to connect to
-    # the gRPC server to request information about datasets, models, etc.
-    arg_list.append("--fts_server_ip")
-    arg_list.append(str(os.getenv("CDSW_IP_ADDRESS")))
-    arg_list.append("--fts_server_port")
-    arg_list.append(str(DEFAULT_FTS_GRPC_PORT))
 
     # Pass in configurations.
     arg_list.append("--adapter_bnb_config_id")

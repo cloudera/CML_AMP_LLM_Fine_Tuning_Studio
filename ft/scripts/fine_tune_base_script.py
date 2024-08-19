@@ -36,8 +36,6 @@ parser.add_argument("--lora_config_id", default=None, help="ID of the Lora confi
 parser.add_argument("--training_arguments_config_id", default=None,
                     help="ID of the training arguments in FT Studio's config store.")
 parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
-parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
-parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
 parser.add_argument("--adapter_name", help="Human friendly name of the adapter to train", default=None)
 parser.add_argument(
     "--auto_add_adapter",
@@ -47,7 +45,7 @@ parser.add_argument(
 args = parser.parse_args(arg_string.split())
 
 # Create a client connection to the FTS server
-fts: FineTuningStudioClient = FineTuningStudioClient(server_ip=args.fts_server_ip, server_port=args.fts_server_port)
+fts: FineTuningStudioClient = FineTuningStudioClient()
 
 # Attempt log in to huggingface
 attempt_hf_login(args.hf_token)

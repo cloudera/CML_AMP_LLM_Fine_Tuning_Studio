@@ -22,8 +22,6 @@ parser.add_argument("--dataset_id", help="Path of the dataset", default=None)
 parser.add_argument("--base_model_id", help="Path of the base model", default=None)
 parser.add_argument("--adapter_id", help="Path of the adapter", default=None)
 parser.add_argument("--result_dir", help="Path of result dir", required=True)
-parser.add_argument("--fts_server_ip", help="IP address of the FTS gRPC server.", required=True)
-parser.add_argument("--fts_server_port", help="Exposed port of the gRPC server", required=True)
 parser.add_argument("--adapter_bnb_config_id", help="ID of the adapter quantization config", default=None)
 parser.add_argument("--model_bnb_config_id", help="ID of the model quantization config", default=None)
 parser.add_argument("--generation_config_id", help="ID of the generation config", default=None)
@@ -31,7 +29,7 @@ parser.add_argument("--generation_config_id", help="ID of the generation config"
 
 args = parser.parse_args(arg_string.split())
 
-client: FineTuningStudioClient = FineTuningStudioClient(server_ip=args.fts_server_ip, server_port=args.fts_server_port)
+client: FineTuningStudioClient = FineTuningStudioClient()
 
 try:
 
