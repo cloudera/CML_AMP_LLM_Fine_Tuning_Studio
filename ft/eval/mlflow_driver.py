@@ -32,8 +32,8 @@ def driver(
     # Get the model and adapter metadata.
     # given that this is a script that runs on a remote worker (not the same host
     # as the application), need to make gRPC calls to the app server.
-    base_model: ModelMetadata = client.GetModel(GetModelRequest(id=base_model_id))
-    adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id))
+    base_model: ModelMetadata = client.GetModel(GetModelRequest(id=base_model_id)).model
+    adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
 
     # Load in the generation config and bnb config.
     bnb_config_dict = json.loads(client.GetConfig(GetConfigRequest(
