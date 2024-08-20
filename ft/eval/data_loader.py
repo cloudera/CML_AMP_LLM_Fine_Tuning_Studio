@@ -11,7 +11,7 @@ class Dataloader():
 
     @staticmethod
     def fetch_evaluation_dataset(dataset_id: str, total_examples: int = 50, client: FineTuningStudioClient = None):
-        dataset: DatasetMetadata = client.GetDataset(GetDatasetRequest(id=dataset_id))
+        dataset: DatasetMetadata = client.GetDataset(GetDatasetRequest(id=dataset_id)).dataset
         if not dataset or dataset == DatasetMetadata():
             # return this as error in UI
             raise ValueError(f"Dataset with id of {dataset_id} not found in the available datasets.")
