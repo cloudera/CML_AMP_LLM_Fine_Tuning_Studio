@@ -3,9 +3,10 @@ import grpc
 
 from ft.api import *
 from ft.proto.fine_tuning_studio_pb2_grpc import FineTuningStudioStub
-from ft.consts import DEFAULT_FTS_GRPC_PORT
 
 from typing import List
+
+import os
 
 
 class FineTuningStudioClient(FineTuningStudioStub):
@@ -19,7 +20,11 @@ class FineTuningStudioClient(FineTuningStudioStub):
     access all standard stub requests as needed in "proper" request/response format.
     """
 
-    def __init__(self, server_ip: str = "localhost", server_port: str = DEFAULT_FTS_GRPC_PORT):
+    def __init__(self, server_ip: str = None, server_port: str = None):
+        if not server_ip:
+            server_ip = os.getenv("FINE_TUNING_SERVICE_IP")
+        if not server_port:
+            server_port = os.getenv("FINE_TUNING_SERVICE_PORT")
         self.channel = grpc.insecure_channel(f"{server_ip}:{server_port}")
         self.stub = FineTuningStudioStub.__init__(self, self.channel)
 

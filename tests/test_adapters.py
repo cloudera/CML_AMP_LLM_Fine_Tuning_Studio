@@ -42,18 +42,19 @@ def test_get_adapter_missing():
 
 
 @patch("ft.adapters.write_state")
-def test_add_adapter_happy(write_state):
+@patch("ft.adapters.uuid4")
+def test_add_adapter_happy(uuid4, write_state):
     state: AppState = AppState()
     req = AddAdapterRequest(
-        adapter=AdapterMetadata(
-            id="ad1"
-        )
+        name="my adapter"
     )
+    uuid4.return_value = "ad1"
     res = add_adapter(state, req)
     write_state.assert_called_with(AppState(
         adapters=[
             AdapterMetadata(
-                id="ad1"
+                id="ad1",
+                name="my adapter"
             )
         ]
     ))

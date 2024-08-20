@@ -152,7 +152,9 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         how='left'
     )
 
-    display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
+    # TODO: we no longer store adapter_id directly in the fine tuning job. Instead,
+    # the adapter metadata stores an ID of the job that it used for training.
+    # display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
     display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
@@ -161,7 +163,7 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         'job_id',
         'html_url',
         'latest',
-        'adapter_name',
+        # 'adapter_name',
         'base_model_name',
         'dataset_name',
         'prompt_name',
@@ -175,7 +177,7 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
 
     display_df.rename(columns={
         'job_id': 'Job ID',
-        'adapter_name': 'Adapter Name',
+        # 'adapter_name': 'Adapter Name',
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
         'prompt_name': 'Prompt Name',
@@ -187,7 +189,8 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
     display_df['status'] = display_df['Status'].apply(lambda x: status_mapping.get(x, 0) if pd.notnull(x) else 0)
 
     st.data_editor(
-        display_df[["Job ID", "status", "html_url", "exp_id", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
+        # display_df[["Job ID", "status", "html_url", "exp_id", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
+        display_df[["Job ID", "status", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status": st.column_config.ProgressColumn(
@@ -203,7 +206,7 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
             "exp_id": st.column_config.LinkColumn(
                 "CML Exp Link", display_text="Open CML Exp"
             ),
-            "Adapter Name": st.column_config.TextColumn("Adapter Name"),
+            # "Adapter Name": st.column_config.TextColumn("Adapter Name"),
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
             "Prompt Name": st.column_config.TextColumn("Prompt Name")
