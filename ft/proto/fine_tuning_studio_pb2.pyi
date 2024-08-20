@@ -66,6 +66,7 @@ class ConfigType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CONFIG_TYPE_BITSANDBYTES_CONFIG: _ClassVar[ConfigType]
     CONFIG_TYPE_GENERATION_CONFIG: _ClassVar[ConfigType]
     CONFIG_TYPE_LORA_CONFIG: _ClassVar[ConfigType]
+    CONFIG_TYPE_CUSTOM: _ClassVar[ConfigType]
 
 
 DATASET_TYPE_UNKNOWN: DatasetType
@@ -97,6 +98,7 @@ CONFIG_TYPE_TRAINING_ARGUMENTS: ConfigType
 CONFIG_TYPE_BITSANDBYTES_CONFIG: ConfigType
 CONFIG_TYPE_GENERATION_CONFIG: ConfigType
 CONFIG_TYPE_LORA_CONFIG: ConfigType
+CONFIG_TYPE_CUSTOM: ConfigType
 
 
 class ListDatasetsRequest(_message.Message):
@@ -422,7 +424,10 @@ class StartFineTuningJobRequest(_message.Message):
         "training_arguments_config_id",
         "lora_config_id",
         "output_dir",
-        "dataset_fraction")
+        "dataset_fraction",
+        "user_script",
+        "user_config_id",
+        "user_config")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -441,6 +446,9 @@ class StartFineTuningJobRequest(_message.Message):
     LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_DIR_FIELD_NUMBER: _ClassVar[int]
     DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
+    USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
+    USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
@@ -459,6 +467,9 @@ class StartFineTuningJobRequest(_message.Message):
     lora_config_id: str
     output_dir: str
     dataset_fraction: float
+    user_script: str
+    user_config_id: str
+    user_config: str
 
     def __init__(
         self,
@@ -479,7 +490,10 @@ class StartFineTuningJobRequest(_message.Message):
         training_arguments_config_id: _Optional[str] = ...,
         lora_config_id: _Optional[str] = ...,
         output_dir: _Optional[str] = ...,
-        dataset_fraction: _Optional[float] = ...) -> None: ...
+        dataset_fraction: _Optional[float] = ...,
+        user_script: _Optional[str] = ...,
+        user_config_id: _Optional[str] = ...,
+        user_config: _Optional[str] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
@@ -848,7 +862,10 @@ class FineTuningJobMetadata(_message.Message):
         "adapter_bnb_config_id",
         "lora_config_id",
         "dataset_fraction",
-        "train_test_split")
+        "train_test_split",
+        "user_script",
+        "user_config_id",
+        "user_config")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -866,6 +883,9 @@ class FineTuningJobMetadata(_message.Message):
     LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
     TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
+    USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
+    USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -883,6 +903,9 @@ class FineTuningJobMetadata(_message.Message):
     lora_config_id: str
     dataset_fraction: float
     train_test_split: float
+    user_script: str
+    user_config_id: str
+    user_config: str
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -902,7 +925,10 @@ class FineTuningJobMetadata(_message.Message):
                  adapter_bnb_config_id: _Optional[str] = ...,
                  lora_config_id: _Optional[str] = ...,
                  dataset_fraction: _Optional[float] = ...,
-                 train_test_split: _Optional[float] = ...) -> None: ...
+                 train_test_split: _Optional[float] = ...,
+                 user_script: _Optional[str] = ...,
+                 user_config_id: _Optional[str] = ...,
+                 user_config: _Optional[str] = ...) -> None: ...
 
 
 class ConfigMetadata(_message.Message):

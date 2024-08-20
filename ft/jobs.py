@@ -6,6 +6,7 @@ import cmlapi
 import os
 import pathlib
 from cmlapi import CMLServiceApi
+import json
 
 
 def list_fine_tuning_jobs(state: AppState, request: ListFineTuningJobsRequest,
@@ -110,6 +111,30 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         arg_list.append("--hf_token")
         arg_list.append(hf_token)
 
+    # If the user provides a custom user script, then change the actual script
+    # that is running the fine tuning job.
+    fine_tuning_script = template_job.script
+    if not request.user_script == StartFineTuningJobRequest().user_script:
+        fine_tuning_script = request.user_script
+
+        # Determine the user configurations that are passed as part of this
+        # custom user script. Serialized input configs are prioritized over
+        # user config ids.
+        user_config_id = request.user_config_id
+        if not request.user_config == StartFineTuningJobRequest().user_config:
+            user_config_md: ConfigMetadata = ConfigMetadata(
+                id=str(uuid4()),
+                type=ConfigType.CONFIG_TYPE_CUSTOM,
+                config=json.dumps(json.loads(request.user_config))
+            )
+            state.configs.append(user_config_md)
+            write_state(state)
+            user_config_id = user_config_md.id
+
+        # Pass the user config to the job.
+        arg_list.append("--user_config_id")
+        arg_list.append(user_config_id)
+
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory
@@ -119,7 +144,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     job_instance = cmlapi.models.create_job_request.CreateJobRequest(
         project_id=project_id,
         name=job_id,
-        script=template_job.script,
+        script=fine_tuning_script,
         runtime_identifier=template_job.runtime_identifier,
         cpu=cpu,
         memory=memory,
@@ -163,7 +188,10 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         training_arguments_config_id=request.training_arguments_config_id,
         lora_config_id=request.lora_config_id,
         model_bnb_config_id=request.model_bnb_config_id,
-        adapter_bnb_config_id=request.adapter_bnb_config_id
+        adapter_bnb_config_id=request.adapter_bnb_config_id,
+        user_script=request.user_script,
+        user_config=request.user_config,
+        user_config_id=request.user_config_id,
     )
 
     # This check should always pass for now, but in the future,

@@ -348,6 +348,26 @@ message StartFineTuningJobRequest {
 
   // Optional dataset fraction to reduce/downsample the total dataset size. 
   float dataset_fraction = 19;
+
+  // Optional overriding of the script that is the base of the job that
+  // runs. If this is present, the job instantiates a different script from
+  // a user's project. This script should be provided as relative to the project
+  // file base of the project.
+  string user_script = 20;
+
+  // Optional ID of a config struct that is passed to a custom user fine tuning
+  // script as a job argument in the form of --user_config_id. It is up to the user
+  // to extract this config as part of the script.
+  string user_config_id = 21;
+
+  // Optionally pass a complete serialized version of the config directly to the
+  // fine tuning request. If both this field and the user_config_id field are set,
+  // this serialized config is PREFERRED over the user_config_id. Note that from within
+  // a custom user fine tuning script, this serialized user config is still passed
+  // as a user_config_id (as in, Fine Tuning Studio will add this config to the config
+  // store, and pass the new config ID to the script), which means it is still up to the
+  // user to extrac tthis config as part of the script.
+  string user_config = 22;
 }
 
 message StartFineTuningJobResponse {
@@ -606,6 +626,7 @@ enum ConfigType {
   CONFIG_TYPE_BITSANDBYTES_CONFIG = 2;
   CONFIG_TYPE_GENERATION_CONFIG = 3;
   CONFIG_TYPE_LORA_CONFIG = 4;
+  CONFIG_TYPE_CUSTOM = 5;
 }
 
 /**
@@ -834,6 +855,26 @@ message FineTuningJobMetadata {
 
   float dataset_fraction = 16;
   float train_test_split = 17;
+
+  // Optional overriding of the script that is the base of the job that
+  // runs. If this is present, the job instantiates a different script from
+  // a user's project. This script should be provided as relative to the project
+  // file base of the project.
+  string user_script = 20;
+
+  // Optional ID of a config struct that is passed to a custom user fine tuning
+  // script as a job argument in the form of --user_config_id. It is up to the user
+  // to extract this config as part of the script.
+  string user_config_id = 21;
+
+  // Optionally pass a complete serialized version of the config directly to the
+  // fine tuning request. If both this field and the user_config_id field are set,
+  // this serialized config is PREFERRED over the user_config_id. Note that from within
+  // a custom user fine tuning script, this serialized user config is still passed
+  // as a user_config_id (as in, Fine Tuning Studio will add this config to the config
+  // store, and pass the new config ID to the script), which means it is still up to the
+  // user to extrac tthis config as part of the script.
+  string user_config = 22;
 }
 
 
