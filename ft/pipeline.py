@@ -83,7 +83,6 @@ def load_adapted_hf_generation_pipeline(
 
     model.eval()
 
-    generation_kwargs = generation_kwargs if generation_kwargs is not None else {}
     config = GenerationConfig(**gen_config_dict)
     pipe = pipeline(
         task,
