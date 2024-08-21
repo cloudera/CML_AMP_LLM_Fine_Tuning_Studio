@@ -31,7 +31,7 @@ class MLFlowTransformers():
     def get_peft_model_and_tokenizer(self, base_model_id, peft_model_id, bnb_config = None, peft_model_name = "adapter"):
         quantization_config = self.get_quantization_config(bnb_config)
         model = AutoModelForCausalLM.from_pretrained(base_model_id, quantization_config=quantization_config, device_map="auto").eval()
-        peft_model = PeftModel.from_pretrained(model, peft_model_id, adapter_name=peft_model_name)
+        peft_model = PeftModel.from_pretrained(model, peft_model_id)
         tokenizer_no_pad = AutoTokenizer.from_pretrained(base_model_id, add_bos_token=True)
         return peft_model, tokenizer_no_pad
     
