@@ -82,6 +82,9 @@ def load_adapted_hf_generation_pipeline(
             print(f"Error loading Lora model due to error: {e}. Loading base model Only")
 
     model.eval()
+    model.config.pad_token_id = tokenizer.pad_token_id = 0  # unk
+    model.config.bos_token_id = 1
+    model.config.eos_token_id = 2
 
     config = GenerationConfig(**gen_config_dict)
     pipe = pipeline(
