@@ -16,7 +16,8 @@ class ModelLogger():
             do_sample=True,
             temperature=0.8,
             max_new_tokens=60,
-            top_p=1
+            top_p=1,
+            bos_token_id=1
         )
 
         self.signature = mlflow.models.infer_signature(

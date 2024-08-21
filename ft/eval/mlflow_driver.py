@@ -79,3 +79,9 @@ def driver(
     results_df = pd.DataFrame(results.tables['eval_results_table'])
     response = EvaluationResponse(metrics=results.metrics, csv=results_df)
     return response
+
+
+if __name__ == "__main__":
+    # Example usage
+    driver(dataset_id="a674cd4a-cbcf-490b-ba21-8db2ef689edd", base_model_id="f1c3d635-980d-4114-a43e-b3a2eba13910", adapter_id="3fe6f50-5be2-4960-bc7b-612843cdf5bd",
+            bnb_config_id="538b9d54-6812-4b44-afad-9cb0bd3844ac", generation_config_id="aa14660d-d89a-43c0-b323-b09af2f97487")
