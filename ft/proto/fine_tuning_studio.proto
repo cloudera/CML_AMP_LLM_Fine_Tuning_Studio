@@ -68,8 +68,6 @@ service FineTuningStudio {
   rpc AddConfig (AddConfigRequest) returns (AddConfigResponse) {}
   rpc RemoveConfig (RemoveConfigRequest) returns (RemoveConfigResponse) {}
 
-  // Other general operations
-  rpc GetAppState (GetAppStateRequest) returns (GetAppStateResponse) {}
 }
 
 
@@ -503,19 +501,6 @@ message RemoveConfigResponse {
 }
 
 
-// App state controls 
-message GetAppStateRequest {
-  
-  // In the future, we may want to implement some form of
-  // RBAC for state. But for now, as an AMP, we don't need
-  // this.
-  string user = 1;
-}
-message GetAppStateResponse {
-  AppState state = 1;
-}
-
-
 /**
 -----------------------------
 protobuf datatype definitions
@@ -815,14 +800,4 @@ message EvaluationJobMetadata {
 
   // type of evaluation job.
   string type = 14;
-}
-
-message AppState {
-  repeated DatasetMetadata datasets = 1;
-  repeated ModelMetadata models = 2;
-  repeated FineTuningJobMetadata fine_tuning_jobs = 3;
-  repeated EvaluationJobMetadata evaluation_jobs = 4;
-  repeated PromptMetadata prompts = 5;
-  repeated AdapterMetadata adapters = 6;
-  repeated ConfigMetadata configs = 7;
 }

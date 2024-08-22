@@ -596,20 +596,6 @@ class RemoveConfigResponse(_message.Message):
     def __init__(self) -> None: ...
 
 
-class GetAppStateRequest(_message.Message):
-    __slots__ = ("user",)
-    USER_FIELD_NUMBER: _ClassVar[int]
-    user: str
-    def __init__(self, user: _Optional[str] = ...) -> None: ...
-
-
-class GetAppStateResponse(_message.Message):
-    __slots__ = ("state",)
-    STATE_FIELD_NUMBER: _ClassVar[int]
-    state: AppState
-    def __init__(self, state: _Optional[_Union[AppState, _Mapping]] = ...) -> None: ...
-
-
 class DatasetMetadata(_message.Message):
     __slots__ = ("id", "type", "name", "description", "huggingface_name", "location", "features")
     ID_FIELD_NUMBER: _ClassVar[int]
@@ -932,37 +918,3 @@ class EvaluationJobMetadata(_message.Message):
         adapter_bnb_config_id: _Optional[str] = ...,
         generation_config_id: _Optional[str] = ...,
         type: _Optional[str] = ...) -> None: ...
-
-
-class AppState(_message.Message):
-    __slots__ = ("datasets", "models", "fine_tuning_jobs", "evaluation_jobs", "prompts", "adapters", "configs")
-    DATASETS_FIELD_NUMBER: _ClassVar[int]
-    MODELS_FIELD_NUMBER: _ClassVar[int]
-    FINE_TUNING_JOBS_FIELD_NUMBER: _ClassVar[int]
-    EVALUATION_JOBS_FIELD_NUMBER: _ClassVar[int]
-    PROMPTS_FIELD_NUMBER: _ClassVar[int]
-    ADAPTERS_FIELD_NUMBER: _ClassVar[int]
-    CONFIGS_FIELD_NUMBER: _ClassVar[int]
-    datasets: _containers.RepeatedCompositeFieldContainer[DatasetMetadata]
-    models: _containers.RepeatedCompositeFieldContainer[ModelMetadata]
-    fine_tuning_jobs: _containers.RepeatedCompositeFieldContainer[FineTuningJobMetadata]
-    evaluation_jobs: _containers.RepeatedCompositeFieldContainer[EvaluationJobMetadata]
-    prompts: _containers.RepeatedCompositeFieldContainer[PromptMetadata]
-    adapters: _containers.RepeatedCompositeFieldContainer[AdapterMetadata]
-    configs: _containers.RepeatedCompositeFieldContainer[ConfigMetadata]
-
-    def __init__(self,
-                 datasets: _Optional[_Iterable[_Union[DatasetMetadata,
-                                                      _Mapping]]] = ...,
-                 models: _Optional[_Iterable[_Union[ModelMetadata,
-                                                    _Mapping]]] = ...,
-                 fine_tuning_jobs: _Optional[_Iterable[_Union[FineTuningJobMetadata,
-                                                              _Mapping]]] = ...,
-                 evaluation_jobs: _Optional[_Iterable[_Union[EvaluationJobMetadata,
-                                                             _Mapping]]] = ...,
-                 prompts: _Optional[_Iterable[_Union[PromptMetadata,
-                                                     _Mapping]]] = ...,
-                 adapters: _Optional[_Iterable[_Union[AdapterMetadata,
-                                                      _Mapping]]] = ...,
-                 configs: _Optional[_Iterable[_Union[ConfigMetadata,
-                                                     _Mapping]]] = ...) -> None: ...
