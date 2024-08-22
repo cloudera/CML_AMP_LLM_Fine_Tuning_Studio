@@ -4,49 +4,71 @@ from ft.api import *
 
 from cmlapi import CMLServiceApi
 
-
-from ft.state import write_state, replace_state_field
-
 from uuid import uuid4
 
+from typing import List
 
-def list_adapters(state: AppState, request: ListAdaptersRequest, cml: CMLServiceApi = None) -> ListAdaptersResponse:
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import Adapter
+
+from sqlalchemy import delete
+
+
+def list_adapters(request: ListAdaptersRequest, cml: CMLServiceApi = None,
+                  dao: FineTuningStudioDao = None) -> ListAdaptersResponse:
     """
     Right now we don't do any filtering in this op, but we might in the future.
     """
-    return ListAdaptersResponse(
-        adapters=state.adapters
-    )
+    with dao.get_session() as session:
+        adapters: List[Adapter] = session.query(Adapter).all()
+        return ListAdaptersResponse(
+            adapters=list(map(
+                lambda x: x.to_protobuf(AdapterMetadata),
+                adapters
+            ))
+        )
 
 
-def get_adapter(state: AppState, request: GetAdapterRequest, cml: CMLServiceApi = None) -> GetAdapterResponse:
-    adapters = list(filter(lambda x: x.id == request.id, state.adapters))
-    assert len(adapters) == 1
-    return GetAdapterResponse(
-        adapter=adapters[0]
-    )
+def get_adapter(request: GetAdapterRequest, cml: CMLServiceApi = None,
+                dao: FineTuningStudioDao = None) -> GetAdapterResponse:
+
+    with dao.get_session() as session:
+        return GetAdapterResponse(
+            adapter=session
+            .query(Adapter)
+            .where(Adapter.id == request.id)
+            .one()
+            .to_protobuf(AdapterMetadata)
+        )
 
 
-def add_adapter(state: AppState, request: AddAdapterRequest, cml: CMLServiceApi = None) -> AddAdapterResponse:
+def add_adapter(request: AddAdapterRequest, cml: CMLServiceApi = None,
+                dao: FineTuningStudioDao = None) -> AddAdapterResponse:
 
-    # TODO: see if there is a cleaner way to merge protobuf messages together
-    adapter_md: AdapterMetadata = AdapterMetadata(
-        id=str(uuid4()),
-        type=request.type,
-        name=request.name,
-        model_id=request.model_id,
-        location=request.location,
-        huggingface_name=request.huggingface_name,
-        fine_tuning_job_id=request.fine_tuning_job_id,
-        prompt_id=request.prompt_id,
-    )
+    response = AddAdapterResponse()
 
-    state.adapters.append(adapter_md)
-    write_state(state)
-    return AddAdapterResponse(adapter=adapter_md)
+    with dao.get_session() as session:
+        adapter: Adapter = Adapter(
+            id=str(uuid4()),
+            type=request.type,
+            name=request.name,
+            model_id=request.model_id,
+            location=request.location,
+            huggingface_name=request.huggingface_name,
+            fine_tuning_job_id=request.fine_tuning_job_id,
+            prompt_id=request.prompt_id,
+        )
+        session.add(adapter)
+
+        response = AddAdapterResponse(
+            adapter=adapter.to_protobuf(AdapterMetadata)
+        )
+
+    return response
 
 
-def remove_adapter(state: AppState, request: RemoveAdapterRequest, cml: CMLServiceApi = None) -> RemoveAdapterResponse:
-    adapters = list(filter(lambda x: not x.id == request.id, state.adapters))
-    state = replace_state_field(state, adapters=adapters)
+def remove_adapter(request: RemoveAdapterRequest, cml: CMLServiceApi = None,
+                   dao: FineTuningStudioDao = None) -> RemoveAdapterResponse:
+    with dao.get_session() as session:
+        session.execute(delete(Adapter).where(Adapter.id == request.id))
     return RemoveAdapterResponse()

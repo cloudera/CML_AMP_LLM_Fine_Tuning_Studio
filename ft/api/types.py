@@ -27,3 +27,32 @@ class FineTuningFrameworkType(str, Enum):
     """
     LEGACY = "legacy"
     AXOLOTL = "axolotl"
+
+
+class AdapterType(str, Enum):
+    """
+    Type of adapter in the project
+    """
+    PROJECT = "project"
+    HUGGINGFACE = "huggingface"
+    MODEL_REGISTRY = "model_registry"
+
+
+class PromptType(str, Enum):
+    IN_PLACE = "in_place"
+
+
+class ModelType(str, Enum):
+    HUGGINGFACE = "huggingface"
+    PROJECT = "project"
+    MODEL_REGISTRY = "model_registry"
+
+
+class ModelFrameworkType(str, Enum):
+    PYTORCH = "pytorch"
+    TENSORFLOW = "tensorflow"
+    ONNX = "onnx"
+
+
+class EvaluationJobType(str, Enum):
+    MFLOW = "mlflow"

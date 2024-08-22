@@ -132,7 +132,7 @@ message GetModelResponse {
 message AddModelRequest {
   // type of model to import. This affects how the model
   // is loaded and how metadata is extracted for the model. 
-  ModelType type = 1; 
+  string type = 1; 
 
   // Name of the huggingface model. This is the full huggingface
   // model name used to identify the model on HF hub.
@@ -149,7 +149,7 @@ message AddModelResponse {
 message ExportModelRequest {
 
   // Type of export model operation to perform.
-  ModelType type = 1; 
+  string type = 1; 
 
   // Model ID that should be exported
   string model_id = 2;
@@ -206,7 +206,7 @@ message GetAdapterResponse {
 }
 message AddAdapterRequest {
     // Type of model adapter.
-    AdapterType type = 1;
+    string type = 1;
 
     // Human friendly name of the adapter for tracking.
     string name = 2;
@@ -403,7 +403,7 @@ message GetEvaluationJobResponse {
 message StartEvaluationJobRequest {
 
   // Type of EvaluationJob to start
-  EvaluationJobType type = 1;
+  string type = 1;
 
   // The model ID of the base model that should be used as a
   // base for the job.
@@ -437,9 +437,12 @@ message StartEvaluationJobRequest {
 
   // Id for the generation args config.
   string generation_config_id = 16;
+
+  // ID of the prompt to use for evals
+  string prompt_id = 17;
 }
 message StartEvaluationJobResponse {
-  EvaluationJobMetadata job = 1;
+  EvaluationJobMetadata evaluation_job = 1;
 }
 message RemoveEvaluationJobRequest {
   string id = 1;
@@ -513,97 +516,6 @@ message GetAppStateResponse {
 }
 
 
-
-/**
--------------------------
-protobuf enum definitions
--------------------------
-*/
-
-
-// Type of model. This AMP currently supports
-// loading models in huggingface, from CML's
-// model registry, and finally from local project
-// files within a CML workspace.
-enum ModelType {
-
-  MODEL_TYPE_UNKNOWN = 0;
-
-  // Huggingface model.
-  MODEL_TYPE_HUGGINGFACE = 1;
-
-  // Model imported from project files.
-  //
-  // TODO: determine a way to extract model framework from the content
-  // of the provided file directory (or by other parameters
-  // in the model metadata request)
-  MODEL_TYPE_PROJECT = 2;
-
-  // Model was imported from CML Model Registry.
-  MODEL_TYPE_MODEL_REGISTRY = 3;
-
-}
-
-// The model framework used for this model. Depending on
-// the model type (i.e. HF, project, registry), handling
-// the model may be different (for example, for local projects,
-// we should specify a file/packaging format for ONNX models.)
-// 
-// TODO: for the most part, this AMP only supports pytorch models
-// at this time. we should support other frameworks.
-enum ModelFrameworkType {
-
-  MODEL_FRAMEWORK_TYPE_UNKNOWN = 0;
-
-  // Pytorch
-  MODEL_FRAMEWORK_TYPE_PYTORCH = 1;
-
-  // Tensorflow
-  MODEL_FRAMEWORK_TYPE_TENSORFLOW = 2;
-
-  // ONNX
-  MODEL_FRAMEWORK_TYPE_ONNX = 3;
-
-}
-
-// Type of PEFT adapter.
-enum AdapterType {
-
-  ADAPTER_TYPE_UNKNOWN = 0;
-
-  // Project-relative PEFT adapter imported from project
-  // files, probably created after a fine-tuning
-  // job was ran in our app.
-  ADAPTER_TYPE_PROJECT = 1;
-
-  // Huggingface-stored adapter that can be pulled
-  // down from HF hub.
-  ADAPTER_TYPE_HUGGINGFACE = 2;
-
-  // Adapter stored within the CML model registry.
-  ADAPTER_TYPE_MODEL_REGISTRY = 3;
-}
-
-
-enum JobStatus {
-  JOB_STATUS_UNKNOWN = 0;
-  JOB_STATUS_SCHEDULED = 1;
-  JOB_STATUS_RUNNING = 2;
-  JOB_STATUS_SUCCESS = 3;
-  JOB_STATUS_FAILURE = 4;
-}
-
-enum PromptType {
-  PROMPT_TYPE_UNKNOWN = 0;
-  PROMPT_TYPE_IN_PLACE = 1;
-}
-
-
-enum EvaluationJobType {
-  EVALUATION_JOB_TYPE_UNKNOWN = 0;
-  EVALUATION_JOB_TYPE_MLFLOW = 1;
-}
-
 /**
 -----------------------------
 protobuf datatype definitions
@@ -656,10 +568,10 @@ message ModelMetadata {
 
   // Type of model. This type affects the source of where models
   // are loaded from.
-  ModelType type = 2;
+  string type = 2;
 
   // framework of the model.
-  ModelFrameworkType framework = 3;
+  string framework = 3;
 
   // human-friendly name for the model.
   string name = 4;
@@ -692,7 +604,7 @@ message AdapterMetadata {
   string id = 1;
 
   // Type of model adapter.
-  AdapterType type = 2;
+  string type = 2;
 
   // Human friendly name of the adapter for tracking.
   string name = 3;
@@ -742,7 +654,7 @@ message PromptMetadata {
   string id = 1;
 
   // Type of prompt template.
-  PromptType type = 2;
+  string type = 2;
 
   // Human-friendly name of this prompt template
   // for use-cases elsewhere
@@ -900,6 +812,9 @@ message EvaluationJobMetadata {
 
   // Generation argument configs. 
   string generation_config_id = 13;
+
+  // type of evaluation job.
+  string type = 14;
 }
 
 message AppState {

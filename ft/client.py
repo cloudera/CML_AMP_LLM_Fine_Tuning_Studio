@@ -28,9 +28,6 @@ class FineTuningStudioClient(FineTuningStudioStub):
         self.channel = grpc.insecure_channel(f"{server_ip}:{server_port}")
         self.stub = FineTuningStudioStub.__init__(self, self.channel)
 
-    def get_state(self) -> AppState:
-        return self.GetAppState(GetAppStateRequest()).state
-
     def get_datasets(self) -> List[DatasetMetadata]:
         return self.ListDatasets(ListDatasetsRequest()).datasets
 

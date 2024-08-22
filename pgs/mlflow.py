@@ -109,7 +109,7 @@ with ccol1:
                         json.loads(
                             fts.ListConfigs(
                                 ListConfigsRequest(
-                                    type=BITSANDBYTES_CONFIG,
+                                    type=ConfigType.BITSANDBYTES_CONFIG,
                                     model_id=current_models[model_idx].id,
                                     adapter_id=model_adapters[model_adapter_idx].id
                                 )
@@ -125,7 +125,7 @@ with ccol1:
                         json.loads(
                             fts.ListConfigs(
                                 ListConfigsRequest(
-                                    type=GENERATION_CONFIG,
+                                    type=ConfigType.GENERATION_CONFIG,
                                     model_id=current_models[model_idx].id,
                                     adapter_id=model_adapters[model_adapter_idx].id
                                 )
@@ -152,20 +152,20 @@ with ccol1:
                 # add these new configs to the config store.
                 bnb_config_md: ConfigMetadata = fts.AddConfig(
                     AddConfigRequest(
-                        type=BITSANDBYTES_CONFIG,
+                        type=ConfigType.BITSANDBYTES_CONFIG,
                         config=bnb_config_text
                     )
                 ).config
                 generation_config_md: ConfigMetadata = fts.AddConfig(
                     AddConfigRequest(
-                        type=GENERATION_CONFIG,
+                        type=ConfigType.GENERATION_CONFIG,
                         config=generation_config_text
                     )
                 ).config
 
                 fts.StartEvaluationJob(
                     StartEvaluationJobRequest(
-                        type=EvaluationJobType.EVALUATION_JOB_TYPE_MLFLOW,
+                        type=EvaluationJobType.MFLOW,
                         adapter_id=adapter.id,
                         base_model_id=model.id,
                         dataset_id=dataset.id,
