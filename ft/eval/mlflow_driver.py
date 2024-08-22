@@ -45,7 +45,7 @@ def driver(
     # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
     # is available in the project files location, and that the base model is available
     # on huggingface.
-    assert base_model.type == HUGGINGFACE
+    assert base_model.type == ModelType.HUGGINGFACE
     assert adapter.type == AdapterType.PROJECT
     model_info = None
     if num_gpu_devices == 1:
