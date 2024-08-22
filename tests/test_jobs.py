@@ -10,6 +10,7 @@ from ft.jobs import (
     get_fine_tuning_job,
     remove_fine_tuning_job,
     start_fine_tuning_job,
+    _build_argument_list
 )
 from ft.api import *
 
@@ -144,3 +145,94 @@ def test_start_fine_tuning_job_custom_config(uuid4):
         # Added new config
         assert len(session.query(Config).all()) == 1
         assert session.get(Config, "usrcfg1").config == '{"test": "config"}'
+
+
+@patch("os.getenv")
+def test_build_argument_list_minimal_request(mock_getenv):
+    # Mock environment variables to return None for HUGGINGFACE_ACCESS_TOKEN
+    mock_getenv.side_effect = lambda key: None if key == "HUGGINGFACE_ACCESS_TOKEN" else "some_other_value"
+
+    request = StartFineTuningJobRequest(
+        base_model_id="base_model_1",
+        dataset_id="dataset_1",
+        output_dir="/output/dir",
+        adapter_name="adapter_1",
+        framework_type="LEGACY"
+    )
+    job_id = "test_job_id"
+
+    arg_list = _build_argument_list(request, job_id)
+
+    expected_arg_list = [
+        "--base_model_id", "base_model_1",
+        "--dataset_id", "dataset_1",
+        "--experimentid", "test_job_id",
+        "--out_dir", "/output/dir/test_job_id",
+        "--train_out_dir", "outputs/test_job_id",
+        "--adapter_name", "adapter_1",
+        "--finetuning_framework_type", "LEGACY"
+    ]
+
+    assert set(arg_list) == set(expected_arg_list)
+    assert "--hf_token" not in arg_list  # Ensure --hf_token is not in the minimal request
+
+
+@patch("os.getenv")
+def test_build_argument_list_with_hf_token(mock_getenv):
+    mock_getenv.side_effect = lambda key: "hf_token_value" if key == "HUGGINGFACE_ACCESS_TOKEN" else None
+
+    request = StartFineTuningJobRequest(
+        base_model_id="base_model_1",
+        dataset_id="dataset_1",
+        output_dir="/output/dir",
+        adapter_name="adapter_1",
+        framework_type="LEGACY"
+    )
+    job_id = "test_job_id"
+
+    arg_list = _build_argument_list(request, job_id)
+
+    expected_arg_list = [
+        "--base_model_id", "base_model_1",
+        "--dataset_id", "dataset_1",
+        "--experimentid", "test_job_id",
+        "--out_dir", "/output/dir/test_job_id",
+        "--train_out_dir", "outputs/test_job_id",
+        "--adapter_name", "adapter_1",
+        "--finetuning_framework_type", "LEGACY",
+        "--hf_token", "hf_token_value"
+    ]
+
+    assert set(arg_list) == set(expected_arg_list)
+
+
+@patch("os.getenv")
+def test_build_argument_list_with_auto_add_adapter(mock_getenv):
+    # Mock environment variables to return None for HUGGINGFACE_ACCESS_TOKEN
+    mock_getenv.side_effect = lambda key: None if key == "HUGGINGFACE_ACCESS_TOKEN" else "some_other_value"
+
+    request = StartFineTuningJobRequest(
+        base_model_id="base_model_1",
+        dataset_id="dataset_1",
+        output_dir="/output/dir",
+        adapter_name="adapter_1",
+        auto_add_adapter=True,
+        framework_type="AXOLOTL"
+    )
+    job_id = "test_job_id"
+
+    arg_list = _build_argument_list(request, job_id)
+
+    expected_arg_list = [
+        "--base_model_id", "base_model_1",
+        "--dataset_id", "dataset_1",
+        "--experimentid", "test_job_id",
+        "--out_dir", "/output/dir/test_job_id",
+        "--train_out_dir", "outputs/test_job_id",
+        "--adapter_name", "adapter_1",
+        "--finetuning_framework_type", "AXOLOTL",
+        "--auto_add_adapter"
+    ]
+
+    assert set(arg_list).issuperset(set(expected_arg_list))
+    assert "--hf_token" not in arg_list  # Ensure --hf_token is not in this case unless explicitly needed
