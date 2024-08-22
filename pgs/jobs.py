@@ -7,6 +7,7 @@ import json
 import plotly.graph_objects as go
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
+from cmlapi import models as cml_api_models
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -84,12 +85,15 @@ def fetch_cml_experiments():
         if not page_token:
             break
 
-    cml_experiments_df = pd.DataFrame(all_experiments)
+    # If no experiments are present, response does not contain column names, ensure those are set
+    if len(all_experiments) == 0:
+        cml_experiments_df = pd.DataFrame(columns=cml_api_models.Experiment().to_dict().keys())
+    else:
+        cml_experiments_df = pd.DataFrame(all_experiments)
 
-    if all_experiments:
-        cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
-        proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
-        cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
+    cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
+    proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
+    cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
     return cml_experiments_df
 
 
