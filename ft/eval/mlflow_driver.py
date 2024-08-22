@@ -67,9 +67,10 @@ def driver(
             model_info = logger.log_model_multi_gpu(peft_model,tokenizer)
         except:
             # need to improve logic for this. Not sure if this is desired behavior 
-            print("Failed to load peft model. Hence running eval on only base model.")
-            base_model, tokenizer = mlt.get_base_model_and_tokenizer(base_model.huggingface_model_name, bnb_config_dict)
-            model_info = logger.log_model_multi_gpu(base_model, tokenizer)
+            raise ValueError("Failed to load peft model. Can run eval on only base model.")
+            #commenting the below lines untill we get a  none passed in the adapter field   
+            #base_model, tokenizer = mlt.get_base_model_and_tokenizer(base_model.huggingface_model_name, bnb_config_dict)
+            #model_info = logger.log_model_multi_gpu(base_model, tokenizer)
     else:
         raise ValueError("The driver script is currently set up to handle only GPU evaluation.")
 

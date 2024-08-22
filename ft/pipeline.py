@@ -49,7 +49,7 @@ def load_adapted_hf_generation_pipeline(
         except ValueError:
             raise ValueError("Could not load Lora model due to invalid path or incompatibility")
         except TypeError as e:
-            print(f"Error loading Lora model due to error: {e}. Loading base model Only")
+            raise ValueError(f"Error loading Lora model due to error: {e}. Can load base model Only")
     elif device == "mps":
         model = AutoModelForCausalLM.from_pretrained(
             base_model_name,
@@ -66,7 +66,7 @@ def load_adapted_hf_generation_pipeline(
         except ValueError:
             raise ValueError("Could not load Lora model due to invalid path or incompatibility")
         except TypeError as e:
-            print(f"Error loading Lora model due to error: {e}. Loading base model Only")
+            raise ValueError(f"Error loading Lora model due to error: {e}. Can load base model Only")
     else:
         model = AutoModelForCausalLM.from_pretrained(
             base_model_name, low_cpu_mem_usage=False
@@ -79,7 +79,7 @@ def load_adapted_hf_generation_pipeline(
         except ValueError:
             raise ValueError("Could not load Lora model due to invalid path or incompatibility")
         except TypeError as e:
-            print(f"Error loading Lora model due to error: {e}. Loading base model Only")
+            raise ValueError(f"Error loading Lora model due to error: {e}. Can load base model Only")
 
     model.eval()
     model.config.pad_token_id = tokenizer.pad_token_id = 0  # unk
@@ -110,11 +110,12 @@ def fetch_pipeline(model_name, adapter_name, device="cuda", bnb_config_dict: Dic
 
 
 if __name__ == "__main__":
-    FOUNDATION_MODEL = "openlm-research/open_llama_3b"
+    FOUNDATION_MODEL = "bigscience/bloom-1b1"
     ADAPTER_NAME = "samwit/open-llama3B-4bit-lora"
     pipe = load_adapted_hf_generation_pipeline(
         base_model_name=FOUNDATION_MODEL,
         lora_model_name=ADAPTER_NAME,
-        device="cuda"
+        device="cuda",
+        gen_config_dict={}
     )
     print(pipe("Hello"))
