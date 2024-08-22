@@ -405,7 +405,9 @@ class StartFineTuningJobRequest(_message.Message):
         "dataset_fraction",
         "user_script",
         "user_config_id",
-        "user_config")
+        "user_config",
+        "framework_type",
+        "axolotl_config_id")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -427,6 +429,8 @@ class StartFineTuningJobRequest(_message.Message):
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    FRAMEWORK_TYPE_FIELD_NUMBER: _ClassVar[int]
+    AXOLOTL_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
@@ -448,6 +452,8 @@ class StartFineTuningJobRequest(_message.Message):
     user_script: str
     user_config_id: str
     user_config: str
+    framework_type: str
+    axolotl_config_id: str
 
     def __init__(
         self,
@@ -471,7 +477,9 @@ class StartFineTuningJobRequest(_message.Message):
         dataset_fraction: _Optional[float] = ...,
         user_script: _Optional[str] = ...,
         user_config_id: _Optional[str] = ...,
-        user_config: _Optional[str] = ...) -> None: ...
+        user_config: _Optional[str] = ...,
+        framework_type: _Optional[str] = ...,
+        axolotl_config_id: _Optional[str] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
@@ -839,7 +847,9 @@ class FineTuningJobMetadata(_message.Message):
         "train_test_split",
         "user_script",
         "user_config_id",
-        "user_config")
+        "user_config",
+        "framework_type",
+        "axolotl_config_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -862,6 +872,8 @@ class FineTuningJobMetadata(_message.Message):
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    FRAMEWORK_TYPE_FIELD_NUMBER: _ClassVar[int]
+    AXOLOTL_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     base_model_id: str
     dataset_id: str
@@ -884,6 +896,8 @@ class FineTuningJobMetadata(_message.Message):
     user_script: str
     user_config_id: str
     user_config: str
+    framework_type: str
+    axolotl_config_id: str
 
     def __init__(
         self,
@@ -908,7 +922,9 @@ class FineTuningJobMetadata(_message.Message):
         train_test_split: _Optional[float] = ...,
         user_script: _Optional[str] = ...,
         user_config_id: _Optional[str] = ...,
-        user_config: _Optional[str] = ...) -> None: ...
+        user_config: _Optional[str] = ...,
+        framework_type: _Optional[str] = ...,
+        axolotl_config_id: _Optional[str] = ...) -> None: ...
 
 
 class ConfigMetadata(_message.Message):

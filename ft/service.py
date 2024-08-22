@@ -161,20 +161,16 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         return remove_prompt(state, request, self.cml)
 
     def ListFineTuningJobs(self, request, context):
-        state: AppState = get_state()
-        return list_fine_tuning_jobs(state, request, self.cml)
+        return list_fine_tuning_jobs(request, self.cml, dao=self.dao)
 
     def GetFineTuningJob(self, request, context):
-        state: AppState = get_state()
-        return get_fine_tuning_job(state, request, self.cml)
+        return get_fine_tuning_job(request, self.cml, dao=self.dao)
 
     def StartFineTuningJob(self, request, context):
-        state: AppState = get_state()
-        return start_fine_tuning_job(state, request, self.cml)
+        return start_fine_tuning_job(request, self.cml, dao=self.dao)
 
     def RemoveFineTuningJob(self, request, context):
-        state: AppState = get_state()
-        return remove_fine_tuning_job(state, request, self.cml)
+        return remove_fine_tuning_job(request, self.cml, dao=self.dao)
 
     def ListEvaluationJobs(self, request, context):
         state: AppState = get_state()

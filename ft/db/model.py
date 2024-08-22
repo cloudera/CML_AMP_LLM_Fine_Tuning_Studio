@@ -137,6 +137,8 @@ class FineTuningJob(Base, MappedProtobuf):
     train_test_split = Column(Double, nullable=True)
     user_script = Column(String, nullable=True)
     user_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
+    framework_type = Column(String, nullable=True)
+    axolotl_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
 
 
 class EvaluationJob(Base, MappedProtobuf):

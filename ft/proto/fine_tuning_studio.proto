@@ -368,6 +368,12 @@ message StartFineTuningJobRequest {
   // store, and pass the new config ID to the script), which means it is still up to the
   // user to extrac tthis config as part of the script.
   string user_config = 22;
+
+  // Framework type employed for the training job.
+  string framework_type = 23;
+
+  // Optional axolotol config, if working with axolotl
+  string axolotl_config_id = 24;
 }
 
 message StartFineTuningJobResponse {
@@ -832,6 +838,10 @@ message FineTuningJobMetadata {
   // store, and pass the new config ID to the script), which means it is still up to the
   // user to extrac tthis config as part of the script.
   string user_config = 22;
+
+  string framework_type = 23;
+  
+  string axolotl_config_id = 24;
 }
 
 
