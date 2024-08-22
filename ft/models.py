@@ -78,11 +78,9 @@ def add_model(state: AppState, request: AddModelRequest, cml: CMLServiceApi = No
                 id=str(uuid4()),
                 type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
                 name=registered_model.name,
-                registered_model=RegisteredModelMetadata(
-                    cml_registered_model_id=registered_model.model_id,
-                    mlflow_experiment_id=mlflow_metadata.experiment_id,
-                    mlflow_run_id=mlflow_metadata.run_id,
-                )
+                cml_registered_model_id=registered_model.model_id,
+                mlflow_experiment_id=mlflow_metadata.experiment_id,
+                mlflow_run_id=mlflow_metadata.run_id,
             )
 
             response = AddModelResponse(

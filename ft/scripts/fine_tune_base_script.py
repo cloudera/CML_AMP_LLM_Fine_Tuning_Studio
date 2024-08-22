@@ -84,7 +84,7 @@ dataset_metadata: DatasetMetadata = fts.GetDataset(
         id=dataset_id
     )
 ).dataset
-assert dataset_metadata.type == DatasetType.DATASET_TYPE_HUGGINGFACE
+assert dataset_metadata.type == DatasetType.HUGGINGFACE
 
 # Extract other fields like base model and prompt.
 base_model_md: ModelMetadata = fts.GetModel(

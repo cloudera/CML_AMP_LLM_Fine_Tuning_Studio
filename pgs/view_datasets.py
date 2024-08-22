@@ -3,6 +3,7 @@ from ft.api import *
 from ft.consts import HF_LOGO
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+import json
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -45,7 +46,7 @@ def display_datasets(
                 remove = c13.button("Remove", key=f"{dataset.id}_remove", type="primary", use_container_width=True)
 
                 c21 = st.columns(1)
-                c21[0].code("Features: \n * " + '\n * '.join(dataset.features))
+                c21[0].code("Features: \n * " + '\n * '.join(json.loads(dataset.features) if dataset.features else []))
 
                 if remove:
                     fts.RemoveDataset(
@@ -62,9 +63,9 @@ tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**Custom Datasets**"])
 with tab1:
     display_datasets(
         datasets,
-        DatasetType.DATASET_TYPE_HUGGINGFACE,
+        DatasetType.HUGGINGFACE,
         "./resources/images/hf-logo.png",
         "No Huggingface datasets available.")
 
 with tab2:
-    display_datasets(datasets, DatasetType.DATASET_TYPE_PROJECT, HF_LOGO, "No custom datasets available.")
+    display_datasets(datasets, DatasetType.PROJECT, HF_LOGO, "No custom datasets available.")

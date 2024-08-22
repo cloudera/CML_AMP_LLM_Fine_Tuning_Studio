@@ -1,5 +1,6 @@
-from unittest.mock import patch
 import pytest
+from sqlalchemy.exc import NoResultFound
+import json
 
 from ft.datasets import (
     list_datasets,
@@ -8,100 +9,80 @@ from ft.datasets import (
 )
 from ft.api import *
 
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import Dataset, Prompt
+
 
 def test_list_datasets():
-    state: AppState = AppState(
-        datasets=[
-            DatasetMetadata(
-                id="d1"
-            )
-        ]
-    )
-    res = list_datasets(state, ListDatasetsRequest())
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Dataset(id="d1"))
+        session.add(Dataset(id="d2", features=json.dumps(["f1", "f2"])))
+        session.commit()
+
+    res = list_datasets(ListDatasetsRequest(), dao=test_dao)
     assert res.datasets[0].id == "d1"
+    assert res.datasets[1].id == "d2"
+    assert res.datasets[1].features == '["f1", "f2"]'
 
 
 def test_get_dataset_happy():
-    state: AppState = AppState(
-        datasets=[
-            DatasetMetadata(
-                id="d1"
-            )
-        ]
-    )
-    req = GetDatasetRequest(id="d1")
-    res = get_dataset(state, req)
-    assert res.dataset.id == "d1"
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Dataset(id="d1"))
+        session.add(Dataset(id="d2", type=DatasetType.HUGGINGFACE))
+        session.commit()
+
+    req = GetDatasetRequest(id="d2")
+    res = get_dataset(req, dao=test_dao)
+    assert res.dataset.id == "d2"
+    assert res.dataset.type == "huggingface"
 
 
 def test_get_dataset_missing():
-    state: AppState = AppState()
-    with pytest.raises(AssertionError):
-        res = get_dataset(state, GetDatasetRequest())
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with pytest.raises(NoResultFound):
+        res = get_dataset(GetDatasetRequest(id="d1"), dao=test_dao)
 
 
-@patch("ft.datasets.replace_state_field")
-def test_remove_dataset_happy(replace_state_field):
-    state: AppState = AppState(
-        datasets=[
-            DatasetMetadata(
-                id="d1"
-            ),
-            DatasetMetadata(
-                id="d2"
-            )
-        ]
-    )
+def test_remove_dataset_happy():
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Dataset(id="d1"))
+        session.add(Dataset(id="d2", type=DatasetType.HUGGINGFACE))
+        session.add(Prompt(id="p1", dataset_id="d1"))
+        session.add(Prompt(id="p2", dataset_id="d2"))
+        session.commit()
+
     req = RemoveDatasetRequest(id="d1")
-    res = remove_dataset(state, req)
-    replace_state_field.assert_any_call(state,
-                                        datasets=[
-                                            DatasetMetadata(
-                                                id="d2"
-                                            )
-                                        ]
-                                        )
+    res = remove_dataset(req, dao=test_dao)
+
+    with test_dao.get_session() as session:
+        assert len(list(session.query(Dataset).all())) == 1
+        assert len(list(session.query(Prompt).all())) == 2
 
 
-@patch("ft.datasets.replace_state_field")
-def test_remove_dataset_remove_prompts(replace_state_field):
-    state: AppState = AppState(
-        datasets=[
-            DatasetMetadata(
-                id="d1"
-            ),
-            DatasetMetadata(
-                id="d2"
-            )
-        ],
-        prompts=[
-            PromptMetadata(
-                id="p1",
-                dataset_id="d1"
-            ),
-            PromptMetadata(
-                id="p2",
-                dataset_id="d2"
-            )
-        ]
-    )
+def test_remove_dataset_remove_prompts():
 
-    replace_state_field.return_value = state
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Dataset(id="d1"))
+        session.add(Dataset(id="d2", type=DatasetType.HUGGINGFACE))
+        session.add(Prompt(id="p1", dataset_id="d1"))
+        session.add(Prompt(id="p2", dataset_id="d2"))
+        session.commit()
 
     req = RemoveDatasetRequest(id="d1", remove_prompts=True)
-    res = remove_dataset(state, req)
-    replace_state_field.assert_any_call(state,
-                                        datasets=[
-                                            DatasetMetadata(
-                                                id="d2"
-                                            )
-                                        ]
-                                        )
-    replace_state_field.assert_any_call(state,
-                                        prompts=[
-                                            PromptMetadata(
-                                                id="p2",
-                                                dataset_id="d2"
-                                            )
-                                        ]
-                                        )
+    res = remove_dataset(req, dao=test_dao)
+
+    with test_dao.get_session() as session:
+        assert len(list(session.query(Dataset).all())) == 1
+        assert len(list(session.query(Prompt).all())) == 1

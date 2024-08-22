@@ -37,7 +37,7 @@ def add_adapter(state: AppState, request: AddAdapterRequest, cml: CMLServiceApi 
         model_id=request.model_id,
         location=request.location,
         huggingface_name=request.huggingface_name,
-        job_id=request.job_id,
+        fine_tuning_job_id=request.fine_tuning_job_id,
         prompt_id=request.prompt_id,
     )
 

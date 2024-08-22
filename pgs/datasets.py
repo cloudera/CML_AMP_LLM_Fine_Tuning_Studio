@@ -35,7 +35,7 @@ def handle_database_import():
                         try:
                             fts.AddDataset(
                                 AddDatasetRequest(
-                                    type=DatasetType.DATASET_TYPE_HUGGINGFACE,
+                                    type=DatasetType.HUGGINGFACE,
                                     huggingface_name=import_hf_dataset_name,
                                     location=None
                                 )

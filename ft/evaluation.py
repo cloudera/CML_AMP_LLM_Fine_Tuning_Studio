@@ -116,16 +116,14 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
     )
 
     metadata = EvaluationJobMetadata(
-        job_id=job_id,
+        id=job_id,
         base_model_id=request.base_model_id,
         dataset_id=request.dataset_id,
         adapter_id=request.adapter_id,
         num_workers=1,
-        worker_props=WorkerProps(
-            num_cpu=request.cpu,
-            num_gpu=request.gpu,
-            num_memory=request.memory
-        ),
+        num_cpu=request.cpu,
+        num_gpu=request.gpu,
+        num_memory=request.memory,
         cml_job_id=created_job.id,
         evaluation_dir=result_dir
     )

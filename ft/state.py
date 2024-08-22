@@ -5,7 +5,6 @@ import os
 from google.protobuf.json_format import ParseDict, MessageToDict
 from google.protobuf.message import Message
 
-# TODO: this should be an environment variable of the app.
 DEFAULT_STATE_LOCATION = ".app/state.json"
 """
 State location of the app. This contains all data that

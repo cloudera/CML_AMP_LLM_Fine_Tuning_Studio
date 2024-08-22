@@ -1,62 +1,4 @@
 {
-  "datasets": [
-    {
-      "id": "441509f4-137b-40ce-a303-bbd2a63f1e69",
-      "type": "DATASET_TYPE_HUGGINGFACE",
-      "name": "Clinton/Text-to-sql-v1",
-      "huggingface_name": "Clinton/Text-to-sql-v1",
-      "features": [
-        "instruction",
-        "input",
-        "response",
-        "source",
-        "text"
-      ]
-    },
-    {
-      "id": "ea5b3d2f-c2b6-4b73-8989-e5175b4efb03",
-      "type": "DATASET_TYPE_HUGGINGFACE",
-      "name": "hakurei/open-instruct-v1",
-      "huggingface_name": "hakurei/open-instruct-v1",
-      "features": [
-        "output",
-        "instruction",
-        "input"
-      ]
-    },
-    {
-      "id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
-      "type": "DATASET_TYPE_HUGGINGFACE",
-      "name": "philschmid/sql-create-context-copy",
-      "huggingface_name": "philschmid/sql-create-context-copy",
-      "features": [
-        "question",
-        "answer",
-        "context"
-      ]
-    },
-    {
-      "id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
-      "type": "DATASET_TYPE_HUGGINGFACE",
-      "name": "teknium/GPTeacher-General-Instruct",
-      "huggingface_name": "teknium/GPTeacher-General-Instruct",
-      "features": [
-        "instruction",
-        "response",
-        "input"
-      ]
-    },
-    {
-      "id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
-      "type": "DATASET_TYPE_HUGGINGFACE",
-      "name": "s-nlp/paradetox",
-      "huggingface_name": "s-nlp/paradetox",
-      "features": [
-        "en_toxic_comment",
-        "en_neutral_comment"
-      ]
-    }
-  ],
   "models": [
     {
       "id": "1fcb8f73-432b-4af7-abf0-1fae3e6579d5",
@@ -88,21 +30,21 @@
       "id": "14674c2e-6641-4494-aff9-6f3cd021d710",
       "type": "PROMPT_TYPE_IN_PLACE",
       "name": "PREBUILT: philschmid/sql-create-context-copy",
-      "dataset_id": "6e8c9e5a-3168-44bb-b6ee-72f59132f77e",
+      "dataset_id": "8ba6f0d8-22a8-4a1a-a823-1dba88f2c377",
       "prompt_template": "<TABLE>: {context}\n<QUESTION>: {question}\n<SQL>: {answer}"
     },
     {
       "id": "7ee0f633-faf0-4827-b4cf-2eab4795fc53",
       "type": "PROMPT_TYPE_IN_PLACE",
       "name": "PREBUILT: instruct",
-      "dataset_id": "a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+      "dataset_id": "9aacdc33-85dd-4a75-9fe4-1cff63e5cb22",
       "prompt_template": "<Instruction>: {instruction}\n<Input>: {input}\n<Response>: {response}\n"
     },
     {
       "id": "d1a4bb2b-e5c0-4fd7-abd3-0f53c5c00d17",
       "type": "PROMPT_TYPE_IN_PLACE",
       "name": "PREBUILT: toxic",
-      "dataset_id": "24e91769-1d0e-4eb8-8ac2-50032598d66f",
+      "dataset_id": "b5f316ea-4fa9-4172-8c5f-0dfd181a7d85",
       "prompt_template": "<Toxic>: {en_toxic_comment}\n<Neutral>: {en_neutral_comment}"
     }
   ],

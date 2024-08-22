@@ -6,6 +6,7 @@ import requests
 from ft.api import *
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+import json
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -121,7 +122,7 @@ with col2:
                         right_on='public_identifier',
                         how='inner')
 
-                    display_df = display_df[['job_id', 'num_workers', 'latest']]
+                    display_df = display_df[['id', 'num_workers', 'latest']]
 
                     status_mapping = {
                         "succeeded": 100,
@@ -131,14 +132,13 @@ with col2:
                     display_df['status'] = display_df['latest'].apply(
                         lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
 
-                    display_df['adapter_name'] = display_df['job_id'].map(
-                        lambda x: next((adapter.name for adapter in current_adapters if adapter.job_id == x), "Unknown")
-                    )
+                    display_df['adapter_name'] = display_df['id'].map(lambda x: next(
+                        (adapter.name for adapter in current_adapters if adapter.fine_tuning_job_id == x), "Unknown"))
 
                     st.data_editor(
-                        display_df[['job_id', 'status', 'adapter_name']],
+                        display_df[['id', 'status', 'adapter_name']],
                         column_config={
-                            "job_id": st.column_config.TextColumn("Job ID"),
+                            "id": st.column_config.TextColumn("Job ID"),
                             "status": st.column_config.ProgressColumn(
                                 "Status",
                                 help="Job status as progress",
@@ -155,11 +155,11 @@ with col2:
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
     else:
-        jobs_df = pd.DataFrame(columns=['job_id', 'status', 'adapter_name'])
+        jobs_df = pd.DataFrame(columns=['id', 'status', 'adapter_name'])
         st.data_editor(
-            jobs_df[['job_id', 'status', 'adapter_name']],
+            jobs_df[['id', 'status', 'adapter_name']],
             column_config={
-                "job_id": st.column_config.TextColumn("Job ID"),
+                "id": st.column_config.TextColumn("Job ID"),
                 "status": st.column_config.ProgressColumn(
                     "Status",
                     help="Job status as progress",
@@ -198,7 +198,7 @@ with col3:
                         right_on='public_identifier',
                         how='inner')
 
-                    display_df = display_df[['job_id', 'num_workers', 'latest']]
+                    display_df = display_df[['id', 'num_workers', 'latest']]
 
                     status_mapping = {
                         "succeeded": 100,
@@ -208,9 +208,8 @@ with col3:
                     display_df['status'] = display_df['latest'].apply(
                         lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
 
-                    display_df['adapter_name'] = display_df['job_id'].map(
-                        lambda x: next((adapter.name for adapter in current_adapters if adapter.job_id == x), "Unknown")
-                    )
+                    display_df['adapter_name'] = display_df['id'].map(lambda x: next(
+                        (adapter.name for adapter in current_adapters if adapter.fine_tuning_job_id == x), "Unknown"))
 
                     st.data_editor(
                         display_df[['job_id', 'status']],
@@ -254,7 +253,7 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     st.caption("**Datasets**")
-    data_dicts = [{"name": dataset.name, "features": dataset.features} for dataset in datasets]
+    data_dicts = [{"name": dataset.name, "features": json.loads(dataset.features)} for dataset in datasets]
     df = pd.DataFrame(data_dicts)
     st.data_editor(
         df,

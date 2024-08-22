@@ -169,7 +169,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     )
 
     metadata = FineTuningJobMetadata(
-        job_id=job_id,
+        id=job_id,
         out_dir=request.output_dir,
         base_model_id=request.base_model_id,
         dataset_id=request.dataset_id,
@@ -180,11 +180,9 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         learning_rate=request.learning_rate,
         dataset_fraction=request.dataset_fraction,
         train_test_split=request.train_test_split,
-        worker_props=WorkerProps(
-            num_cpu=request.cpu,
-            num_gpu=request.gpu,
-            num_memory=request.memory
-        ),
+        num_cpu=request.cpu,
+        num_gpu=request.gpu,
+        num_memory=request.memory,
         training_arguments_config_id=request.training_arguments_config_id,
         lora_config_id=request.lora_config_id,
         model_bnb_config_id=request.model_bnb_config_id,

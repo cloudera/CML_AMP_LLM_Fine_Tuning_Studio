@@ -1,66 +1,97 @@
 from ft.api import *
 from datasets import load_dataset_builder
-from ft.state import write_state, replace_state_field
 from uuid import uuid4
 from cmlapi import CMLServiceApi
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import Dataset, Prompt
+from sqlalchemy import delete
+from typing import List
+import json
 
 
-def list_datasets(state: AppState, request: ListDatasetsRequest, cml: CMLServiceApi = None) -> ListDatasetsResponse:
+def list_datasets(
+    request: ListDatasetsRequest,
+    cml: CMLServiceApi = None,
+    dao: FineTuningStudioDao = None
+) -> ListDatasetsResponse:
     """
     Lists all datasets. In the future, the dataset request object may
     contain information about filtering out datasets.
     """
 
+    # Create a dataset ORM object.
+    # query the datasets table using the object.
+    # fetch all as a list.
+    with dao.get_session() as session:
+        result: List[Dataset] = session.query(Dataset).all()
+
+        # Convert to a response object.
+        datasets: List[DatasetMetadata] = list(map(lambda mod: mod.to_protobuf(DatasetMetadata), result))
+
     return ListDatasetsResponse(
-        datasets=state.datasets
+        datasets=datasets
     )
 
 
-def get_dataset(state: AppState, request: GetDatasetRequest, cml: CMLServiceApi = None) -> GetDatasetResponse:
+def get_dataset(
+    request: GetDatasetRequest,
+    cml: CMLServiceApi = None,
+    dao: FineTuningStudioDao = None
+) -> GetDatasetResponse:
     """
     Get a dataset given a dataset request type. Currently datasets can
     only be extracted by an ID.
     """
 
-    datasets = state.datasets
-    datasets = list(filter(lambda x: x.id == request.id, datasets))
-    assert len(datasets) == 1
+    with dao.get_session() as session:
+        dataset: Dataset = session.query(Dataset).where(Dataset.id == request.id).one()
+        dataset_md: DatasetMetadata = dataset.to_protobuf(DatasetMetadata)
+
     return GetDatasetResponse(
-        dataset=datasets[0]
+        dataset=dataset_md
     )
 
 
-def add_dataset(state: AppState, request: AddDatasetRequest, cml: CMLServiceApi = None) -> AddDatasetResponse:
+def add_dataset(request: AddDatasetRequest, cml: CMLServiceApi = None,
+                dao: FineTuningStudioDao = None) -> AddDatasetResponse:
     """
     Retrieve dataset information without fully loading it into memory.
     """
     response = AddDatasetResponse()
 
     # Create a new dataset metadata for the imported dataset.
-    if request.type == DatasetType.DATASET_TYPE_HUGGINGFACE:
+    if request.type == DatasetType.HUGGINGFACE:
         try:
             # Check if the dataset already exists
-            existing_datasets = state.datasets
-            if any(ds.huggingface_name == request.huggingface_name for ds in existing_datasets):
-                raise ValueError(f"Dataset with name '{request.huggingface_name}' already exists.")
+
+            with dao.get_session() as session:
+                existing_datasets: List[Dataset] = session.query(Dataset).all()
+
+                if any(ds.huggingface_name == request.huggingface_name for ds in existing_datasets):
+                    raise ValueError(f"Dataset with name '{request.huggingface_name}' already exists.")
 
             # Get dataset information without loading it into memory.
             dataset_builder = load_dataset_builder(request.huggingface_name)
             dataset_info = dataset_builder.info
 
-            print(dataset_info)
-
             # Extract features from the dataset info.
             features = list(dataset_info.features.keys())
-            metadata = DatasetMetadata(
-                id=str(uuid4()),
-                type=request.type,
-                features=features,
-                huggingface_name=request.huggingface_name,
-                name=request.huggingface_name,
-                description=dataset_info.description
-            )
-            response = AddDatasetResponse(dataset=metadata)
+
+            # Add the datasets.
+            with dao.get_session() as session:
+                dataset = Dataset(
+                    id=str(uuid4()),
+                    type=request.type,
+                    features=json.dumps(features),
+                    name=request.huggingface_name,
+                    huggingface_name=request.huggingface_name,
+                    description=dataset_info.description
+                )
+                session.add(dataset)
+                session.commit()
+
+                metadata: DatasetMetadata = dataset.to_protobuf(DatasetMetadata)
+                response = AddDatasetResponse(dataset=metadata)
 
         except Exception as e:
             raise ValueError(f"Failed to load dataset. {e}")
@@ -68,23 +99,19 @@ def add_dataset(state: AppState, request: AddDatasetRequest, cml: CMLServiceApi 
     else:
         raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
 
-    # If we have a response, add the dataset to the app's state.
-    if not response == AddDatasetResponse():
-        state.datasets.append(response.dataset)
-        write_state(state)
-
     return response
 
 
-def remove_dataset(state: AppState, request: RemoveDatasetRequest, cml: CMLServiceApi = None) -> RemoveDatasetResponse:
-    """
-    TODO: this should be an official request/response type
-    """
-    datasets = list(filter(lambda x: not x.id == request.id, state.datasets))
-    prompts = state.prompts
-    if request.remove_prompts:
-        prompts = list(filter(lambda x: not x.dataset_id == request.id, state.prompts))
+def remove_dataset(
+    request: RemoveDatasetRequest,
+    cml: CMLServiceApi = None,
+    dao: FineTuningStudioDao = None
+) -> RemoveDatasetResponse:
 
-    state = replace_state_field(state, datasets=datasets)
-    state = replace_state_field(state, prompts=prompts)
+    with dao.get_session() as session:
+        session.execute(delete(Dataset).where(Dataset.id == request.id))
+        if request.remove_prompts:
+            session.execute(delete(Prompt).where(Prompt.dataset_id == request.id))
+        session.commit()
+
     return RemoveDatasetResponse()
