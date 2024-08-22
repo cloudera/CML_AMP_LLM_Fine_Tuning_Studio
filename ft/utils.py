@@ -5,6 +5,7 @@ import os
 import requests
 import torch
 from huggingface_hub import login
+import yaml
 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
@@ -90,3 +91,13 @@ def process_resource_usage_data(data: Dict[str, Any]) -> pd.DataFrame:
         })
 
     return pd.DataFrame(rows)
+
+def save_yaml_file(yaml_dict, file_path):
+    """
+    Save a Python dictionary as a YAML file.
+
+    :param yaml_dict: The dictionary to be saved as a YAML file.
+    :param file_path: The path where the YAML file should be saved.
+    """
+    with open(file_path, 'w') as file:
+        yaml.dump(yaml_dict, file, default_flow_style=False)

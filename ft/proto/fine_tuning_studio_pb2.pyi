@@ -67,6 +67,14 @@ class ConfigType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CONFIG_TYPE_GENERATION_CONFIG: _ClassVar[ConfigType]
     CONFIG_TYPE_LORA_CONFIG: _ClassVar[ConfigType]
     CONFIG_TYPE_CUSTOM: _ClassVar[ConfigType]
+    CONFIG_TYPE_AXOLOTL_TRAIN_CONFIG: _ClassVar[ConfigType]
+
+
+class FinetuningFrameworkType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    FINETUNING_FRAMEWORK_TYPE_UNKNOWN: _ClassVar[FinetuningFrameworkType]
+    FINETUNING_FRAMEWORK_TYPE_PROPRIETARY_SOLUTION: _ClassVar[FinetuningFrameworkType]
+    FINETUNING_FRAMEWORK_TYPE_AXOLOTL: _ClassVar[FinetuningFrameworkType]
 
 
 DATASET_TYPE_UNKNOWN: DatasetType
@@ -99,6 +107,10 @@ CONFIG_TYPE_BITSANDBYTES_CONFIG: ConfigType
 CONFIG_TYPE_GENERATION_CONFIG: ConfigType
 CONFIG_TYPE_LORA_CONFIG: ConfigType
 CONFIG_TYPE_CUSTOM: ConfigType
+CONFIG_TYPE_AXOLOTL_TRAIN_CONFIG: ConfigType
+FINETUNING_FRAMEWORK_TYPE_UNKNOWN: FinetuningFrameworkType
+FINETUNING_FRAMEWORK_TYPE_PROPRIETARY_SOLUTION: FinetuningFrameworkType
+FINETUNING_FRAMEWORK_TYPE_AXOLOTL: FinetuningFrameworkType
 
 
 class ListDatasetsRequest(_message.Message):
@@ -427,7 +439,9 @@ class StartFineTuningJobRequest(_message.Message):
         "dataset_fraction",
         "user_script",
         "user_config_id",
-        "user_config")
+        "user_config",
+        "axolotl_train_config_id",
+        "finetuning_framework_type")
     ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -449,6 +463,8 @@ class StartFineTuningJobRequest(_message.Message):
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    AXOLOTL_TRAIN_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    FINETUNING_FRAMEWORK_TYPE_FIELD_NUMBER: _ClassVar[int]
     adapter_name: str
     base_model_id: str
     dataset_id: str
@@ -470,30 +486,34 @@ class StartFineTuningJobRequest(_message.Message):
     user_script: str
     user_config_id: str
     user_config: str
+    axolotl_train_config_id: str
+    finetuning_framework_type: FinetuningFrameworkType
 
-    def __init__(
-        self,
-        adapter_name: _Optional[str] = ...,
-        base_model_id: _Optional[str] = ...,
-        dataset_id: _Optional[str] = ...,
-        prompt_id: _Optional[str] = ...,
-        num_workers: _Optional[int] = ...,
-        auto_add_adapter: bool = ...,
-        num_epochs: _Optional[int] = ...,
-        learning_rate: _Optional[float] = ...,
-        cpu: _Optional[int] = ...,
-        gpu: _Optional[int] = ...,
-        memory: _Optional[int] = ...,
-        train_test_split: _Optional[float] = ...,
-        model_bnb_config_id: _Optional[str] = ...,
-        adapter_bnb_config_id: _Optional[str] = ...,
-        training_arguments_config_id: _Optional[str] = ...,
-        lora_config_id: _Optional[str] = ...,
-        output_dir: _Optional[str] = ...,
-        dataset_fraction: _Optional[float] = ...,
-        user_script: _Optional[str] = ...,
-        user_config_id: _Optional[str] = ...,
-        user_config: _Optional[str] = ...) -> None: ...
+    def __init__(self,
+                 adapter_name: _Optional[str] = ...,
+                 base_model_id: _Optional[str] = ...,
+                 dataset_id: _Optional[str] = ...,
+                 prompt_id: _Optional[str] = ...,
+                 num_workers: _Optional[int] = ...,
+                 auto_add_adapter: bool = ...,
+                 num_epochs: _Optional[int] = ...,
+                 learning_rate: _Optional[float] = ...,
+                 cpu: _Optional[int] = ...,
+                 gpu: _Optional[int] = ...,
+                 memory: _Optional[int] = ...,
+                 train_test_split: _Optional[float] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...,
+                 training_arguments_config_id: _Optional[str] = ...,
+                 lora_config_id: _Optional[str] = ...,
+                 output_dir: _Optional[str] = ...,
+                 dataset_fraction: _Optional[float] = ...,
+                 user_script: _Optional[str] = ...,
+                 user_config_id: _Optional[str] = ...,
+                 user_config: _Optional[str] = ...,
+                 axolotl_train_config_id: _Optional[str] = ...,
+                 finetuning_framework_type: _Optional[_Union[FinetuningFrameworkType,
+                                                             str]] = ...) -> None: ...
 
 
 class StartFineTuningJobResponse(_message.Message):
@@ -865,7 +885,9 @@ class FineTuningJobMetadata(_message.Message):
         "train_test_split",
         "user_script",
         "user_config_id",
-        "user_config")
+        "user_config",
+        "axolotl_train_config_id",
+        "finetuning_framework_type")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -886,6 +908,8 @@ class FineTuningJobMetadata(_message.Message):
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    AXOLOTL_TRAIN_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    FINETUNING_FRAMEWORK_TYPE_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     base_model_id: str
     dataset_id: str
@@ -906,6 +930,8 @@ class FineTuningJobMetadata(_message.Message):
     user_script: str
     user_config_id: str
     user_config: str
+    axolotl_train_config_id: str
+    finetuning_framework_type: FinetuningFrameworkType
 
     def __init__(self,
                  job_id: _Optional[str] = ...,
@@ -928,7 +954,10 @@ class FineTuningJobMetadata(_message.Message):
                  train_test_split: _Optional[float] = ...,
                  user_script: _Optional[str] = ...,
                  user_config_id: _Optional[str] = ...,
-                 user_config: _Optional[str] = ...) -> None: ...
+                 user_config: _Optional[str] = ...,
+                 axolotl_train_config_id: _Optional[str] = ...,
+                 finetuning_framework_type: _Optional[_Union[FinetuningFrameworkType,
+                                                             str]] = ...) -> None: ...
 
 
 class ConfigMetadata(_message.Message):

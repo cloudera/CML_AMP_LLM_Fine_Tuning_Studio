@@ -163,7 +163,8 @@ class FineTuningStudioApp(FineTuningStudioServicer):
 
     def StartFineTuningJob(self, request, context):
         state: AppState = get_state()
-        return start_fine_tuning_job(state, request, self.cml)
+        response = start_fine_tuning_job(state, request, self.cml)
+        return response
 
     def RemoveFineTuningJob(self, request, context):
         state: AppState = get_state()

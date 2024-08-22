@@ -368,6 +368,14 @@ message StartFineTuningJobRequest {
   // store, and pass the new config ID to the script), which means it is still up to the
   // user to extrac tthis config as part of the script.
   string user_config = 22;
+
+  // Optional ID of a configuration struct that is passed to a custom user fine-tuning 
+  // script as a job argument using the --axolotl_train_config_id flag. It is the user's 
+  // responsibility to extract this configuration within the script.
+  string axolotl_train_config_id = 23;
+
+  // The Finetuning Framework to use for model training.
+  FinetuningFrameworkType finetuning_framework_type = 24;
 }
 
 message StartFineTuningJobResponse {
@@ -627,6 +635,14 @@ enum ConfigType {
   CONFIG_TYPE_GENERATION_CONFIG = 3;
   CONFIG_TYPE_LORA_CONFIG = 4;
   CONFIG_TYPE_CUSTOM = 5;
+  CONFIG_TYPE_AXOLOTL_TRAIN_CONFIG = 6;
+}
+
+// Configuration type
+enum FinetuningFrameworkType {
+  FINETUNING_FRAMEWORK_TYPE_UNKNOWN = 0;
+  FINETUNING_FRAMEWORK_TYPE_PROPRIETARY_SOLUTION = 1;
+  FINETUNING_FRAMEWORK_TYPE_AXOLOTL = 2;
 }
 
 /**
@@ -875,6 +891,14 @@ message FineTuningJobMetadata {
   // store, and pass the new config ID to the script), which means it is still up to the
   // user to extrac tthis config as part of the script.
   string user_config = 22;
+
+  // Optional ID of a configuration struct that is passed to a custom user fine-tuning 
+  // script as a job argument using the --axolotl_train_config_id flag. It is the user's 
+  // responsibility to extract this configuration within the script.
+  string axolotl_train_config_id = 23;
+
+  // The Finetuning Framework to use for model training.
+  FinetuningFrameworkType finetuning_framework_type = 24;
 }
 
 
