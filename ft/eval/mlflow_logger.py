@@ -25,11 +25,17 @@ class ModelLogger():
             model_output="The three primary colors are red, yellow, and blue.",
         )
 
-    def set_schema_and_model_params_signature(self, input_example = "", output_examples = "", params = ""):
-        model_input="What are the three primary colors?"
-        model_output="The three primary colors are red, yellow, and blue."
-        signature = infer_signature(model_input = model_input , model_output = model_output,params={"max_new_tokens": 256, "repetition_penalty": 1.15, "return_full_text": False})
-        return signature    
+    def set_schema_and_model_params_signature(self, input_example="", output_examples="", params=""):
+        model_input = "What are the three primary colors?"
+        model_output = "The three primary colors are red, yellow, and blue."
+        signature = infer_signature(
+            model_input=model_input,
+            model_output=model_output,
+            params={
+                "max_new_tokens": 256,
+                "repetition_penalty": 1.15,
+                "return_full_text": False})
+        return signature
 
     def log_model_pipeline(self, pipeline):
         with mlflow.start_run():
@@ -53,13 +59,13 @@ class ModelLogger():
             top_p=1
         )
         with mlflow.start_run():
-                model_info = mlflow.transformers.log_model(
-                    transformers_model={"model": transformer_model, "tokenizer": tokenizer_no_pad},
-                    torch_dtype='float16',
-                    artifact_path="custom-pipe",        # artifact_path can be dynamic
-                    signature=self.set_schema_and_model_params_signature(),
-                    registered_model_name="custom-pipe-chat",
-                    model_config=self.config.to_dict()
-                )
+            model_info = mlflow.transformers.log_model(
+                transformers_model={"model": transformer_model, "tokenizer": tokenizer_no_pad},
+                torch_dtype='float16',
+                artifact_path="custom-pipe",        # artifact_path can be dynamic
+                signature=self.set_schema_and_model_params_signature(),
+                registered_model_name="custom-pipe-chat",
+                model_config=self.config.to_dict()
+            )
 
         return model_info

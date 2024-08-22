@@ -120,7 +120,8 @@ with col2:
                         cml_jobs_list_df,
                         left_on='cml_job_id',
                         right_on='public_identifier',
-                        how='inner')
+                        how='inner',
+                        suffixes=('', '_cml'))
 
                     display_df = display_df[['id', 'num_workers', 'latest']]
 
@@ -196,7 +197,8 @@ with col3:
                         cml_jobs_list_df,
                         left_on='cml_job_id',
                         right_on='public_identifier',
-                        how='inner')
+                        how='inner',
+                        suffixes=('', '_cml'))
 
                     display_df = display_df[['id', 'num_workers', 'latest']]
 

@@ -40,7 +40,7 @@ def load_adapted_hf_generation_pipeline(
             quantization_config=bnb_config,
             device_map="auto",
         )
-        try: 
+        try:
             model = PeftModel.from_pretrained(
                 model,
                 lora_model_name,
@@ -56,7 +56,7 @@ def load_adapted_hf_generation_pipeline(
             device_map={"": device},
             torch_dtype=torch.float16,
         )
-        try: 
+        try:
             model = PeftModel.from_pretrained(
                 model,
                 lora_model_name,

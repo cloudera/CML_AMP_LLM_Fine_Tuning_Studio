@@ -207,7 +207,7 @@ if args.auto_add_adapter:
             name=args.adapter_name,
             model_id=base_model_md.id,
             location=args.out_dir,
-            job_id=args.experimentid,
+            fine_tuning_job_id=args.experimentid,
             prompt_id=prompt_md.id
         )
     )
