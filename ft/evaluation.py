@@ -67,6 +67,9 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
     arg_list.append("--base_model_id")
     arg_list.append(request.base_model_id)
 
+    arg_list.append("--adapter_id")
+    arg_list.append(request.adapter_id)
+    
     # Set Evaluation Dir argument
     arg_list.append("--result_dir")
     arg_list.append(result_dir)

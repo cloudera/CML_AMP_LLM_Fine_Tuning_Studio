@@ -18,3 +18,4 @@ class ModelEvaluator():
                 evaluator_config={"col_mapping": {"inputs": "model_input"}}
             )
         return results
+    
