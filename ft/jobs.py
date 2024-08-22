@@ -124,7 +124,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         if not request.user_config == StartFineTuningJobRequest().user_config:
             user_config_md: ConfigMetadata = ConfigMetadata(
                 id=str(uuid4()),
-                type=ConfigType.CONFIG_TYPE_CUSTOM,
+                type=ConfigType.CUSTOM,
                 config=json.dumps(json.loads(request.user_config))
             )
             state.configs.append(user_config_md)

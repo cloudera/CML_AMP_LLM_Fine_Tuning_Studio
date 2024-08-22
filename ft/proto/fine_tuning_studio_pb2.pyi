@@ -52,16 +52,6 @@ class EvaluationJobType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     EVALUATION_JOB_TYPE_MLFLOW: _ClassVar[EvaluationJobType]
 
 
-class ConfigType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    CONFIG_TYPE_UNKNOWN: _ClassVar[ConfigType]
-    CONFIG_TYPE_TRAINING_ARGUMENTS: _ClassVar[ConfigType]
-    CONFIG_TYPE_BITSANDBYTES_CONFIG: _ClassVar[ConfigType]
-    CONFIG_TYPE_GENERATION_CONFIG: _ClassVar[ConfigType]
-    CONFIG_TYPE_LORA_CONFIG: _ClassVar[ConfigType]
-    CONFIG_TYPE_CUSTOM: _ClassVar[ConfigType]
-
-
 MODEL_TYPE_UNKNOWN: ModelType
 MODEL_TYPE_HUGGINGFACE: ModelType
 MODEL_TYPE_PROJECT: ModelType
@@ -83,12 +73,6 @@ PROMPT_TYPE_UNKNOWN: PromptType
 PROMPT_TYPE_IN_PLACE: PromptType
 EVALUATION_JOB_TYPE_UNKNOWN: EvaluationJobType
 EVALUATION_JOB_TYPE_MLFLOW: EvaluationJobType
-CONFIG_TYPE_UNKNOWN: ConfigType
-CONFIG_TYPE_TRAINING_ARGUMENTS: ConfigType
-CONFIG_TYPE_BITSANDBYTES_CONFIG: ConfigType
-CONFIG_TYPE_GENERATION_CONFIG: ConfigType
-CONFIG_TYPE_LORA_CONFIG: ConfigType
-CONFIG_TYPE_CUSTOM: ConfigType
 
 
 class ListDatasetsRequest(_message.Message):
@@ -608,12 +592,17 @@ class ListConfigsRequest(_message.Message):
     MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     FINE_TUNING_JOB_ID_FIELD_NUMBER: _ClassVar[int]
-    type: ConfigType
+    type: str
     model_id: str
     adapter_id: str
     fine_tuning_job_id: str
-    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ..., model_id: _Optional[str] = ...,
-                 adapter_id: _Optional[str] = ..., fine_tuning_job_id: _Optional[str] = ...) -> None: ...
+
+    def __init__(
+        self,
+        type: _Optional[str] = ...,
+        model_id: _Optional[str] = ...,
+        adapter_id: _Optional[str] = ...,
+        fine_tuning_job_id: _Optional[str] = ...) -> None: ...
 
 
 class ListConfigsResponse(_message.Message):
@@ -642,11 +631,11 @@ class AddConfigRequest(_message.Message):
     TYPE_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    type: ConfigType
+    type: str
     config: str
     description: str
-    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ...,
-                 config: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
+    def __init__(self, type: _Optional[str] = ..., config: _Optional[str]
+                 = ..., description: _Optional[str] = ...) -> None: ...
 
 
 class AddConfigResponse(_message.Message):
@@ -930,10 +919,10 @@ class ConfigMetadata(_message.Message):
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     id: str
     description: str
-    type: ConfigType
+    type: str
     config: str
     def __init__(self, id: _Optional[str] = ..., description: _Optional[str] = ...,
-                 type: _Optional[_Union[ConfigType, str]] = ..., config: _Optional[str] = ...) -> None: ...
+                 type: _Optional[str] = ..., config: _Optional[str] = ...) -> None: ...
 
 
 class EvaluationJobMetadata(_message.Message):

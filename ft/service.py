@@ -199,17 +199,13 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         )
 
     def ListConfigs(self, request, context):
-        state: AppState = get_state()
-        return list_configs(state, request)
+        return list_configs(request, dao=self.dao)
 
     def GetConfig(self, request, context):
-        state: AppState = get_state()
-        return get_config(state, request)
+        return get_config(request, dao=self.dao)
 
     def AddConfig(self, request, context):
-        state: AppState = get_state()
-        return add_config(state, request)
+        return add_config(request, dao=self.dao)
 
     def RemoveConfig(self, request, context):
-        state: AppState = get_state()
-        return remove_config(state, request)
+        return remove_config(request, dao=self.dao)

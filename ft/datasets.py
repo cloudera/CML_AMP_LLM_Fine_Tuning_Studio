@@ -88,7 +88,6 @@ def add_dataset(request: AddDatasetRequest, cml: CMLServiceApi = None,
                     description=dataset_info.description
                 )
                 session.add(dataset)
-                session.commit()
 
                 metadata: DatasetMetadata = dataset.to_protobuf(DatasetMetadata)
                 response = AddDatasetResponse(dataset=metadata)
@@ -112,6 +111,5 @@ def remove_dataset(
         session.execute(delete(Dataset).where(Dataset.id == request.id))
         if request.remove_prompts:
             session.execute(delete(Prompt).where(Prompt.dataset_id == request.id))
-        session.commit()
 
     return RemoveDatasetResponse()

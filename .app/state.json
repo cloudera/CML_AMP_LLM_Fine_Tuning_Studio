@@ -70,27 +70,5 @@
       "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
       "location": "data/adapters/bloom1b1-lora-toxic"
     }
-  ],
-  "configs": [
-    {
-      "id": "5b91913e-3758-4f55-a411-6f3c09af196f",
-      "type": "CONFIG_TYPE_LORA_CONFIG",
-      "config": "{\"r\": 16, \"lora_alpha\": 32, \"lora_dropout\": 0.05, \"bias\": \"none\", \"task_type\": \"CAUSAL_LM\"}"
-    },
-    {
-      "id": "538b9d54-6812-4b44-afad-9cb0bd3844ac",
-      "type": "CONFIG_TYPE_BITSANDBYTES_CONFIG",
-      "config": "{\"load_in_4bit\": true, \"bnb_4bit_quant_type\": \"nf4\", \"bnb_4bit_compute_dtype\": \"float16\", \"bnb_4bit_use_double_quant\": true, \"quant_method\": \"bitsandbytes\"}"
-    },
-    {
-      "id": "c6bda90d-38df-4515-983d-970785254b80",
-      "type": "CONFIG_TYPE_TRAINING_ARGUMENTS",
-      "config": "{\"num_train_epochs\": 1, \"optim\": \"paged_adamw_32bit\", \"per_device_train_batch_size\": 1, \"gradient_accumulation_steps\": 4, \"warmup_ratio\": 0.03, \"max_grad_norm\": 0.3, \"learning_rate\": 0.0002, \"fp16\": true, \"logging_steps\": 1, \"lr_scheduler_type\": \"constant\", \"disable_tqdm\": true, \"evaluation_strategy\": \"epoch\", \"eval_steps\": 1, \"save_strategy\": \"epoch\", \"report_to\": \"mlflow\"}"
-    },
-    {
-      "id": "aa14660d-d89a-43c0-b323-b09af2f97487",
-      "type": "CONFIG_TYPE_GENERATION_CONFIG",
-      "config": "{\"do_sample\": true, \"temperature\": 0.8, \"max_new_tokens\": 60, \"top_p\": 1, \"top_k\": 50, \"num_beams\": 1, \"repetition_penalty\": 1.1}"
-    }
   ]
 }

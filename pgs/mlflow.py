@@ -109,7 +109,7 @@ with ccol1:
                         json.loads(
                             fts.ListConfigs(
                                 ListConfigsRequest(
-                                    type=CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                                    type=BITSANDBYTES_CONFIG,
                                     model_id=current_models[model_idx].id,
                                     adapter_id=model_adapters[model_adapter_idx].id
                                 )
@@ -125,7 +125,7 @@ with ccol1:
                         json.loads(
                             fts.ListConfigs(
                                 ListConfigsRequest(
-                                    type=CONFIG_TYPE_GENERATION_CONFIG,
+                                    type=GENERATION_CONFIG,
                                     model_id=current_models[model_idx].id,
                                     adapter_id=model_adapters[model_adapter_idx].id
                                 )
@@ -152,13 +152,13 @@ with ccol1:
                 # add these new configs to the config store.
                 bnb_config_md: ConfigMetadata = fts.AddConfig(
                     AddConfigRequest(
-                        type=CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                        type=BITSANDBYTES_CONFIG,
                         config=bnb_config_text
                     )
                 ).config
                 generation_config_md: ConfigMetadata = fts.AddConfig(
                     AddConfigRequest(
-                        type=CONFIG_TYPE_GENERATION_CONFIG,
+                        type=GENERATION_CONFIG,
                         config=generation_config_text
                     )
                 ).config

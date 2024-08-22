@@ -446,7 +446,7 @@ message RemoveEvaluationJobResponse {
 message ListConfigsRequest {
 
   // Optionally only return a specific config type.
-  ConfigType type = 1;
+  string type = 1;
 
   // Optional, Specify a model id for any future filtering
   // that may occur on model id.
@@ -475,7 +475,7 @@ message GetConfigResponse {
 }
 
 message AddConfigRequest {
-  ConfigType type = 1;
+  string type = 1;
   string config = 2;
   string description = 3;
 }
@@ -596,17 +596,6 @@ enum PromptType {
 enum EvaluationJobType {
   EVALUATION_JOB_TYPE_UNKNOWN = 0;
   EVALUATION_JOB_TYPE_MLFLOW = 1;
-}
-
-
-// Configuration type
-enum ConfigType {
-  CONFIG_TYPE_UNKNOWN = 0;
-  CONFIG_TYPE_TRAINING_ARGUMENTS = 1;
-  CONFIG_TYPE_BITSANDBYTES_CONFIG = 2;
-  CONFIG_TYPE_GENERATION_CONFIG = 3;
-  CONFIG_TYPE_LORA_CONFIG = 4;
-  CONFIG_TYPE_CUSTOM = 5;
 }
 
 /**
@@ -853,7 +842,7 @@ message ConfigMetadata {
   string description = 2;
 
   // type of configuration
-  ConfigType type = 3;
+  string type = 3;
 
   // Serialized (json) representation of the config. This
   // can be passed directly into any of the config types

@@ -107,7 +107,7 @@ def create_train_adapter_page():
                     json.loads(
                         fts.ListConfigs(
                             ListConfigsRequest(
-                                type=ConfigType.CONFIG_TYPE_LORA_CONFIG
+                                type=ConfigType.LORA_CONFIG
                             )
                         ).configs[0].config
                     ),
@@ -120,7 +120,7 @@ def create_train_adapter_page():
                     json.loads(
                         fts.ListConfigs(
                             ListConfigsRequest(
-                                type=ConfigType.CONFIG_TYPE_BITSANDBYTES_CONFIG
+                                type=ConfigType.BITSANDBYTES_CONFIG
                             )
                         ).configs[0].config
                     ),
@@ -141,7 +141,7 @@ def create_train_adapter_page():
                         json.loads(
                             fts.ListConfigs(
                                 ListConfigsRequest(
-                                    type=ConfigType.CONFIG_TYPE_TRAINING_ARGUMENTS
+                                    type=ConfigType.TRAINING_ARGUMENTS
                                 )
                             ).configs[0].config
                         ),
@@ -171,13 +171,13 @@ def create_train_adapter_page():
                     # will be returned.
                     lora_config: ConfigMetadata = fts.AddConfig(
                         AddConfigRequest(
-                            type=ConfigType.CONFIG_TYPE_LORA_CONFIG,
+                            type=ConfigType.LORA_CONFIG,
                             config=lora_config_text
                         )
                     ).config
                     bnb_config: ConfigMetadata = fts.AddConfig(
                         AddConfigRequest(
-                            type=ConfigType.CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                            type=ConfigType.BITSANDBYTES_CONFIG,
                             config=bnb_config_text
                         )
                     ).config
@@ -194,7 +194,7 @@ def create_train_adapter_page():
 
                     training_args_config: ConfigMetadata = fts.AddConfig(
                         AddConfigRequest(
-                            type=ConfigType.CONFIG_TYPE_TRAINING_ARGUMENTS,
+                            type=ConfigType.TRAINING_ARGUMENTS,
                             config=json.dumps(training_args_config_dict)
                         )
                     ).config

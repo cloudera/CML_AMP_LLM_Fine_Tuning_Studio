@@ -19,7 +19,6 @@ def test_list_datasets():
     with test_dao.get_session() as session:
         session.add(Dataset(id="d1"))
         session.add(Dataset(id="d2", features=json.dumps(["f1", "f2"])))
-        session.commit()
 
     res = list_datasets(ListDatasetsRequest(), dao=test_dao)
     assert res.datasets[0].id == "d1"
@@ -34,7 +33,6 @@ def test_get_dataset_happy():
     with test_dao.get_session() as session:
         session.add(Dataset(id="d1"))
         session.add(Dataset(id="d2", type=DatasetType.HUGGINGFACE))
-        session.commit()
 
     req = GetDatasetRequest(id="d2")
     res = get_dataset(req, dao=test_dao)
@@ -59,7 +57,6 @@ def test_remove_dataset_happy():
         session.add(Dataset(id="d2", type=DatasetType.HUGGINGFACE))
         session.add(Prompt(id="p1", dataset_id="d1"))
         session.add(Prompt(id="p2", dataset_id="d2"))
-        session.commit()
 
     req = RemoveDatasetRequest(id="d1")
     res = remove_dataset(req, dao=test_dao)
@@ -78,7 +75,6 @@ def test_remove_dataset_remove_prompts():
         session.add(Dataset(id="d2", type=DatasetType.HUGGINGFACE))
         session.add(Prompt(id="p1", dataset_id="d1"))
         session.add(Prompt(id="p2", dataset_id="d2"))
-        session.commit()
 
     req = RemoveDatasetRequest(id="d1", remove_prompts=True)
     res = remove_dataset(req, dao=test_dao)
