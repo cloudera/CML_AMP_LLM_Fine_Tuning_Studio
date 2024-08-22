@@ -63,14 +63,15 @@ def driver(
         mlt = MLFlowTransformers()
         try:
             # Inside try cache to avoid failures with wrong adapters
-            peft_model, tokenizer = mlt.get_peft_model_and_tokenizer(base_model.huggingface_model_name, adapter.location, bnb_config_dict)
-            model_info = logger.log_model_multi_gpu(peft_model,tokenizer)
-        except:
-            # need to improve logic for this. Not sure if this is desired behavior 
+            peft_model, tokenizer = mlt.get_peft_model_and_tokenizer(
+                base_model.huggingface_model_name, adapter.location, bnb_config_dict)
+            model_info = logger.log_model_multi_gpu(peft_model, tokenizer)
+        except BaseException:
+            # need to improve logic for this. Not sure if this is desired behavior
             raise ValueError("Failed to load peft model. Can run eval on only base model.")
-            #commenting the below lines untill we get a  none passed in the adapter field   
-            #base_model, tokenizer = mlt.get_base_model_and_tokenizer(base_model.huggingface_model_name, bnb_config_dict)
-            #model_info = logger.log_model_multi_gpu(base_model, tokenizer)
+            # commenting the below lines untill we get a  none passed in the adapter field
+            # base_model, tokenizer = mlt.get_base_model_and_tokenizer(base_model.huggingface_model_name, bnb_config_dict)
+            # model_info = logger.log_model_multi_gpu(base_model, tokenizer)
     else:
         raise ValueError("The driver script is currently set up to handle only GPU evaluation.")
 
@@ -84,5 +85,8 @@ def driver(
 
 if __name__ == "__main__":
     # Example usage
-    driver(dataset_id="a674cd4a-cbcf-490b-ba21-8db2ef689edd", base_model_id="f1c3d635-980d-4114-a43e-b3a2eba13910", adapter_id="3fe6f50-5be2-4960-bc7b-612843cdf5bd",
-            bnb_config_id="538b9d54-6812-4b44-afad-9cb0bd3844ac", generation_config_id="aa14660d-d89a-43c0-b323-b09af2f97487")
+    driver(dataset_id="a674cd4a-cbcf-490b-ba21-8db2ef689edd",
+           base_model_id="f1c3d635-980d-4114-a43e-b3a2eba13910",
+           adapter_id="3fe6f50-5be2-4960-bc7b-612843cdf5bd",
+           bnb_config_id="538b9d54-6812-4b44-afad-9cb0bd3844ac",
+           generation_config_id="aa14660d-d89a-43c0-b323-b09af2f97487")

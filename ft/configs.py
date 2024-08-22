@@ -1,29 +1,67 @@
 
 from ft.api import *
-from ft.state import write_state, replace_state_field
 import json
+
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import Config, Model
+
+from sqlalchemy import delete
+from sqlalchemy.orm.session import Session
+
+from typing import List
 
 from uuid import uuid4
 
 
-def list_configs(state: AppState, request: ListConfigsRequest) -> ListConfigsResponse:
-    configs = state.configs
-    if request.type != ConfigType.CONFIG_TYPE_UNKNOWN:
-        configs = list(filter(lambda x: x.type == request.type, configs))
-    return ListConfigsResponse(
-        configs=configs
-    )
+def get_configs_for_model_id(session: Session, configs: List[Config], model_id: str) -> List[Config]:
+
+    # Get the model type.
+    model: Model = session.get(Model, model_id)
+
+    # TODO: implement extracting the best config based on model data.
+    model_hf_name = model.huggingface_model_name
+
+    return configs
 
 
-def get_config(state: AppState, request: GetConfigRequest) -> GetConfigResponse:
-    configs = list(filter(lambda x: x.id == request.id, state.configs))
-    assert len(configs) == 1
-    return GetConfigResponse(
-        config=configs[0]
-    )
+def list_configs(request: ListConfigsRequest, dao: FineTuningStudioDao = None) -> ListConfigsResponse:
+
+    response: ListConfigsResponse = ListConfigsResponse()
+
+    # Start up a DB session.
+    with dao.get_session() as session:
+
+        # Determine if config type is part of the request, which will be used
+        # for an extra layer of filtering.
+        if 'type' in [x[0].name for x in request.ListFields()]:
+            configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
+        else:
+            configs: List[Config] = session.query(Config).all()
+
+        # TODO: determine logic for listing configs based on
+        # model id, adapter id, etc.
+        if 'model_id' in [x[0].name for x in request.ListFields()]:
+            configs: List[Config] = get_configs_for_model_id(session, configs, request.model_id)
+
+        # Add final configs to the response message.
+        response.configs.extend(list(map(lambda x: x.to_protobuf(ConfigMetadata), configs)))
+
+    return response
 
 
-def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
+def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> GetConfigResponse:
+    response = GetConfigResponse()
+
+    with dao.get_session() as session:
+        config: Config = session.query(Config).where(Config.id == request.id).one()
+        response = GetConfigResponse(
+            config=config.to_protobuf(ConfigMetadata) if config is not None else None
+        )
+
+    return response
+
+
+def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> AddConfigResponse:
     """
     Add a new configuration to the datastore. Returns a configuration metadata object
     with a configuration id. The configuration store for adding new configs acts as a
@@ -33,53 +71,47 @@ def add_config(state: AppState, request: AddConfigRequest) -> AddConfigResponse:
     config is added.
     """
 
-    # Collect a list of configurations by type
-    configs = list(filter(lambda x: x.type == request.type, state.configs))
+    response: AddConfigResponse = AddConfigResponse()
 
-    # If there are no configs of this type yet, then add it!
-    if len(configs) == 0:
-        new_config: ConfigMetadata = ConfigMetadata(
-            id=uuid4(),
-            type=request.type,
-            description=request.description,
-            config=request.config
-        )
-        state.configs.append(new_config)
-        write_state(state)
-        return AddConfigResponse(
-            config=new_config
-        )
+    with dao.get_session() as session:
+        configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
 
-    # ensure that there are no similar configs.
-    # we load to a dictionary to do a fully formatted comparison.
-    similar_configs = list(filter(lambda x: json.loads(x.config) == json.loads(request.config), configs))
+        # ensure that there are no similar configs.
+        # we load to a dictionary to do a fully formatted comparison.
+        similar_configs: List[Config] = list(
+            filter(
+                lambda x: json.loads(
+                    x.config) == json.loads(
+                    request.config),
+                configs))
 
-    # ensure that we only have at least one similar config for a given type.
-    # if we have more, then we messed up our caching mechanism somwehere
-    # along the way, and we are in a bad state (for now!).
-    assert len(similar_configs) <= 1
+        # ensure that we only have at least one similar config for a given type.
+        # if we have more, then we messed up our caching mechanism somwehere
+        # along the way, and we are in a bad state (for now!).
+        assert len(similar_configs) <= 1
 
-    # If we found a pre-existing config, then return
-    # that config ID. If not, then just add the config.
-    if len(similar_configs) == 1:
-        return AddConfigResponse(
-            config=similar_configs[0]
-        )
-    else:
-        new_config: ConfigMetadata = ConfigMetadata(
-            id=str(uuid4()),
-            type=request.type,
-            description=request.description,
-            config=json.dumps(json.loads(request.config))  # Fix formatting
-        )
-        state.configs.append(new_config)
-        write_state(state)
-        return AddConfigResponse(
-            config=new_config
-        )
+        # If we found a pre-existing config, then return
+        # that config ID. If not, then just add the config.
+        if len(similar_configs) == 1:
+            response = AddConfigResponse(
+                config=similar_configs[0].to_protobuf(ConfigMetadata)
+            )
+        else:
+            config: Config = Config(
+                id=str(uuid4()),
+                type=request.type,
+                description=request.description,
+                config=json.dumps(json.loads(request.config))
+            )
+            session.add(config)
+            response = AddConfigResponse(
+                config=config.to_protobuf(ConfigMetadata)
+            )
+
+    return response
 
 
-def remove_config(state: AppState, request: RemoveConfigRequest) -> RemoveConfigResponse:
-    configs = list(filter(lambda x: not x.id == request.id, state.configs))
-    state = replace_state_field(state, configs=configs)
+def remove_config(request: RemoveConfigRequest, dao: FineTuningStudioDao = None) -> RemoveConfigResponse:
+    with dao.get_session() as session:
+        session.execute(delete(Config).where(Config.id == request.id))
     return RemoveConfigResponse()

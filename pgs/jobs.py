@@ -142,14 +142,16 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         cml_jobs_list_df,
         left_on='cml_job_id',
         right_on='public_identifier',
-        how='left'
+        how='left',
+        suffixes=('', '_cml')
     )
     display_df = pd.merge(
         display_df,
         cml_experiments_df,
-        left_on='job_id',
+        left_on='id',
         right_on='exp_name',
-        how='left'
+        how='left',
+        suffixes=('', '_cml')
     )
 
     # TODO: we no longer store adapter_id directly in the fine tuning job. Instead,
@@ -160,7 +162,7 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
     display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
 
     columns_we_care_about = [
-        'job_id',
+        'id',
         'html_url',
         'latest',
         # 'adapter_name',
@@ -176,7 +178,7 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
     display_df = display_df[columns_we_care_about]
 
     display_df.rename(columns={
-        'job_id': 'Job ID',
+        'id': 'Job ID',
         # 'adapter_name': 'Adapter Name',
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
@@ -231,7 +233,7 @@ def display_training_metrics(current_jobs):
         return
 
     col1, col2, col3 = st.columns([2, 1, 3])
-    job_ids = [job.job_id for job in current_jobs]
+    job_ids = [job.id for job in current_jobs]
 
     selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
     checkpoints = sorted(list_checkpoints(selected_job_id), key=lambda x: int(x.split('-')[-1]))
@@ -331,15 +333,15 @@ def display_training_metrics(current_jobs):
             st.plotly_chart(fig_eval_loss, use_container_width=True)
 
         st.caption("Job Metadata")
-        selected_job = next((job for job in current_jobs if job.job_id == selected_job_id), None)
+        selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
 
         if selected_job:
             job_data = {
                 "Epochs": [selected_job.num_epochs],
                 "Learning Rate": [selected_job.learning_rate],
-                "CPU": [selected_job.worker_props.num_cpu],
-                "GPU": [selected_job.worker_props.num_gpu],
-                "Memory": [selected_job.worker_props.num_memory]
+                "CPU": [selected_job.num_cpu],
+                "GPU": [selected_job.num_gpu],
+                "Memory": [selected_job.num_memory]
             }
 
             job_df = pd.DataFrame(job_data)

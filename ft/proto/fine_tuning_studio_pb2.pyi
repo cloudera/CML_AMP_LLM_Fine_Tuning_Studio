@@ -7,13 +7,6 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 
-class DatasetType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    DATASET_TYPE_UNKNOWN: _ClassVar[DatasetType]
-    DATASET_TYPE_HUGGINGFACE: _ClassVar[DatasetType]
-    DATASET_TYPE_PROJECT: _ClassVar[DatasetType]
-
-
 class ModelType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     MODEL_TYPE_UNKNOWN: _ClassVar[ModelType]
@@ -59,19 +52,6 @@ class EvaluationJobType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     EVALUATION_JOB_TYPE_MLFLOW: _ClassVar[EvaluationJobType]
 
 
-class ConfigType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    CONFIG_TYPE_UNKNOWN: _ClassVar[ConfigType]
-    CONFIG_TYPE_TRAINING_ARGUMENTS: _ClassVar[ConfigType]
-    CONFIG_TYPE_BITSANDBYTES_CONFIG: _ClassVar[ConfigType]
-    CONFIG_TYPE_GENERATION_CONFIG: _ClassVar[ConfigType]
-    CONFIG_TYPE_LORA_CONFIG: _ClassVar[ConfigType]
-    CONFIG_TYPE_CUSTOM: _ClassVar[ConfigType]
-
-
-DATASET_TYPE_UNKNOWN: DatasetType
-DATASET_TYPE_HUGGINGFACE: DatasetType
-DATASET_TYPE_PROJECT: DatasetType
 MODEL_TYPE_UNKNOWN: ModelType
 MODEL_TYPE_HUGGINGFACE: ModelType
 MODEL_TYPE_PROJECT: ModelType
@@ -93,12 +73,6 @@ PROMPT_TYPE_UNKNOWN: PromptType
 PROMPT_TYPE_IN_PLACE: PromptType
 EVALUATION_JOB_TYPE_UNKNOWN: EvaluationJobType
 EVALUATION_JOB_TYPE_MLFLOW: EvaluationJobType
-CONFIG_TYPE_UNKNOWN: ConfigType
-CONFIG_TYPE_TRAINING_ARGUMENTS: ConfigType
-CONFIG_TYPE_BITSANDBYTES_CONFIG: ConfigType
-CONFIG_TYPE_GENERATION_CONFIG: ConfigType
-CONFIG_TYPE_LORA_CONFIG: ConfigType
-CONFIG_TYPE_CUSTOM: ConfigType
 
 
 class ListDatasetsRequest(_message.Message):
@@ -132,11 +106,15 @@ class AddDatasetRequest(_message.Message):
     TYPE_FIELD_NUMBER: _ClassVar[int]
     HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
-    type: DatasetType
+    type: str
     huggingface_name: str
     location: str
-    def __init__(self, type: _Optional[_Union[DatasetType, str]] = ...,
-                 huggingface_name: _Optional[str] = ..., location: _Optional[str] = ...) -> None: ...
+
+    def __init__(
+        self,
+        type: _Optional[str] = ...,
+        huggingface_name: _Optional[str] = ...,
+        location: _Optional[str] = ...) -> None: ...
 
 
 class AddDatasetResponse(_message.Message):
@@ -280,20 +258,20 @@ class GetAdapterResponse(_message.Message):
 
 
 class AddAdapterRequest(_message.Message):
-    __slots__ = ("type", "name", "model_id", "location", "huggingface_name", "job_id", "prompt_id")
+    __slots__ = ("type", "name", "model_id", "location", "huggingface_name", "fine_tuning_job_id", "prompt_id")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
-    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    FINE_TUNING_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     type: AdapterType
     name: str
     model_id: str
     location: str
     huggingface_name: str
-    job_id: str
+    fine_tuning_job_id: str
     prompt_id: str
 
     def __init__(self,
@@ -303,7 +281,7 @@ class AddAdapterRequest(_message.Message):
                  model_id: _Optional[str] = ...,
                  location: _Optional[str] = ...,
                  huggingface_name: _Optional[str] = ...,
-                 job_id: _Optional[str] = ...,
+                 fine_tuning_job_id: _Optional[str] = ...,
                  prompt_id: _Optional[str] = ...) -> None: ...
 
 
@@ -614,12 +592,17 @@ class ListConfigsRequest(_message.Message):
     MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     FINE_TUNING_JOB_ID_FIELD_NUMBER: _ClassVar[int]
-    type: ConfigType
+    type: str
     model_id: str
     adapter_id: str
     fine_tuning_job_id: str
-    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ..., model_id: _Optional[str] = ...,
-                 adapter_id: _Optional[str] = ..., fine_tuning_job_id: _Optional[str] = ...) -> None: ...
+
+    def __init__(
+        self,
+        type: _Optional[str] = ...,
+        model_id: _Optional[str] = ...,
+        adapter_id: _Optional[str] = ...,
+        fine_tuning_job_id: _Optional[str] = ...) -> None: ...
 
 
 class ListConfigsResponse(_message.Message):
@@ -648,11 +631,11 @@ class AddConfigRequest(_message.Message):
     TYPE_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
-    type: ConfigType
+    type: str
     config: str
     description: str
-    def __init__(self, type: _Optional[_Union[ConfigType, str]] = ...,
-                 config: _Optional[str] = ..., description: _Optional[str] = ...) -> None: ...
+    def __init__(self, type: _Optional[str] = ..., config: _Optional[str]
+                 = ..., description: _Optional[str] = ...) -> None: ...
 
 
 class AddConfigResponse(_message.Message):
@@ -698,56 +681,53 @@ class DatasetMetadata(_message.Message):
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     FEATURES_FIELD_NUMBER: _ClassVar[int]
     id: str
-    type: DatasetType
+    type: str
     name: str
     description: str
     huggingface_name: str
     location: str
-    features: _containers.RepeatedScalarFieldContainer[str]
-
-    def __init__(self,
-                 id: _Optional[str] = ...,
-                 type: _Optional[_Union[DatasetType,
-                                        str]] = ...,
-                 name: _Optional[str] = ...,
-                 description: _Optional[str] = ...,
-                 huggingface_name: _Optional[str] = ...,
-                 location: _Optional[str] = ...,
-                 features: _Optional[_Iterable[str]] = ...) -> None: ...
-
-
-class RegisteredModelMetadata(_message.Message):
-    __slots__ = ("cml_registered_model_id", "mlflow_experiment_id", "mlflow_run_id")
-    CML_REGISTERED_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
-    MLFLOW_EXPERIMENT_ID_FIELD_NUMBER: _ClassVar[int]
-    MLFLOW_RUN_ID_FIELD_NUMBER: _ClassVar[int]
-    cml_registered_model_id: str
-    mlflow_experiment_id: str
-    mlflow_run_id: str
+    features: str
 
     def __init__(
         self,
-        cml_registered_model_id: _Optional[str] = ...,
-        mlflow_experiment_id: _Optional[str] = ...,
-        mlflow_run_id: _Optional[str] = ...) -> None: ...
+        id: _Optional[str] = ...,
+        type: _Optional[str] = ...,
+        name: _Optional[str] = ...,
+        description: _Optional[str] = ...,
+        huggingface_name: _Optional[str] = ...,
+        location: _Optional[str] = ...,
+        features: _Optional[str] = ...) -> None: ...
 
 
 class ModelMetadata(_message.Message):
-    __slots__ = ("id", "type", "framework", "name", "huggingface_model_name", "location", "registered_model")
+    __slots__ = (
+        "id",
+        "type",
+        "framework",
+        "name",
+        "huggingface_model_name",
+        "location",
+        "cml_registered_model_id",
+        "mlflow_experiment_id",
+        "mlflow_run_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     FRAMEWORK_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     HUGGINGFACE_MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
-    REGISTERED_MODEL_FIELD_NUMBER: _ClassVar[int]
+    CML_REGISTERED_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    MLFLOW_EXPERIMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    MLFLOW_RUN_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     type: ModelType
     framework: ModelFrameworkType
     name: str
     huggingface_model_name: str
     location: str
-    registered_model: RegisteredModelMetadata
+    cml_registered_model_id: str
+    mlflow_experiment_id: str
+    mlflow_run_id: str
 
     def __init__(self,
                  id: _Optional[str] = ...,
@@ -758,8 +738,9 @@ class ModelMetadata(_message.Message):
                  name: _Optional[str] = ...,
                  huggingface_model_name: _Optional[str] = ...,
                  location: _Optional[str] = ...,
-                 registered_model: _Optional[_Union[RegisteredModelMetadata,
-                                                    _Mapping]] = ...) -> None: ...
+                 cml_registered_model_id: _Optional[str] = ...,
+                 mlflow_experiment_id: _Optional[str] = ...,
+                 mlflow_run_id: _Optional[str] = ...) -> None: ...
 
 
 class AdapterMetadata(_message.Message):
@@ -770,27 +751,33 @@ class AdapterMetadata(_message.Message):
         "model_id",
         "location",
         "huggingface_name",
-        "job_id",
+        "fine_tuning_job_id",
         "prompt_id",
-        "registered_model")
+        "cml_registered_model_id",
+        "mlflow_experiment_id",
+        "mlflow_run_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
     HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
-    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    FINE_TUNING_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
-    REGISTERED_MODEL_FIELD_NUMBER: _ClassVar[int]
+    CML_REGISTERED_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    MLFLOW_EXPERIMENT_ID_FIELD_NUMBER: _ClassVar[int]
+    MLFLOW_RUN_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     type: AdapterType
     name: str
     model_id: str
     location: str
     huggingface_name: str
-    job_id: str
+    fine_tuning_job_id: str
     prompt_id: str
-    registered_model: RegisteredModelMetadata
+    cml_registered_model_id: str
+    mlflow_experiment_id: str
+    mlflow_run_id: str
 
     def __init__(self,
                  id: _Optional[str] = ...,
@@ -800,10 +787,11 @@ class AdapterMetadata(_message.Message):
                  model_id: _Optional[str] = ...,
                  location: _Optional[str] = ...,
                  huggingface_name: _Optional[str] = ...,
-                 job_id: _Optional[str] = ...,
+                 fine_tuning_job_id: _Optional[str] = ...,
                  prompt_id: _Optional[str] = ...,
-                 registered_model: _Optional[_Union[RegisteredModelMetadata,
-                                                    _Mapping]] = ...) -> None: ...
+                 cml_registered_model_id: _Optional[str] = ...,
+                 mlflow_experiment_id: _Optional[str] = ...,
+                 mlflow_run_id: _Optional[str] = ...) -> None: ...
 
 
 class PromptMetadata(_message.Message):
@@ -828,32 +816,18 @@ class PromptMetadata(_message.Message):
                  prompt_template: _Optional[str] = ...) -> None: ...
 
 
-class WorkerProps(_message.Message):
-    __slots__ = ("num_cpu", "num_memory", "num_gpu")
-    NUM_CPU_FIELD_NUMBER: _ClassVar[int]
-    NUM_MEMORY_FIELD_NUMBER: _ClassVar[int]
-    NUM_GPU_FIELD_NUMBER: _ClassVar[int]
-    num_cpu: int
-    num_memory: int
-    num_gpu: int
-
-    def __init__(
-        self,
-        num_cpu: _Optional[int] = ...,
-        num_memory: _Optional[int] = ...,
-        num_gpu: _Optional[int] = ...) -> None: ...
-
-
 class FineTuningJobMetadata(_message.Message):
     __slots__ = (
-        "job_id",
+        "id",
         "base_model_id",
         "dataset_id",
         "prompt_id",
         "num_workers",
         "cml_job_id",
         "adapter_id",
-        "worker_props",
+        "num_cpu",
+        "num_memory",
+        "num_gpu",
         "num_epochs",
         "learning_rate",
         "out_dir",
@@ -866,14 +840,16 @@ class FineTuningJobMetadata(_message.Message):
         "user_script",
         "user_config_id",
         "user_config")
-    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     NUM_WORKERS_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
-    WORKER_PROPS_FIELD_NUMBER: _ClassVar[int]
+    NUM_CPU_FIELD_NUMBER: _ClassVar[int]
+    NUM_MEMORY_FIELD_NUMBER: _ClassVar[int]
+    NUM_GPU_FIELD_NUMBER: _ClassVar[int]
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
     OUT_DIR_FIELD_NUMBER: _ClassVar[int]
@@ -886,14 +862,16 @@ class FineTuningJobMetadata(_message.Message):
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     USER_CONFIG_FIELD_NUMBER: _ClassVar[int]
-    job_id: str
+    id: str
     base_model_id: str
     dataset_id: str
     prompt_id: str
     num_workers: int
     cml_job_id: str
     adapter_id: str
-    worker_props: WorkerProps
+    num_cpu: int
+    num_memory: int
+    num_gpu: int
     num_epochs: int
     learning_rate: float
     out_dir: str
@@ -907,28 +885,30 @@ class FineTuningJobMetadata(_message.Message):
     user_config_id: str
     user_config: str
 
-    def __init__(self,
-                 job_id: _Optional[str] = ...,
-                 base_model_id: _Optional[str] = ...,
-                 dataset_id: _Optional[str] = ...,
-                 prompt_id: _Optional[str] = ...,
-                 num_workers: _Optional[int] = ...,
-                 cml_job_id: _Optional[str] = ...,
-                 adapter_id: _Optional[str] = ...,
-                 worker_props: _Optional[_Union[WorkerProps,
-                                                _Mapping]] = ...,
-                 num_epochs: _Optional[int] = ...,
-                 learning_rate: _Optional[float] = ...,
-                 out_dir: _Optional[str] = ...,
-                 training_arguments_config_id: _Optional[str] = ...,
-                 model_bnb_config_id: _Optional[str] = ...,
-                 adapter_bnb_config_id: _Optional[str] = ...,
-                 lora_config_id: _Optional[str] = ...,
-                 dataset_fraction: _Optional[float] = ...,
-                 train_test_split: _Optional[float] = ...,
-                 user_script: _Optional[str] = ...,
-                 user_config_id: _Optional[str] = ...,
-                 user_config: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: _Optional[str] = ...,
+        base_model_id: _Optional[str] = ...,
+        dataset_id: _Optional[str] = ...,
+        prompt_id: _Optional[str] = ...,
+        num_workers: _Optional[int] = ...,
+        cml_job_id: _Optional[str] = ...,
+        adapter_id: _Optional[str] = ...,
+        num_cpu: _Optional[int] = ...,
+        num_memory: _Optional[int] = ...,
+        num_gpu: _Optional[int] = ...,
+        num_epochs: _Optional[int] = ...,
+        learning_rate: _Optional[float] = ...,
+        out_dir: _Optional[str] = ...,
+        training_arguments_config_id: _Optional[str] = ...,
+        model_bnb_config_id: _Optional[str] = ...,
+        adapter_bnb_config_id: _Optional[str] = ...,
+        lora_config_id: _Optional[str] = ...,
+        dataset_fraction: _Optional[float] = ...,
+        train_test_split: _Optional[float] = ...,
+        user_script: _Optional[str] = ...,
+        user_config_id: _Optional[str] = ...,
+        user_config: _Optional[str] = ...) -> None: ...
 
 
 class ConfigMetadata(_message.Message):
@@ -939,61 +919,69 @@ class ConfigMetadata(_message.Message):
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     id: str
     description: str
-    type: ConfigType
+    type: str
     config: str
     def __init__(self, id: _Optional[str] = ..., description: _Optional[str] = ...,
-                 type: _Optional[_Union[ConfigType, str]] = ..., config: _Optional[str] = ...) -> None: ...
+                 type: _Optional[str] = ..., config: _Optional[str] = ...) -> None: ...
 
 
 class EvaluationJobMetadata(_message.Message):
     __slots__ = (
-        "job_id",
+        "id",
         "cml_job_id",
         "base_model_id",
         "dataset_id",
         "num_workers",
         "adapter_id",
-        "worker_props",
+        "num_cpu",
+        "num_memory",
+        "num_gpu",
         "evaluation_dir",
         "model_bnb_config_id",
         "adapter_bnb_config_id",
         "generation_config_id")
-    JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
     NUM_WORKERS_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
-    WORKER_PROPS_FIELD_NUMBER: _ClassVar[int]
+    NUM_CPU_FIELD_NUMBER: _ClassVar[int]
+    NUM_MEMORY_FIELD_NUMBER: _ClassVar[int]
+    NUM_GPU_FIELD_NUMBER: _ClassVar[int]
     EVALUATION_DIR_FIELD_NUMBER: _ClassVar[int]
     MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    job_id: str
+    id: str
     cml_job_id: str
     base_model_id: str
     dataset_id: str
     num_workers: int
     adapter_id: str
-    worker_props: WorkerProps
+    num_cpu: int
+    num_memory: int
+    num_gpu: int
     evaluation_dir: str
     model_bnb_config_id: str
     adapter_bnb_config_id: str
     generation_config_id: str
 
-    def __init__(self,
-                 job_id: _Optional[str] = ...,
-                 cml_job_id: _Optional[str] = ...,
-                 base_model_id: _Optional[str] = ...,
-                 dataset_id: _Optional[str] = ...,
-                 num_workers: _Optional[int] = ...,
-                 adapter_id: _Optional[str] = ...,
-                 worker_props: _Optional[_Union[WorkerProps,
-                                                _Mapping]] = ...,
-                 evaluation_dir: _Optional[str] = ...,
-                 model_bnb_config_id: _Optional[str] = ...,
-                 adapter_bnb_config_id: _Optional[str] = ...,
-                 generation_config_id: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        id: _Optional[str] = ...,
+        cml_job_id: _Optional[str] = ...,
+        base_model_id: _Optional[str] = ...,
+        dataset_id: _Optional[str] = ...,
+        num_workers: _Optional[int] = ...,
+        adapter_id: _Optional[str] = ...,
+        num_cpu: _Optional[int] = ...,
+        num_memory: _Optional[int] = ...,
+        num_gpu: _Optional[int] = ...,
+        evaluation_dir: _Optional[str] = ...,
+        model_bnb_config_id: _Optional[str] = ...,
+        adapter_bnb_config_id: _Optional[str] = ...,
+        generation_config_id: _Optional[str] = ...) -> None: ...
 
 
 class AppState(_message.Message):

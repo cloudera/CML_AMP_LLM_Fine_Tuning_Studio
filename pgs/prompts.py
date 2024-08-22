@@ -5,6 +5,7 @@ import random
 from uuid import uuid4
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+import json
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -39,7 +40,7 @@ def display_create_prompt():
 
             if dataset_idx is not None:
                 dataset = datasets[dataset_idx]
-                st.code("Dataset Columns: \n * " + '\n * '.join(dataset.features))
+                st.code("Dataset Columns: \n * " + '\n * '.join(json.loads(dataset.features)))
 
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)

@@ -84,7 +84,7 @@ dataset_metadata: DatasetMetadata = fts.GetDataset(
         id=dataset_id
     )
 ).dataset
-assert dataset_metadata.type == DatasetType.DATASET_TYPE_HUGGINGFACE
+assert dataset_metadata.type == DatasetType.HUGGINGFACE
 
 # Extract other fields like base model and prompt.
 base_model_md: ModelMetadata = fts.GetModel(
@@ -207,7 +207,7 @@ if args.auto_add_adapter:
             name=args.adapter_name,
             model_id=base_model_md.id,
             location=args.out_dir,
-            job_id=args.experimentid,
+            fine_tuning_job_id=args.experimentid,
             prompt_id=prompt_md.id
         )
     )

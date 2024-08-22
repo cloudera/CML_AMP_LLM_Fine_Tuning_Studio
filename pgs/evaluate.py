@@ -155,7 +155,7 @@ with col1:
                     bnb_config_dict = json.loads(
                         fts.ListConfigs(
                             ListConfigsRequest(
-                                type=ConfigType.CONFIG_TYPE_BITSANDBYTES_CONFIG,
+                                type=ConfigType.BITSANDBYTES_CONFIG,
                                 model_id=current_model_metadata.id
                             )
                         ).configs[0].config
@@ -219,7 +219,7 @@ with col2:
                     json.loads(
                         fts.ListConfigs(
                             ListConfigsRequest(
-                                type=ConfigType.CONFIG_TYPE_GENERATION_CONFIG,
+                                type=ConfigType.GENERATION_CONFIG,
                                 model_id=st.session_state.current_model_metadata.id,
                                 adapter_id=st.session_state.model_adapter.id
                             )

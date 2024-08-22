@@ -87,6 +87,7 @@ def display_adapter(adapter: AdapterMetadata, container):
                     id=adapter.id
                 )
             )
+            st.rerun()
 
 
 display_header()

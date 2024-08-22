@@ -85,7 +85,8 @@ with tab1:
                             jobs_df,
                             cml_jobs_list_df,
                             left_on='cml_job_id',
-                            right_on='public_identifier')
+                            right_on='public_identifier',
+                            suffixes=('', '_cml'))
 
                         # Replace IDs with names using the dictionaries
                         display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
@@ -93,7 +94,7 @@ with tab1:
                         display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
 
                         # Filter for only columns we care about
-                        display_df = display_df[['job_id', 'html_url', 'latest',
+                        display_df = display_df[['id', 'html_url', 'latest',
                                                 'adapter_name', 'base_model_name', 'dataset_name']]
 
                         status_mapping = {
@@ -109,9 +110,9 @@ with tab1:
 
                         # Display the grid with the merged and filtered dataframe
                         st.data_editor(
-                            display_df[["job_id", "Status", "html_url", "adapter_name", "base_model_name", "dataset_name"]],
+                            display_df[["id", "Status", "html_url", "adapter_name", "base_model_name", "dataset_name"]],
                             column_config={
-                                "job_id": st.column_config.TextColumn("Job ID"),
+                                "id": st.column_config.TextColumn("Job ID"),
                                 "Status": st.column_config.ProgressColumn(
                                     "Status",
                                     help="Job status as progress",
@@ -136,7 +137,7 @@ with tab2:
         st.info("No MLflow jobs triggered.", icon=":material/info:")
     else:
         # Extract cml_job_ids
-        job_ids = [job.job_id for job in current_jobs]
+        job_ids = [job.id for job in current_jobs]
 
         # Select a cml_job_id from the list
         selected_job_id = st.selectbox('Select Job ID', job_ids, index=0)
@@ -144,7 +145,7 @@ with tab2:
         st.caption("**Evaluation Results**")
 
         # Find the job corresponding to the selected job_id
-        selected_job = next((job for job in current_jobs if job.job_id == selected_job_id), None)
+        selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
 
         if selected_job:
             # Get the evaluation CSV file path for the selected job

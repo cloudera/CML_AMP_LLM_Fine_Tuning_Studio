@@ -11,6 +11,10 @@ environment_variables:
     default: ".app/state.json"
     description: >-
       The location of the FT app's state, which is a session store that saves app information across browser sessions.
+  FINE_TUNING_STUDIO_SQLITE_DB:
+    default: ".app/state.db"
+    description: >-
+      This is the location of the FTS app's SQLite database.
   CUSTOM_LORA_ADAPTERS_DIR:
     default: "data/adapters/"
     description: >-

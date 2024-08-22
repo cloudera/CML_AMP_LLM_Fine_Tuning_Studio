@@ -1,6 +1,9 @@
 import cmlapi
 
+
 from ft.proto.fine_tuning_studio_pb2_grpc import FineTuningStudioServicer
+
+from ft.db.dao import FineTuningStudioDao
 
 from ft.state import get_state
 from ft.api import *
@@ -74,9 +77,17 @@ class FineTuningStudioApp(FineTuningStudioServicer):
 
     def __init__(self):
         """
-        Initialize a CML client and store some environment variables.
+        Initialize the grpc server, and attach global connections
+        (which include a CML client and a database DAO).
         """
         self.cml = cmlapi.default_client()
+
+        self.dao = FineTuningStudioDao(engine_args={
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_timeout": 30,
+            "pool_recycle": 1800,
+        })
 
         # Load in environment variables
         self.project_id = os.getenv("CDSW_PROJECT_ID")
@@ -86,20 +97,16 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         self.domain = os.getenv("CDSW_DOMAIN")
 
     def ListDatasets(self, request, context):
-        state: AppState = get_state()
-        return list_datasets(state, request, self.cml)
+        return list_datasets(request, self.cml, self.dao)
 
     def GetDataset(self, request, context):
-        state: AppState = get_state()
-        return get_dataset(state, request, self.cml)
+        return get_dataset(request, self.cml, self.dao)
 
     def AddDataset(self, request, context):
-        state: AppState = get_state()
-        return add_dataset(state, request, self.cml)
+        return add_dataset(request, self.cml, self.dao)
 
     def RemoveDataset(self, request, context):
-        state: AppState = get_state()
-        return remove_dataset(state, request, self.cml)
+        return remove_dataset(request, self.cml, self.dao)
 
     def ListModels(self, request, context):
         state: AppState = get_state()
@@ -192,17 +199,13 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         )
 
     def ListConfigs(self, request, context):
-        state: AppState = get_state()
-        return list_configs(state, request)
+        return list_configs(request, dao=self.dao)
 
     def GetConfig(self, request, context):
-        state: AppState = get_state()
-        return get_config(state, request)
+        return get_config(request, dao=self.dao)
 
     def AddConfig(self, request, context):
-        state: AppState = get_state()
-        return add_config(state, request)
+        return add_config(request, dao=self.dao)
 
     def RemoveConfig(self, request, context):
-        state: AppState = get_state()
-        return remove_config(state, request)
+        return remove_config(request, dao=self.dao)

@@ -94,7 +94,7 @@ message GetDatasetResponse {
 }
 message AddDatasetRequest {
   // Type of dataset to be imported.
-  DatasetType type = 1;
+  string type = 1;
 
   // If this is a huggingface dataset, the huggingface name
   // should be provided.
@@ -226,7 +226,7 @@ message AddAdapterRequest {
   
     // Job ID of the job that was used to train/create this adapter. This is
     // used to determine if an adapter was trained within this framework or not.
-    string job_id = 6;
+    string fine_tuning_job_id = 6;
   
     // Prompt ID of the prompt that was used to train this adapter.
     string prompt_id = 7;
@@ -446,7 +446,7 @@ message RemoveEvaluationJobResponse {
 message ListConfigsRequest {
 
   // Optionally only return a specific config type.
-  ConfigType type = 1;
+  string type = 1;
 
   // Optional, Specify a model id for any future filtering
   // that may occur on model id.
@@ -475,7 +475,7 @@ message GetConfigResponse {
 }
 
 message AddConfigRequest {
-  ConfigType type = 1;
+  string type = 1;
   string config = 2;
   string description = 3;
 }
@@ -514,26 +514,6 @@ protobuf enum definitions
 -------------------------
 */
 
-
-// Type of dataset. This type determines how a 
-// dataset is extracted or loaded into memory when
-// running fine-tuning jobs.
-//
-// Note that enum values use C++ scoping rules, meaning that enum values are siblings of their type,
-// not children of it.  Therefore, enum names must be unique within "fine_tuning_studio", not just within 
-// their enums. Hence the prefix of the enum.
-enum DatasetType {
-
-  DATASET_TYPE_UNKNOWN = 0;
-
-  // Dataset is stored on HF hub and can be 
-  // downloaded whenever needed.
-  DATASET_TYPE_HUGGINGFACE = 1;
-
-  // Dataset is locally stored in project files
-  // and can be referenced by a dataset location.
-  DATASET_TYPE_PROJECT = 2;
-}
 
 // Type of model. This AMP currently supports
 // loading models in huggingface, from CML's
@@ -618,17 +598,6 @@ enum EvaluationJobType {
   EVALUATION_JOB_TYPE_MLFLOW = 1;
 }
 
-
-// Configuration type
-enum ConfigType {
-  CONFIG_TYPE_UNKNOWN = 0;
-  CONFIG_TYPE_TRAINING_ARGUMENTS = 1;
-  CONFIG_TYPE_BITSANDBYTES_CONFIG = 2;
-  CONFIG_TYPE_GENERATION_CONFIG = 3;
-  CONFIG_TYPE_LORA_CONFIG = 4;
-  CONFIG_TYPE_CUSTOM = 5;
-}
-
 /**
 -----------------------------
 protobuf datatype definitions
@@ -643,7 +612,7 @@ message DatasetMetadata {
   string id = 1;
 
   // Type of the dataset.
-  DatasetType type = 2;
+  string type = 2;
 
   // human-readable name of the dataset. 
   string name = 3;
@@ -659,27 +628,8 @@ message DatasetMetadata {
   // loaded into the app's state, if this is a project dataset.
   string location = 6;
 
-  // list of features in the dataset.
-  repeated string features = 7;
-
-}
-
-
-// Metadata about a registered model. This can
-// apply right now to both adapters as well as
-// models (TODO: need to check this logic)
-message RegisteredModelMetadata {
-
-  // Model ID of the registered model.
-  string cml_registered_model_id = 1;
-
-  // MLFlow experiment ID. This allows us to extract individual
-  // model artifacts from the model registry, for example.
-  string mlflow_experiment_id = 2;
-
-  // MLFlow run ID tied to this specific model artifact. This is used
-  // to extract individual model artifacts from MLFlow.
-  string mlflow_run_id = 3;
+  // JSON list of features in the dataset.
+  string features = 7;
 
 }
 
@@ -716,9 +666,16 @@ message ModelMetadata {
   // Location of the model if it is a local project model.
   string location = 6;
 
-  // Metadata on the registered model with CML model registry,
-  // if this model is a model registry type.
-  RegisteredModelMetadata registered_model = 7;
+  // Model ID of the registered model.
+  string cml_registered_model_id = 7;
+
+  // MLFlow experiment ID. This allows us to extract individual
+  // model artifacts from the model registry, for example.
+  string mlflow_experiment_id = 8;
+
+  // MLFlow run ID tied to this specific model artifact. This is used
+  // to extract individual model artifacts from MLFlow.
+  string mlflow_run_id = 9;
 }
 
 
@@ -755,14 +712,21 @@ message AdapterMetadata {
 
   // Job ID of the job that was used to train/create this adapter. This is
   // used to determine if an adapter was trained within this framework or not.
-  string job_id = 7;
+  string fine_tuning_job_id = 7;
 
   // Prompt ID of the prompt that was used to train this adapter.
   string prompt_id = 8;
 
-  // Adapters should eventually have support in CML model registry. This metadata
-  // will be stored here for adapters in case this is available.
-  RegisteredModelMetadata registered_model = 9;
+  // Model ID of the registered adapter.
+  string cml_registered_model_id = 9;
+
+  // MLFlow experiment ID. This allows us to extract individual
+  // model artifacts from the model registry, for example.
+  string mlflow_experiment_id = 10;
+
+  // MLFlow run ID tied to this specific adapter artifact. This is used
+  // to extract individual model artifacts from MLFlow.
+  string mlflow_run_id = 11;
 }
 
 
@@ -789,19 +753,10 @@ message PromptMetadata {
 }
 
 
-message WorkerProps {
-  int32 num_cpu = 1;
-  int32 num_memory = 2;
-  int32 num_gpu = 3;
-}
-
-
-
-
 message FineTuningJobMetadata {
 
   // Unique job identifier of the job.
-  string job_id = 1;
+  string id = 1;
 
   // The model ID of the base model that should be used as a
   // base for the fine tuning job.
@@ -826,35 +781,37 @@ message FineTuningJobMetadata {
   string adapter_id = 7;
 
   // Properties of each worker that will be spawned up.
-  WorkerProps worker_props = 8;
+  int32 num_cpu = 8;
+  int32 num_memory = 9;
+  int32 num_gpu = 10;
 
   // Number of epochs to run during fine-tuning.
-  int32 num_epochs = 9;
+  int32 num_epochs = 11;
 
   // Learning rate to use during fine-tuning.
-  float learning_rate = 10;
+  float learning_rate = 12;
 
   // Output directory for the adapter
-  string out_dir = 11;
+  string out_dir = 13;
 
   // Training arguments for the run.
-  string training_arguments_config_id = 12;
+  string training_arguments_config_id = 14;
 
   // Bits and bytes config used for the model layers.
-  string model_bnb_config_id = 13;
+  string model_bnb_config_id = 15;
 
   // Bits and bytes config used for the adapter. For 
   // most use cases, this should be the same id as 
   // for the model, but technically a model can have
   // a different quantization config for training 
   // than an adapter.
-  string adapter_bnb_config_id = 14;
+  string adapter_bnb_config_id = 16;
 
   // PEFT config.
-  string lora_config_id = 15;
+  string lora_config_id = 17;
 
-  float dataset_fraction = 16;
-  float train_test_split = 17;
+  float dataset_fraction = 18;
+  float train_test_split = 19;
 
   // Optional overriding of the script that is the base of the job that
   // runs. If this is present, the job instantiates a different script from
@@ -885,7 +842,7 @@ message ConfigMetadata {
   string description = 2;
 
   // type of configuration
-  ConfigType type = 3;
+  string type = 3;
 
   // Serialized (json) representation of the config. This
   // can be passed directly into any of the config types
@@ -898,7 +855,7 @@ message ConfigMetadata {
 message EvaluationJobMetadata {
 
   // Unique job identifier of the job.
-  string job_id = 1;
+  string id = 1;
 
   // CML identifier for the created CML job.
   string cml_job_id = 2;
@@ -918,19 +875,21 @@ message EvaluationJobMetadata {
   string adapter_id = 6;
 
   // Properties of each worker that will be spawned up.
-  WorkerProps worker_props = 7;
+  int32 num_cpu = 7;
+  int32 num_memory = 8;
+  int32 num_gpu = 9;
 
   // Resulting directory of evaluation
-  string evaluation_dir = 8;
+  string evaluation_dir = 10;
 
   // BnB config of the model
-  string model_bnb_config_id = 9;
+  string model_bnb_config_id = 11;
 
   // BnB config of the adapter
-  string adapter_bnb_config_id = 10;
+  string adapter_bnb_config_id = 12;
 
   // Generation argument configs. 
-  string generation_config_id = 11;
+  string generation_config_id = 13;
 }
 
 message AppState {
