@@ -18,3 +18,12 @@ class ConfigType(str, Enum):
     GENERATION_CONFIG = "generation_config"
     LORA_CONFIG = "lora_config"
     CUSTOM = "custom"
+    AXOLOTL = "axolotl"
+
+
+class FineTuningFrameworkType(str, Enum):
+    """
+    Type of fine tuning framework being deployed.
+    """
+    LEGACY = "legacy"
+    AXOLOTL = "axolotl"

@@ -1,35 +1,49 @@
 from uuid import uuid4
 
 from ft.api import *
-from ft.state import write_state, replace_state_field
 import cmlapi
 import os
 import pathlib
 from cmlapi import CMLServiceApi
 import json
 
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import FineTuningJob, Config
 
-def list_fine_tuning_jobs(state: AppState, request: ListFineTuningJobsRequest,
-                          cml: CMLServiceApi = None) -> ListFineTuningJobsResponse:
+from sqlalchemy import delete
+
+from typing import List
+
+
+def list_fine_tuning_jobs(request: ListFineTuningJobsRequest,
+                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ListFineTuningJobsResponse:
     """
     TODO: we can add filtering logic here.
     """
-    return ListFineTuningJobsResponse(
-        fine_tuning_jobs=state.fine_tuning_jobs
-    )
+    with dao.get_session() as session:
+        ftjobs: List[FineTuningJob] = session.query(FineTuningJob).all()
+        return ListFineTuningJobsResponse(
+            fine_tuning_jobs=list(map(
+                lambda x: x.to_protobuf(FineTuningJobMetadata),
+                ftjobs
+            ))
+        )
 
 
-def get_fine_tuning_job(state: AppState, request: GetFineTuningJobRequest,
-                        cml: CMLServiceApi = None) -> GetFineTuningJobResponse:
-    fine_tuning_jobs = list(filter(lambda x: x.id == request.id, state.fine_tuning_jobs))
-    assert len(fine_tuning_jobs) == 1
-    return GetFineTuningJobResponse(
-        fine_tuning_job=fine_tuning_jobs[0]
-    )
+def get_fine_tuning_job(request: GetFineTuningJobRequest,
+                        cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> GetFineTuningJobResponse:
+    with dao.get_session() as session:
+        return GetFineTuningJobResponse(
+            fine_tuning_job=session
+            .query(FineTuningJob)
+            .where(FineTuningJob.id == request.id)
+            .one()
+            .to_protobuf(FineTuningJobMetadata)
+        )
 
 
-def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
-                          cml: CMLServiceApi = None) -> StartFineTuningJobResponse:
+def start_fine_tuning_job(request: StartFineTuningJobRequest,
+                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> StartFineTuningJobResponse:
     """
     Launch a CML Job which runs/orchestrates a finetuning operation
     The CML Job itself does not run the finetuning work, it will launch a CML Worker(s) to allow
@@ -41,6 +55,12 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
 
     job_id = str(uuid4())
     job_dir = ".app/job_runs/%s" % job_id
+
+    # Specify model framework type.
+    if 'framework_type' not in [x[0].name for x in request.ListFields()]:
+        framework_type = FineTuningFrameworkType.LEGACY
+    else:
+        framework_type: FineTuningFrameworkType = request.framework_type
 
     pathlib.Path(job_dir).mkdir(parents=True, exist_ok=True)
 
@@ -114,6 +134,7 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
     # If the user provides a custom user script, then change the actual script
     # that is running the fine tuning job.
     fine_tuning_script = template_job.script
+    user_config_id = request.user_config_id
     if not request.user_script == StartFineTuningJobRequest().user_script:
         fine_tuning_script = request.user_script
 
@@ -122,14 +143,14 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         # user config ids.
         user_config_id = request.user_config_id
         if not request.user_config == StartFineTuningJobRequest().user_config:
-            user_config_md: ConfigMetadata = ConfigMetadata(
+            user_config: Config = Config(
                 id=str(uuid4()),
                 type=ConfigType.CUSTOM,
-                config=json.dumps(json.loads(request.user_config))
+                config=json.dumps(json.loads(request.user_config)),
             )
-            state.configs.append(user_config_md)
-            write_state(state)
-            user_config_id = user_config_md.id
+            with dao.get_session() as session:
+                session.add(user_config)
+                user_config_id = user_config.id
 
         # Pass the user config to the job.
         arg_list.append("--user_config_id")
@@ -168,8 +189,9 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         job_id=created_job.id
     )
 
-    metadata = FineTuningJobMetadata(
+    ftjob: FineTuningJob = FineTuningJob(
         id=job_id,
+        framework_type=framework_type,
         out_dir=request.output_dir,
         base_model_id=request.base_model_id,
         dataset_id=request.dataset_id,
@@ -188,25 +210,22 @@ def start_fine_tuning_job(state: AppState, request: StartFineTuningJobRequest,
         model_bnb_config_id=request.model_bnb_config_id,
         adapter_bnb_config_id=request.adapter_bnb_config_id,
         user_script=request.user_script,
-        user_config=request.user_config,
-        user_config_id=request.user_config_id,
+        user_config_id=user_config_id,
+        axolotl_config_id=request.axolotl_config_id
     )
 
-    # This check should always pass for now, but in the future,
-    # we may consider handling "default" metadata message as a
-    # fine tuning job creation failure, similar to how we do for
-    # model and dataset application logic.
-    if not metadata == FineTuningJobMetadata():
-        state.fine_tuning_jobs.append(metadata)
-        write_state(state)
+    response = StartFineTuningJobResponse()
+    with dao.get_session() as session:
+        session.add(ftjob)
+        response = StartFineTuningJobResponse(
+            fine_tuning_job=ftjob.to_protobuf(FineTuningJobMetadata)
+        )
 
-    return StartFineTuningJobResponse(
-        fine_tuning_job=metadata
-    )
+    return response
 
 
-def remove_fine_tuning_job(state: AppState, request: RemoveFineTuningJobRequest,
-                           cml: CMLServiceApi = None) -> RemoveFineTuningJobResponse:
-    fine_tuning_jobs = list(filter(lambda x: not x.id == request.id, state.fine_tuning_jobs))
-    state = replace_state_field(state, fine_tuning_jobs=fine_tuning_jobs)
+def remove_fine_tuning_job(request: RemoveFineTuningJobRequest,
+                           cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> RemoveFineTuningJobResponse:
+    with dao.get_session() as session:
+        session.execute(delete(FineTuningJob).where(FineTuningJob.id == request.id))
     return RemoveFineTuningJobResponse()
