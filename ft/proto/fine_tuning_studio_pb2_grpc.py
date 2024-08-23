@@ -191,11 +191,6 @@ class FineTuningStudioStub(object):
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigRequest.SerializeToString,
             response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigResponse.FromString,
             _registered_method=True)
-        self.GetAppState = channel.unary_unary(
-            '/fine_tuning_studio.FineTuningStudio/GetAppState',
-            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.SerializeToString,
-            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateResponse.FromString,
-            _registered_method=True)
 
 
 class FineTuningStudioServicer(object):
@@ -389,13 +384,6 @@ class FineTuningStudioServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetAppState(self, request, context):
-        """Other general operations
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_FineTuningStudioServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -543,11 +531,6 @@ def add_FineTuningStudioServicer_to_server(servicer, server):
             servicer.RemoveConfig,
             request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigRequest.FromString,
             response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigResponse.SerializeToString,
-        ),
-        'GetAppState': grpc.unary_unary_rpc_method_handler(
-            servicer.GetAppState,
-            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.FromString,
-            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateResponse.SerializeToString,
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1341,33 +1324,6 @@ class FineTuningStudio(object):
             '/fine_tuning_studio.FineTuningStudio/RemoveConfig',
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigRequest.SerializeToString,
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveConfigResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def GetAppState(request,
-                    target,
-                    options=(),
-                    channel_credentials=None,
-                    call_credentials=None,
-                    insecure=False,
-                    compression=None,
-                    wait_for_ready=None,
-                    timeout=None,
-                    metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/fine_tuning_studio.FineTuningStudio/GetAppState',
-            ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateRequest.SerializeToString,
-            ft_dot_proto_dot_fine__tuning__studio__pb2.GetAppStateResponse.FromString,
             options,
             channel_credentials,
             insecure,

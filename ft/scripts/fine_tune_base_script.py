@@ -169,7 +169,7 @@ if args.finetuning_framework_type == FineTuningFrameworkType.AXOLOTL:
         if args.auto_add_adapter:
             fts.AddAdapter(
                 AddAdapterRequest(
-                    type=ADAPTER_TYPE_PROJECT,
+                    type=AdapterType.PROJECT,
                     name=args.adapter_name,
                     model_id=base_model_md.id,
                     location=args.out_dir,
@@ -279,7 +279,7 @@ elif args.finetuning_framework_type == FineTuningFrameworkType.LEGACY:
     if args.auto_add_adapter:
         fts.AddAdapter(
             AddAdapterRequest(
-                type=ADAPTER_TYPE_PROJECT,
+                type=AdapterType.PROJECT,
                 name=args.adapter_name,
                 model_id=base_model_md.id,
                 location=args.out_dir,

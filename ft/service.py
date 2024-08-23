@@ -5,8 +5,6 @@ from ft.proto.fine_tuning_studio_pb2_grpc import FineTuningStudioServicer
 
 from ft.db.dao import FineTuningStudioDao
 
-from ft.state import get_state
-from ft.api import *
 
 import os
 
@@ -109,56 +107,43 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         return remove_dataset(request, self.cml, self.dao)
 
     def ListModels(self, request, context):
-        state: AppState = get_state()
-        return list_models(state, request, self.cml)
+        return list_models(request, self.cml, dao=self.dao)
 
     def GetModel(self, request, context):
-        state: AppState = get_state()
-        return get_model(state, request, self.cml)
+        return get_model(request, self.cml, dao=self.dao)
 
     def AddModel(self, request, context):
-        state: AppState = get_state()
-        return add_model(state, request, self.cml)
+        return add_model(request, self.cml, dao=self.dao)
 
     def ExportModel(self, request, context):
-        state: AppState = get_state()
-        return export_model(state, request, self.cml)
+        return export_model(request, self.cml, dao=self.dao)
 
     def RemoveModel(self, request, context):
-        state: AppState = get_state()
-        return remove_model(state, request, self.cml)
+        return remove_model(request, self.cml, dao=self.dao)
 
     def ListAdapters(self, request, context):
-        state: AppState = get_state()
-        return list_adapters(state, request, self.cml)
+        return list_adapters(request, self.cml, dao=self.dao)
 
     def GetAdapter(self, request, context):
-        state: AppState = get_state()
-        return get_adapter(state, request, self.cml)
+        return get_adapter(request, self.cml, dao=self.dao)
 
     def AddAdapter(self, request, context):
-        state: AppState = get_state()
-        return add_adapter(state, request, self.cml)
+        return add_adapter(request, self.cml, dao=self.dao)
 
     def RemoveAdapter(self, request, context):
-        state: AppState = get_state()
-        return remove_adapter(state, request, self.cml)
+        return remove_adapter(request, self.cml, dao=self.dao)
 
     def ListPrompts(self, request, context):
-        state: AppState = get_state()
-        return list_prompts(state, request, self.cml)
+        return list_prompts(request, self.cml, dao=self.dao)
 
     def GetPrompt(self, request, context):
-        state: AppState = get_state()
-        return get_prompt(state, request, self.cml)
+        return get_prompt(request, self.cml, dao=self.dao)
 
     def AddPrompt(self, request, context):
-        state: AppState = get_state()
-        return add_prompt(state, request, self.cml)
+        return add_prompt(request, self.cml, dao=self.dao)
 
     def RemovePrompt(self, request, context):
-        state: AppState = get_state()
-        return remove_prompt(state, request, self.cml)
+        return remove_prompt(request, self.cml, dao=self.dao)
 
     def ListFineTuningJobs(self, request, context):
         return list_fine_tuning_jobs(request, self.cml, dao=self.dao)
@@ -173,26 +158,16 @@ class FineTuningStudioApp(FineTuningStudioServicer):
         return remove_fine_tuning_job(request, self.cml, dao=self.dao)
 
     def ListEvaluationJobs(self, request, context):
-        state: AppState = get_state()
-        return list_evaluation_jobs(state, request, self.cml)
+        return list_evaluation_jobs(request, self.cml, dao=self.dao)
 
     def GetEvaluationJob(self, request, context):
-        state: AppState = get_state()
-        return get_evaluation_job(state, request, self.cml)
+        return get_evaluation_job(request, self.cml, dao=self.dao)
 
     def StartEvaluationJob(self, request, context):
-        state: AppState = get_state()
-        return start_evaluation_job(state, request, self.cml)
+        return start_evaluation_job(request, self.cml, dao=self.dao)
 
     def RemoveEvaluationJob(self, request, context):
-        state: AppState = get_state()
-        return remove_evaluation_job(state, request, self.cml)
-
-    def GetAppState(self, request, context):
-        state: AppState = get_state()
-        return GetAppStateResponse(
-            state=state
-        )
+        return remove_evaluation_job(request, self.cml, dao=self.dao)
 
     def ListConfigs(self, request, context):
         return list_configs(request, dao=self.dao)

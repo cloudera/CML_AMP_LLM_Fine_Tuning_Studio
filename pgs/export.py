@@ -69,7 +69,7 @@ with st.container(border=True):
         try:
             with st.spinner("Exporting model to CML Model Registry..."):
                 res: ExportModelRequest = fts.ExportModel(ExportModelRequest(
-                    type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
+                    type=ModelType.MODEL_REGISTRY,
                     model_id=current_models[model_idx].id,
                     adapter_id=model_adapters[adapter_idx].id,
                     model_name=registered_model_name,

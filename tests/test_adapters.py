@@ -9,76 +9,72 @@ from ft.adapters import (
 )
 from ft.api import *
 
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import Adapter
+
+from sqlalchemy.exc import NoResultFound
+
 
 def test_list_adapters():
-    state: AppState = AppState(
-        adapters=[
-            AdapterMetadata(
-                id="a1"
-            )
-        ]
-    )
-    res = list_adapters(state, ListAdaptersRequest())
-    assert res.adapters[0].id == "a1"
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Adapter(id="a1"))
+        session.add(Adapter(id="a2"))
+
+    res = list_adapters(ListAdaptersRequest(), dao=test_dao)
+    assert len(res.adapters) == 2
 
 
 def test_get_adapter_happy():
-    state: AppState = AppState(
-        adapters=[
-            AdapterMetadata(
-                id="ad1"
-            )
-        ]
-    )
-    req = GetAdapterRequest(id="ad1")
-    res = get_adapter(state, req)
-    assert res.adapter.id == "ad1"
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Adapter(id="a1"))
+        session.add(Adapter(id="a2"))
+
+    req = GetAdapterRequest(id="a1")
+    res = get_adapter(req, dao=test_dao)
+    assert res.adapter.id == "a1"
 
 
 def test_get_adapter_missing():
-    state: AppState = AppState()
-    with pytest.raises(AssertionError):
-        res = get_adapter(state, GetAdapterRequest())
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Adapter(id="a1"))
+        session.add(Adapter(id="a2"))
+
+    with pytest.raises(NoResultFound):
+        res = get_adapter(GetAdapterRequest(id="a3"), dao=test_dao)
 
 
-@patch("ft.adapters.write_state")
 @patch("ft.adapters.uuid4")
-def test_add_adapter_happy(uuid4, write_state):
-    state: AppState = AppState()
-    req = AddAdapterRequest(
-        name="my adapter"
-    )
-    uuid4.return_value = "ad1"
-    res = add_adapter(state, req)
-    write_state.assert_called_with(AppState(
-        adapters=[
-            AdapterMetadata(
-                id="ad1",
-                name="my adapter"
-            )
-        ]
-    ))
+def test_add_adapter_happy(uuid4):
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Adapter(id="a1"))
+        session.add(Adapter(id="a2"))
+
+    uuid4.return_value = "a3"
+
+    res = add_adapter(AddAdapterRequest(name="my adapter"), dao=test_dao)
+    assert res.adapter.id == "a3"
+
+    with test_dao.get_session() as session:
+        assert len(session.query(Adapter).where(Adapter.name == "my adapter").all()) == 1
 
 
-@patch("ft.adapters.replace_state_field")
-def test_remove_adapter_happy(replace_state_field):
-    state: AppState = AppState(
-        adapters=[
-            AdapterMetadata(
-                id="ad1"
-            ),
-            AdapterMetadata(
-                id="ad2"
-            )
-        ]
-    )
-    req = RemoveAdapterRequest(id="ad1")
-    res = remove_adapter(state, req)
-    replace_state_field.assert_called_with(
-        state,
-        adapters=[
-            AdapterMetadata(
-                id="ad2"
-            )
-        ]
-    )
+def test_remove_adapter_happy():
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Adapter(id="a1"))
+        session.add(Adapter(id="a2"))
+
+    res = remove_adapter(RemoveAdapterRequest(id="a1"), dao=test_dao)
+    with test_dao.get_session() as session:
+        assert len(session.query(Adapter).all()) == 1

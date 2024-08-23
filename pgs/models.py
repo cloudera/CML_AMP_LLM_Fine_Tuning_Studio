@@ -59,7 +59,7 @@ def display_model_registry_import():
                     try:
                         fts.AddModel(
                             AddModelRequest(
-                                type=ModelType.MODEL_TYPE_MODEL_REGISTRY,
+                                type=ModelType.MODEL_REGISTRY,
                                 model_registry_id=model_registry_models[model_idx].model_id
                             )
                         )
@@ -95,7 +95,7 @@ def display_huggingface_import():
                 try:
                     fts.AddModel(
                         AddModelRequest(
-                            type=ModelType.MODEL_TYPE_HUGGINGFACE,
+                            type=ModelType.HUGGINGFACE,
                             huggingface_name=import_hf_model_name
                         )
                     )

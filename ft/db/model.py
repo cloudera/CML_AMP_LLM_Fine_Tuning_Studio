@@ -97,6 +97,8 @@ class Adapter(Base, MappedProtobuf):
     name = Column(String, nullable=True)
     description = Column(String, nullable=True)
     huggingface_name = Column(String, nullable=True)
+    model_id = Column(String, ForeignKey('models.id'), nullable=True)
+    location = Column(Text, nullable=True)
     fine_tuning_job_id = Column(String, ForeignKey('fine_tuning_jobs.id'), nullable=True)
     prompt_id = Column(String, ForeignKey('prompts.id'), nullable=True)
     cml_registered_model_id = Column(String, nullable=True)
@@ -144,6 +146,7 @@ class FineTuningJob(Base, MappedProtobuf):
 class EvaluationJob(Base, MappedProtobuf):
     __tablename__ = "evaluation_jobs"
     id = Column(String, primary_key=True, nullable=False)
+    type = Column(String, nullable=True)
     cml_job_id = Column(String, nullable=True)
     base_model_id = Column(String, ForeignKey('models.id'), nullable=True)
     dataset_id = Column(String, ForeignKey('datasets.id'), nullable=True)

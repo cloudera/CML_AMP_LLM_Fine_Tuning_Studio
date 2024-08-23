@@ -3,39 +3,55 @@ import pathlib
 
 import cmlapi
 from cmlapi import CMLServiceApi
-from ft.state import write_state, replace_state_field
 from ft.api import *
 
 import os
 
+from typing import List
 
-def list_evaluation_jobs(state: AppState, request: ListEvaluationJobsRequest,
-                         cml: CMLServiceApi = None) -> ListEvaluationJobsResponse:
+from sqlalchemy import delete
+
+from ft.db.dao import FineTuningStudioDao
+from ft.db.model import EvaluationJob
+
+
+def list_evaluation_jobs(request: ListEvaluationJobsRequest,
+                         cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ListEvaluationJobsResponse:
     """
     In the future, this may handle filtering operations
     if we have a complex request object.
     """
-    return ListEvaluationJobsResponse(
-        evaluation_jobs=state.evaluation_jobs
-    )
+    with dao.get_session() as session:
+        jobs: List[EvaluationJob] = session.query(EvaluationJob).all()
+        return ListEvaluationJobsResponse(
+            evaluation_jobs=list(map(
+                lambda x: x.to_protobuf(EvaluationJobMetadata),
+                jobs
+            ))
+        )
 
 
-def get_evaluation_job(state: AppState, request: GetEvaluationJobRequest,
-                       cml: CMLServiceApi = None) -> GetEvaluationJobResponse:
-    evaluation_jobs = list(filter(lambda x: x.id == request.id, state.evaluation_jobs))
-    assert len(evaluation_jobs) == 1
-    return GetEvaluationJobResponse(
-        evaluation_job=evaluation_jobs[0]
-    )
+def get_evaluation_job(request: GetEvaluationJobRequest,
+                       cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> GetEvaluationJobResponse:
+    with dao.get_session() as session:
+        return GetEvaluationJobResponse(
+            evaluation_job=session
+            .query(EvaluationJob)
+            .where(EvaluationJob.id == request.id)
+            .one()
+            .to_protobuf(EvaluationJobMetadata)
+        )
 
 
-def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
-                         cml: CMLServiceApi = None) -> StartEvaluationJobResponse:
+def start_evaluation_job(request: StartEvaluationJobRequest,
+                         cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> StartEvaluationJobResponse:
     """
     Launch a CML Job which runs/orchestrates a finetuning operation.
     The CML Job itself does not run the finetuning work; it will launch a CML Worker(s) to allow
     more flexibility of parameters like CPU, memory, and GPU.
     """
+
+    response = StartEvaluationJobResponse()
 
     # TODO: pull this and others into app state
     project_id = os.getenv("CDSW_PROJECT_ID")
@@ -118,28 +134,35 @@ def start_evaluation_job(state: AppState, request: StartEvaluationJobRequest,
         job_id=created_job.id
     )
 
-    metadata = EvaluationJobMetadata(
-        id=job_id,
-        base_model_id=request.base_model_id,
-        dataset_id=request.dataset_id,
-        adapter_id=request.adapter_id,
-        num_workers=1,
-        num_cpu=request.cpu,
-        num_gpu=request.gpu,
-        num_memory=request.memory,
-        cml_job_id=created_job.id,
-        evaluation_dir=result_dir
-    )
+    with dao.get_session() as session:
+        eval_job: EvaluationJob = EvaluationJob(
+            id=job_id,
+            type=EvaluationJobType.MFLOW,
+            base_model_id=request.base_model_id,
+            dataset_id=request.dataset_id,
+            adapter_id=request.adapter_id,
+            prompt_id=request.prompt_id,
+            num_workers=1,
+            num_cpu=request.cpu,
+            num_gpu=request.gpu,
+            num_memory=request.memory,
+            cml_job_id=created_job.id,
+            evaluation_dir=result_dir,
+            model_bnb_config_id=request.model_bnb_config_id,
+            adapter_bnb_config_id=request.adapter_bnb_config_id,
+            generation_config_id=request.generation_config_id,
+        )
+        session.add(eval_job)
 
-    if not metadata == EvaluationJobMetadata():
-        state.evaluation_jobs.append(metadata)
-        write_state(state)
+        response = StartEvaluationJobResponse(
+            evaluation_job=eval_job.to_protobuf(EvaluationJobMetadata)
+        )
 
-    return StartEvaluationJobResponse(job=metadata)
+    return response
 
 
-def remove_evaluation_job(state: AppState, request: RemoveEvaluationJobRequest,
-                          cml: CMLServiceApi = None) -> RemoveEvaluationJobResponse:
-    evaluation_jobs = list(filter(lambda x: not x.id == request.id, state.evaluation_jobs))
-    state = replace_state_field(state, evaluation_jobs=evaluation_jobs)
+def remove_evaluation_job(request: RemoveEvaluationJobRequest,
+                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> RemoveEvaluationJobResponse:
+    with dao.get_session() as session:
+        session.execute(delete(EvaluationJob).where(EvaluationJob.id == request.id))
     return RemoveEvaluationJobResponse()
