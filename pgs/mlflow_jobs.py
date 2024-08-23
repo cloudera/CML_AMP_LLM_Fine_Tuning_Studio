@@ -6,6 +6,8 @@ import json
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 
+from ft.utils import format_status_with_icon
+
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
@@ -97,28 +99,19 @@ with tab1:
                         display_df = display_df[['id', 'html_url', 'latest',
                                                 'adapter_name', 'base_model_name', 'dataset_name']]
 
-                        status_mapping = {
-                            "succeeded": 100,
-                            "running": 30,
-                            "scheduling": 1
-                        }
-                        display_df['status'] = display_df['latest'].apply(
-                            lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
-
-                        # Apply status color renderer
-                        display_df['Status'] = display_df['status']
+                        display_df['Status'] = display_df['Status'].apply(
+                            lambda x: x['status'] if isinstance(
+                                x, dict) and 'status' in x else 'Unknown')
+                        display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
                         # Display the grid with the merged and filtered dataframe
                         st.data_editor(
                             display_df[["id", "Status", "html_url", "adapter_name", "base_model_name", "dataset_name"]],
                             column_config={
                                 "id": st.column_config.TextColumn("Job ID"),
-                                "Status": st.column_config.ProgressColumn(
+                                "status_with_icon": st.column_config.TextColumn(
                                     "Status",
-                                    help="Job status as progress",
-                                    format="%.0f%%",
-                                    min_value=0,
-                                    max_value=100,
+                                    help="Job status as text with icon",
                                 ),
                                 "html_url": st.column_config.LinkColumn(
                                     "Job Url", display_text="Open CML Job"

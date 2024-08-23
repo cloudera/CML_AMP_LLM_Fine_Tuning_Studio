@@ -10,6 +10,8 @@ from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from cmlapi import models as cml_api_models
 
+from ft.utils import format_status_with_icon
+
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 cml = get_cml_client()
@@ -41,17 +43,11 @@ def get_trainer_json_data(checkpoint_dir):
 
 
 def list_checkpoints(finetuning_framework, out_dir, job_id):
-    print(finetuning_framework)
-    print(out_dir)
-    print(job_id)
     try:
         if finetuning_framework == FineTuningFrameworkType.AXOLOTL:
             base_path = os.path.join(out_dir, job_id)
         else:
             base_path = os.path.join(os.getcwd(), 'outputs', job_id)
-
-        print("hhdhdhd")
-        print(base_path)
 
         checkpoints = {}
         for d in os.listdir(base_path):
@@ -209,21 +205,19 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         'latest': 'Status'
     }, inplace=True)
 
-    display_df['Status'] = display_df['Status'].apply(lambda x: x['status'] if isinstance(x, dict) else 'Unknown')
-    status_mapping = {"succeeded": 100, "running": 30, "scheduling": 1}
-    display_df['status'] = display_df['Status'].apply(lambda x: status_mapping.get(x, 0) if pd.notnull(x) else 0)
+    # Ensure that 'Status' is extracted correctly and is not a dictionary when used
+    display_df['Status'] = display_df['Status'].apply(
+        lambda x: x['status'] if isinstance(
+            x, dict) and 'status' in x else 'Unknown')
+    display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
     st.data_editor(
-        # display_df[["Job ID", "status", "html_url", "exp_id", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
-        display_df[["Job ID", "status", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+        display_df[["Job ID", "status_with_icon", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
-            "status": st.column_config.ProgressColumn(
+            "status_with_icon": st.column_config.TextColumn(
                 "Status",
-                help="Job status as progress",
-                format="%.0f%%",
-                min_value=0,
-                max_value=100,
+                help="Job status as text with icon",
             ),
             "html_url": st.column_config.LinkColumn(
                 "CML Job Link", display_text="Open CML Job"
@@ -231,7 +225,6 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
             "exp_id": st.column_config.LinkColumn(
                 "CML Exp Link", display_text="Open CML Exp"
             ),
-            # "Adapter Name": st.column_config.TextColumn("Adapter Name"),
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
             "Prompt Name": st.column_config.TextColumn("Prompt Name")

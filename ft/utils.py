@@ -144,3 +144,18 @@ def save_yaml_file(yaml_dict, file_path):
             yaml.dump(yaml_dict, file, default_flow_style=False)
     except (IOError, yaml.YAMLError) as e:
         raise IOError(f"Error saving YAML file to {file_path}: {e}")
+
+# Modify this function to handle unexpected types safely
+
+
+def format_status_with_icon(status):
+    if not isinstance(status, str):
+        status = 'Unknown'  # Default to 'Unknown' if status is not a string
+    icons = {
+        "succeeded": "🟢 Succeeded",
+        "running": "🔵 Running",
+        "scheduling": "🟡 Scheduling",
+        "failed": "🔴 Failed",
+        "Unknown": "⚪ Unknown"
+    }
+    return icons.get(status, "⚪ Error")
