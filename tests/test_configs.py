@@ -20,6 +20,8 @@ from typing import List
 
 import json
 
+from ft.utils import dict_to_yaml_string
+
 
 def test_get_config_happy():
 
@@ -88,6 +90,24 @@ def test_add_config_no_prior_configs(uuid4):
     assert isinstance(response_config, ConfigMetadata)
     with test_dao.get_session() as session:
         assert session.get(Config, "c1").config == '{"load_in_8bit": true}'
+
+
+@patch("ft.configs.uuid4")
+def test_add_axolotl_config_no_prior_configs(uuid4):
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    test_config = dict_to_yaml_string({"base_model": "tinyllama", "flash_attention": None})
+
+    uuid4.return_value = "c1"
+
+    response_config: ConfigMetadata = add_config(AddConfigRequest(
+        type=ConfigType.AXOLOTL,
+        config=test_config
+    ), dao=test_dao).config
+
+    assert isinstance(response_config, ConfigMetadata)
+    with test_dao.get_session() as session:
+        assert session.get(Config, "c1").config == 'base_model: tinyllama\nflash_attention:\n'
 
 
 @patch("ft.configs.uuid4")

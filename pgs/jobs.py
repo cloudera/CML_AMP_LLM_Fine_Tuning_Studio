@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import requests
 import json
+from ft.api import *
 
 import plotly.graph_objects as go
 from google.protobuf.json_format import MessageToDict
@@ -39,13 +40,27 @@ def get_trainer_json_data(checkpoint_dir):
         return {}
 
 
-def list_checkpoints(job_id):
+def list_checkpoints(finetuning_framework, out_dir, job_id):
+    print(finetuning_framework)
+    print(out_dir)
+    print(job_id)
     try:
-        base_path = os.path.join('outputs', job_id)
-        checkpoints = [d for d in os.listdir(base_path) if d.startswith('checkpoint-')]
+        if finetuning_framework == FineTuningFrameworkType.AXOLOTL:
+            base_path = os.path.join(out_dir, job_id)
+        else:
+            base_path = os.path.join(os.getcwd(), 'outputs', job_id)
+
+        print("hhdhdhd")
+        print(base_path)
+
+        checkpoints = {}
+        for d in os.listdir(base_path):
+            if d.startswith('checkpoint-'):
+                checkpoint_path = os.path.join(base_path, d)
+                checkpoints[d] = checkpoint_path
         return checkpoints
     except Exception as e:
-        return []
+        return {}
 
 
 def fetch_current_jobs_and_mappings():
@@ -163,7 +178,11 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
     # display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
-    display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
+    if 'prompt_id' in display_df.columns:
+        display_df['prompt_name'] = display_df['prompt_id'].apply(
+            lambda pid: prompt_dict.get(pid, '') if pd.notnull(pid) else '')
+    else:
+        display_df['prompt_name'] = ''
 
     columns_we_care_about = [
         'id',
@@ -240,7 +259,18 @@ def display_training_metrics(current_jobs):
     job_ids = [job.id for job in current_jobs]
 
     selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
-    checkpoints = sorted(list_checkpoints(selected_job_id), key=lambda x: int(x.split('-')[-1]))
+
+    # Fetch the selected job's finetuning_framework and out_dir
+    selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
+    if selected_job:
+        finetuning_framework = selected_job.framework_type
+        out_dir = selected_job.out_dir
+    else:
+        st.error("Selected job not found.")
+        return
+
+    checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
+    print(checkpoints)
 
     if not checkpoints:
         st.info(
@@ -248,8 +278,10 @@ def display_training_metrics(current_jobs):
             icon=":material/info:")
         return
 
-    selected_checkpoint = col2.selectbox('Select Checkpoint', checkpoints, index=0)
-    trainer_json_path = os.path.join('outputs', selected_job_id, selected_checkpoint, 'trainer_state.json')
+    checkpoint_names = list(checkpoints.keys())
+    selected_checkpoint_name = col2.selectbox('Select Checkpoint', checkpoint_names, index=0)
+    checkpoint_dir = checkpoints[selected_checkpoint_name]
+    trainer_json_path = os.path.join(checkpoint_dir, 'trainer_state.json')
 
     try:
         with open(trainer_json_path, 'r') as file:
@@ -259,7 +291,7 @@ def display_training_metrics(current_jobs):
         training_data = None
 
     if not training_data:
-        st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint}")
+        st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
         return
 
     log_history = training_data.get("log_history", [])

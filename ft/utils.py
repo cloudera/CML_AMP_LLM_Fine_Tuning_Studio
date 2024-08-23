@@ -5,6 +5,7 @@ import os
 import requests
 import torch
 from huggingface_hub import login
+import yaml
 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
@@ -90,3 +91,56 @@ def process_resource_usage_data(data: Dict[str, Any]) -> pd.DataFrame:
         })
 
     return pd.DataFrame(rows)
+
+
+def dict_to_yaml_string(yaml_dict):
+    """
+    Convert a Python dictionary to a YAML string, with custom handling for None values.
+    None values will be represented as empty strings in the YAML output.
+
+    :param yaml_dict: The dictionary to be converted to a YAML string.
+    :return: A string containing the YAML representation of the dictionary.
+    """
+    if not isinstance(yaml_dict, dict):
+        raise TypeError("Input must be a dictionary")
+
+    # Custom representer to handle empty strings for None values
+    def represent_none(self, _):
+        return self.represent_scalar('tag:yaml.org,2002:null', '')
+
+    # Register the custom representer for NoneType
+    yaml.add_representer(type(None), represent_none)
+
+    try:
+        # Convert the dictionary to a YAML string
+        yaml_string = yaml.dump(yaml_dict, default_flow_style=False)
+    except yaml.YAMLError as e:
+        raise ValueError(f"Error converting dictionary to YAML string: {e}")
+
+    return yaml_string
+
+
+def save_yaml_file(yaml_dict, file_path):
+    """
+    Save a Python dictionary as a YAML file, with custom handling for None values.
+    None values will be represented as empty strings in the YAML output.
+
+    :param yaml_dict: The dictionary to be saved as a YAML file.
+    :param file_path: The path where the YAML file should be saved.
+    """
+    if not isinstance(yaml_dict, dict):
+        raise TypeError("Input must be a dictionary")
+
+    # Custom representer to handle empty strings for None values
+    def represent_none(self, _):
+        return self.represent_scalar('tag:yaml.org,2002:null', '')
+
+    # Register the custom representer for NoneType
+    yaml.add_representer(type(None), represent_none)
+
+    try:
+        # Save the dictionary as a YAML file
+        with open(file_path, 'w') as file:
+            yaml.dump(yaml_dict, file, default_flow_style=False)
+    except (IOError, yaml.YAMLError) as e:
+        raise IOError(f"Error saving YAML file to {file_path}: {e}")
