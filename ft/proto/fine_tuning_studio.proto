@@ -736,8 +736,10 @@ message FineTuningJobMetadata {
   // user to extrac tthis config as part of the script.
   string user_config = 22;
 
+  // Framework type employed for the training job.
   string framework_type = 23;
-  
+
+  // Optional axolotol config, if working with axolotl
   string axolotl_config_id = 24;
 }
 

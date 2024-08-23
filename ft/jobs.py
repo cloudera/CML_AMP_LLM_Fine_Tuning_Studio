@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+
 from ft.api import *
 import cmlapi
 import os
@@ -42,6 +43,39 @@ def get_fine_tuning_job(request: GetFineTuningJobRequest,
         )
 
 
+def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> List[str]:
+    arg_list = [
+        "--base_model_id", request.base_model_id,
+        "--dataset_id", request.dataset_id,
+        "--experimentid", job_id,
+        "--out_dir", os.path.join(request.output_dir, job_id),
+        "--train_out_dir", os.path.join("outputs", job_id),
+        "--adapter_name", request.adapter_name,
+        "--finetuning_framework_type", request.framework_type
+    ]
+
+    if request.prompt_id:
+        arg_list.extend(["--prompt_id", request.prompt_id])
+    if request.adapter_bnb_config_id:
+        arg_list.extend(["--bnb_config_id", request.adapter_bnb_config_id])
+    if request.lora_config_id:
+        arg_list.extend(["--lora_config_id", request.lora_config_id])
+    if request.training_arguments_config_id:
+        arg_list.extend(["--training_arguments_config_id", request.training_arguments_config_id])
+    if request.auto_add_adapter:
+        arg_list.append("--auto_add_adapter")
+    if request.train_test_split != StartFineTuningJobRequest().train_test_split:
+        arg_list.extend(["--train_test_split", str(request.train_test_split)])
+    if request.dataset_fraction != StartFineTuningJobRequest().dataset_fraction:
+        arg_list.extend(["--dataset_fraction", str(request.dataset_fraction)])
+    hf_token = os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+    if hf_token:
+        arg_list.extend(["--hf_token", hf_token])
+    if request.axolotl_config_id:
+        arg_list.extend(["--axolotl_config_id", request.axolotl_config_id])
+    return arg_list
+
+
 def start_fine_tuning_job(request: StartFineTuningJobRequest,
                           cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> StartFineTuningJobResponse:
     """
@@ -62,6 +96,8 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
     else:
         framework_type: FineTuningFrameworkType = request.framework_type
 
+    request.framework_type = framework_type
+
     pathlib.Path(job_dir).mkdir(parents=True, exist_ok=True)
 
     # Shortcut: lookup the template job created by the amp
@@ -73,63 +109,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         job_id=ft_base_job_id
     )
 
-    arg_list = []
-
-    # Set Model argument
-    # TODO: Support models that dont come from HF
-    arg_list.append("--base_model_id")
-    arg_list.append(request.base_model_id)
-
-    # Set Dataset argument
-    arg_list.append("--dataset_id")
-    arg_list.append(request.dataset_id)
-
-    # Set Prompt Text argument
-    # TODO: Ideally this is just part of the aggregate config model below
-    arg_list.append("--prompt_id")
-    arg_list.append(request.prompt_id)
-
-    # Pass in all configs needed for FT join.
-    # For now, ONLY THE BNB CONFIG ID of the ADAPTER will be used, however technically
-    # we can have two different BnB configs for models vs adapters.
-    arg_list.append("--bnb_config_id")
-    arg_list.append(request.adapter_bnb_config_id)
-
-    arg_list.append("--lora_config_id")
-    arg_list.append(request.lora_config_id)
-
-    arg_list.append("--training_arguments_config_id")
-    arg_list.append(request.training_arguments_config_id)
-
-    arg_list.append("--experimentid")
-    arg_list.append(job_id)
-
-    out_dir = os.path.join(request.output_dir, job_id)
-    arg_list.append("--out_dir")
-    arg_list.append(out_dir)
-
-    arg_list.append("--train_out_dir")
-    arg_list.append(os.path.join("outputs", job_id))
-
-    arg_list.append("--adapter_name")
-    arg_list.append(request.adapter_name)
-
-    # Auto add the adapter to the database
-    if request.auto_add_adapter:
-        arg_list.append("--auto_add_adapter")
-
-    if not request.train_test_split == StartFineTuningJobRequest().train_test_split:
-        arg_list.append("--train_test_split")
-        arg_list.append(str(request.train_test_split))
-
-    if not request.dataset_fraction == StartFineTuningJobRequest().dataset_fraction:
-        arg_list.append("--dataset_fraction")
-        arg_list.append(str(request.dataset_fraction))
-
-    hf_token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN")
-    if (not hf_token == "") and (hf_token is not None):
-        arg_list.append("--hf_token")
-        arg_list.append(hf_token)
+    arg_list = _build_argument_list(request, job_id)
 
     # If the user provides a custom user script, then change the actual script
     # that is running the fine tuning job.

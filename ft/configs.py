@@ -1,4 +1,5 @@
 
+import yaml
 from ft.api import *
 import json
 
@@ -11,6 +12,8 @@ from sqlalchemy.orm.session import Session
 from typing import List
 
 from uuid import uuid4
+
+from ft.utils import dict_to_yaml_string
 
 
 def get_configs_for_model_id(session: Session, configs: List[Config], model_id: str) -> List[Config]:
@@ -76,32 +79,41 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
     with dao.get_session() as session:
         configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
 
-        # ensure that there are no similar configs.
-        # we load to a dictionary to do a fully formatted comparison.
+        # Handle AXOLOTL type by parsing the config as YAML
+        if request.type == ConfigType.AXOLOTL:
+            request_config_dict = yaml.safe_load(request.config)
+            # Convert the dict back to a YAML string
+            config_content = dict_to_yaml_string(request_config_dict)
+        else:
+            request_config_dict = json.loads(request.config)
+            # Convert the dict back to a JSON string
+            config_content = json.dumps(request_config_dict)
+
+        # Ensure that there are no similar configs by comparing the parsed config
         similar_configs: List[Config] = list(
             filter(
-                lambda x: json.loads(
-                    x.config) == json.loads(
-                    request.config),
-                configs))
+                lambda x: (
+                    yaml.safe_load(x.config) if request.type == ConfigType.AXOLOTL else json.loads(x.config)
+                ) == request_config_dict,
+                configs
+            )
+        )
 
-        # ensure that we only have at least one similar config for a given type.
-        # if we have more, then we messed up our caching mechanism somwehere
-        # along the way, and we are in a bad state (for now!).
+        # Ensure that we only have at most one similar config for a given type.
         assert len(similar_configs) <= 1
 
-        # If we found a pre-existing config, then return
-        # that config ID. If not, then just add the config.
+        # If we found a pre-existing config, then return that config ID.
         if len(similar_configs) == 1:
             response = AddConfigResponse(
                 config=similar_configs[0].to_protobuf(ConfigMetadata)
             )
         else:
+            # If no similar config exists, add the new config.
             config: Config = Config(
                 id=str(uuid4()),
                 type=request.type,
                 description=request.description,
-                config=json.dumps(json.loads(request.config))
+                config=config_content
             )
             session.add(config)
             response = AddConfigResponse(

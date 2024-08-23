@@ -176,8 +176,13 @@ cython_debug/
 .vscode-server
 .vscode
 .ssh
+.triton
+.dotnet
+.experiments
 mlartifacts
 mlruns
 mlflow_results
 data
 outputs
+last_run_prepared
+.nfs*
