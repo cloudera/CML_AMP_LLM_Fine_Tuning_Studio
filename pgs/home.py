@@ -162,7 +162,8 @@ with col2:
                 )
             },
             hide_index=True,
-            use_container_width=True
+            use_container_width=True,
+            key="training_jobs_df"
         )
 
 with col3:

@@ -76,6 +76,18 @@ def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> Lis
         arg_list.extend(["--hf_token", hf_token])
     if request.axolotl_config_id:
         arg_list.extend(["--axolotl_config_id", request.axolotl_config_id])
+    
+    if request.num_workers:
+        arg_list.extend(["--dist_num", request.num_workers])
+    if request.cpu:
+        arg_list.extend(["--dist_cpu", request.cpu])
+    if request.memory:
+        arg_list.extend(["--dist_mem", request.memory])
+    if request.gpu:
+        arg_list.extend(["--dist_gpu", request.gpu])
+    if request.gpu_label_id:
+        arg_list.extend(["--gpu_label_id", request.gpu_label_id])
+
     return arg_list
 
 
@@ -160,6 +172,11 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         framework_type = FineTuningFrameworkType.LEGACY
     else:
         framework_type: FineTuningFrameworkType = request.framework_type
+        
+    if framework_type == FineTuningFrameworkType.LEGACY:
+        base_job_name ="Accel_Finetuning_Base_Job"
+    else:
+        base_job_name = "Finetuning_Base_Job"
 
     request.framework_type = framework_type
 
@@ -168,7 +185,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
     # Shortcut: lookup the template job created by the amp
     #  Use the template job to create any new jobs
     ft_base_job_id = cml.list_jobs(project_id,
-                                   search_filter='{"name":"Finetuning_Base_Job"}').jobs[0].id
+                                   search_filter='{"name":"%s"}'%base_job_name).jobs[0].id
     template_job = cml.get_job(
         project_id=project_id,
         job_id=ft_base_job_id
@@ -218,6 +235,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory
+    gpu_label_id = request.gpu_label_id
 
     # TODO: Support more args here: output-dir, bnb config, trainerconfig,
     # loraconfig, model, dataset, prompt_config, cpu, mem, gpu
@@ -230,8 +248,12 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         cpu=cpu,
         memory=memory,
         nvidia_gpu=gpu,
-        arguments=" ".join(arg_list)
+        arguments=" ".join([str(i) for i in arg_list])
     )
+
+    # If provided, set accelerator label id for targeting gpu
+    if gpu_label_id != -1:
+        job_instance.accelerator_label_id = gpu_label_id
 
     created_job = cml.create_job(
         body=job_instance,
@@ -271,7 +293,8 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         adapter_bnb_config_id=request.adapter_bnb_config_id,
         user_script=request.user_script,
         user_config_id=user_config_id,
-        axolotl_config_id=request.axolotl_config_id
+        axolotl_config_id=request.axolotl_config_id,
+        gpu_label_id=request.gpu_label_id,
     )
 
     response = StartFineTuningJobResponse()
