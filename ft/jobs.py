@@ -206,6 +206,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
 
 def remove_fine_tuning_job(request: RemoveFineTuningJobRequest,
                            cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> RemoveFineTuningJobResponse:
+    # TODO : To cleanup the job runs folders and CML workspace jobs.
     with dao.get_session() as session:
         session.execute(delete(FineTuningJob).where(FineTuningJob.id == request.id))
     return RemoveFineTuningJobResponse()

@@ -163,6 +163,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
 
 def remove_evaluation_job(request: RemoveEvaluationJobRequest,
                           cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> RemoveEvaluationJobResponse:
+    # TODO : Implement resource cleanup if required.
     with dao.get_session() as session:
         session.execute(delete(EvaluationJob).where(EvaluationJob.id == request.id))
     return RemoveEvaluationJobResponse()

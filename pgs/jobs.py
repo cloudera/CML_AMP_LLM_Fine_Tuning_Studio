@@ -4,11 +4,11 @@ import os
 import requests
 import json
 from ft.api import *
-
 import plotly.graph_objects as go
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from cmlapi import models as cml_api_models
+from ft.utils import format_status_with_icon
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -26,7 +26,6 @@ def display_page_header():
                 "Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
 
 
-# Function to read and return the trainer_state.json file
 def get_trainer_json_data(checkpoint_dir):
     file_path = os.path.join(checkpoint_dir, 'trainer_state.json')
     if os.path.exists(file_path):
@@ -34,82 +33,85 @@ def get_trainer_json_data(checkpoint_dir):
             with open(file_path, 'r') as file:
                 data = json.load(file)
                 return data
+        except json.JSONDecodeError as e:
+            st.error(f"Failed to decode JSON: {e}")
+            return {}
         except Exception as e:
+            st.error(f"Error reading trainer_state.json: {e}")
             return {}
     else:
+        st.warning(f"trainer_state.json not found in {checkpoint_dir}.")
         return {}
 
 
 def list_checkpoints(finetuning_framework, out_dir, job_id):
-    print(finetuning_framework)
-    print(out_dir)
-    print(job_id)
     try:
         if finetuning_framework == FineTuningFrameworkType.AXOLOTL:
             base_path = os.path.join(out_dir, job_id)
         else:
             base_path = os.path.join(os.getcwd(), 'outputs', job_id)
 
-        print("hhdhdhd")
-        print(base_path)
-
         checkpoints = {}
-        for d in os.listdir(base_path):
-            if d.startswith('checkpoint-'):
-                checkpoint_path = os.path.join(base_path, d)
-                checkpoints[d] = checkpoint_path
+        if os.path.exists(base_path):
+            for d in os.listdir(base_path):
+                if d.startswith('checkpoint-'):
+                    checkpoint_path = os.path.join(base_path, d)
+                    checkpoints[d] = checkpoint_path
         return checkpoints
     except Exception as e:
         return {}
 
 
 def fetch_current_jobs_and_mappings():
-    current_jobs = fts.get_fine_tuning_jobs()
-    models = fts.get_models()
-    adapters = fts.get_adapters()
-    datasets = fts.get_datasets()
-    prompts = fts.get_prompts()
+    try:
+        current_jobs = fts.get_fine_tuning_jobs()
+        models = fts.get_models()
+        adapters = fts.get_adapters()
+        datasets = fts.get_datasets()
+        prompts = fts.get_prompts()
 
-    model_dict = {model.id: model.name for model in models}
-    adapter_dict = {adapter.id: adapter.name for adapter in adapters}
-    dataset_dict = {dataset.id: dataset.name for dataset in datasets}
-    prompt_dict = {prompt.id: prompt.name for prompt in prompts}
+        model_dict = {model.id: model.name for model in models}
+        adapter_dict = {adapter.id: adapter.name for adapter in adapters}
+        dataset_dict = {dataset.id: dataset.name for dataset in datasets}
+        prompt_dict = {prompt.id: prompt.name for prompt in prompts}
 
-    return current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict
+        return current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict
+    except Exception as e:
+        st.error(f"Error fetching jobs and mappings: {e}")
+        return [], {}, {}, {}, {}
 
 
 def fetch_cml_experiments():
-    cml_project = os.getenv("CDSW_PROJECT_ID")
-    all_experiments = []
-    page_token = None
-    page_size = 10
+    try:
+        cml_project = os.getenv("CDSW_PROJECT_ID")
+        all_experiments = []
+        page_token = None
+        page_size = 10
 
-    while True:
-        kwargs = {'page_size': page_size}
-        if page_token:
-            kwargs['page_token'] = page_token
+        while True:
+            kwargs = {'page_size': page_size}
+            if page_token:
+                kwargs['page_token'] = page_token
 
-        response = cml.list_experiments(
-            cml_project,
-            **kwargs
-        ).to_dict()
+            response = cml.list_experiments(cml_project, **kwargs).to_dict()
+            all_experiments.extend(response['experiments'])
 
-        all_experiments.extend(response['experiments'])
+            page_token = response.get('next_page_token')
+            if not page_token:
+                break
 
-        page_token = response.get('next_page_token')
-        if not page_token:
-            break
+        if len(all_experiments) == 0:
+            cml_experiments_df = pd.DataFrame(columns=cml_api_models.Experiment().to_dict().keys())
+        else:
+            cml_experiments_df = pd.DataFrame(all_experiments)
 
-    # If no experiments are present, response does not contain column names, ensure those are set
-    if len(all_experiments) == 0:
-        cml_experiments_df = pd.DataFrame(columns=cml_api_models.Experiment().to_dict().keys())
-    else:
-        cml_experiments_df = pd.DataFrame(all_experiments)
-
-    cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
-    proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
-    cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
-    return cml_experiments_df
+        cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
+        proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
+        cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
+        return cml_experiments_df
+    except Exception as e:
+        st.error(f"Error fetching CML experiments: {e}")
+        return pd.DataFrame()
 
 
 def fetch_jobs_from_api():
@@ -136,10 +138,23 @@ def fetch_jobs_from_api():
         return pd.DataFrame()
 
 
-def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict, cml_experiments_df):
+@st.fragment
+def display_jobs_list():
+    current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
+    cml_experiments_df = fetch_cml_experiments()
     if not current_jobs:
         st.info("No fine-tuning jobs triggered.", icon=":material/info:")
         return
+
+    st.write("\n")
+
+    _, col1, col2 = st.columns([12, 2, 2])
+
+    with col1:
+        if st.button("Reload", use_container_width=True):
+            st.rerun(scope="fragment")
+
+    delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
 
     try:
         jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
@@ -173,9 +188,6 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         suffixes=('', '_cml')
     )
 
-    # TODO: we no longer store adapter_id directly in the fine tuning job. Instead,
-    # the adapter metadata stores an ID of the job that it used for training.
-    # display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
     if 'prompt_id' in display_df.columns:
@@ -188,7 +200,6 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         'id',
         'html_url',
         'latest',
-        # 'adapter_name',
         'base_model_name',
         'dataset_name',
         'prompt_name',
@@ -202,28 +213,26 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
 
     display_df.rename(columns={
         'id': 'Job ID',
-        # 'adapter_name': 'Adapter Name',
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
         'prompt_name': 'Prompt Name',
         'latest': 'Status'
     }, inplace=True)
 
-    display_df['Status'] = display_df['Status'].apply(lambda x: x['status'] if isinstance(x, dict) else 'Unknown')
-    status_mapping = {"succeeded": 100, "running": 30, "scheduling": 1}
-    display_df['status'] = display_df['Status'].apply(lambda x: status_mapping.get(x, 0) if pd.notnull(x) else 0)
+    display_df['Status'] = display_df['Status'].apply(
+        lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
+    display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
-    st.data_editor(
-        # display_df[["Job ID", "status", "html_url", "exp_id", "Adapter Name", "Model Name", "Dataset Name", "Prompt Name"]],
-        display_df[["Job ID", "status", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+    display_df["Select"] = False
+
+    # Data editor for job table
+    edited_df = st.data_editor(
+        display_df[["Select", "Job ID", "status_with_icon", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
-            "status": st.column_config.ProgressColumn(
+            "status_with_icon": st.column_config.TextColumn(
                 "Status",
-                help="Job status as progress",
-                format="%.0f%%",
-                min_value=0,
-                max_value=100,
+                help="Job status as text with icon",
             ),
             "html_url": st.column_config.LinkColumn(
                 "CML Job Link", display_text="Open CML Job"
@@ -231,15 +240,40 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
             "exp_id": st.column_config.LinkColumn(
                 "CML Exp Link", display_text="Open CML Exp"
             ),
-            # "Adapter Name": st.column_config.TextColumn("Adapter Name"),
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
-            "Prompt Name": st.column_config.TextColumn("Prompt Name")
+            "Prompt Name": st.column_config.TextColumn("Prompt Name"),
+            "Select": st.column_config.CheckboxColumn("", width="small")
         },
         height=500,
         hide_index=True,
         use_container_width=True
     )
+
+    if delete_button:
+        # Check if edited_df is not empty and contains the "Select" column
+        if edited_df.empty or "Select" not in edited_df.columns:
+            st.warning("No jobs available for deletion.")
+        else:
+            # Filter selected jobs
+            selected_jobs = edited_df[edited_df["Select"]]["Job ID"]
+
+            if not selected_jobs.empty:
+                st.toast(f"Deleting jobs: {', '.join(selected_jobs)}")
+                # Implement your job deletion logic here
+                for job_id in selected_jobs:
+                    try:
+                        response = fts.RemoveFineTuningJob(RemoveFineTuningJobRequest(
+                            id=job_id
+                        ))
+                        st.toast(f"Job {job_id} deleted successfully.")
+                    except Exception as e:
+                        st.error(f"Error deleting job {job_id}: {str(e)}")
+
+                # After all deletions, reload the specific component or data
+                st.rerun(scope="fragment")
+            else:
+                st.warning("No jobs selected for deletion.")
 
     st.info(
         """
@@ -250,17 +284,18 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
     )
 
 
-def display_training_metrics(current_jobs):
+def display_training_metrics():
+    current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
+
     if not current_jobs:
         st.info("No fine-tuning jobs triggered.", icon=":material/info:")
         return
 
-    col1, col2, col3 = st.columns([2, 1, 3])
+    col1, _, col2 = st.columns([30, 1, 70])
     job_ids = [job.id for job in current_jobs]
 
     selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
 
-    # Fetch the selected job's finetuning_framework and out_dir
     selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
     if selected_job:
         finetuning_framework = selected_job.framework_type
@@ -269,137 +304,194 @@ def display_training_metrics(current_jobs):
         st.error("Selected job not found.")
         return
 
-    checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
-    print(checkpoints)
+    with col1:
+        col1.caption("**Job Metadata**")
+        if selected_job:
+            job_data = {
+                "CPU": [selected_job.num_cpu],
+                "GPU": [selected_job.num_gpu],
+                "Memory": [selected_job.num_memory]
+            }
+            job_df = pd.DataFrame(job_data)
+            col1.caption("Compute Configurations")
+            st.data_editor(job_df, use_container_width=True, hide_index=True)
 
-    if not checkpoints:
-        st.info(
-            f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to complete",
-            icon=":material/info:")
-        return
+            if selected_job.framework_type == FineTuningFrameworkType.LEGACY:
+                try:
+                    train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
+                    col1.caption("Training Configurations")
+                    col1.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching Training Config: {e}")
 
-    checkpoint_names = list(checkpoints.keys())
-    selected_checkpoint_name = col2.selectbox('Select Checkpoint', checkpoint_names, index=0)
-    checkpoint_dir = checkpoints[selected_checkpoint_name]
-    trainer_json_path = os.path.join(checkpoint_dir, 'trainer_state.json')
+                try:
+                    lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
+                    col1.caption("Lora Configurations")
+                    col1.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching Lora Config: {e}")
 
-    try:
-        with open(trainer_json_path, 'r') as file:
-            training_data = json.load(file)
-    except FileNotFoundError:
-        st.error("File not found.")
-        training_data = None
+                try:
+                    bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
+                    col1.caption("BitsAndBytes Configurations")
+                    col1.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching BnB Config: {e}")
 
-    if not training_data:
-        st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
-        return
+            elif selected_job.framework_type == FineTuningFrameworkType.AXOLOTL:
+                try:
+                    axolotl_config = fts.GetConfig(GetConfigRequest(id=selected_job.axolotl_config_id))
+                    col1.caption("Axolotl Train Configurations")
+                    col1.code(axolotl_config.config.config, "yaml")
+                except Exception as e:
+                    st.error(f"Error fetching Axolotl Config: {e}")
+            else:
+                st.error(f"Unsupported Finetuning framework used for: **{selected_job_id}**.", icon=":material/info:")
+        else:
+            st.error("Selected job not found.")
 
-    log_history = training_data.get("log_history", [])
-    df = pd.DataFrame(log_history)
+    with col2:
+        checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
+        if not checkpoints:
+            st.caption("**Select Checkpoint**")
+            st.info(
+                f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to save a checkpoint.",
+                icon=":material/info:")
+            return
 
-    if 'eval_loss' not in df.columns:
-        df['eval_loss'] = pd.NA
+        checkpoint_names = list(checkpoints.keys())
+        selected_checkpoint_name = col2.selectbox('Select Checkpoint', checkpoint_names, index=0)
+        checkpoint_dir = checkpoints[selected_checkpoint_name]
+        trainer_json_path = os.path.join(checkpoint_dir, 'trainer_state.json')
 
-    df = df.where(pd.notnull(df), None)
+        try:
+            with open(trainer_json_path, 'r') as file:
+                training_data = json.load(file)
+        except FileNotFoundError:
+            st.error("trainer_state.json not found.")
+            training_data = None
+        except json.JSONDecodeError as e:
+            st.error(f"Failed to decode JSON: {e}")
+            training_data = None
 
-    if df.empty:
-        st.info("No log history found in the trainer_state.json file.")
-        return
+        if not training_data:
+            st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
+            return
 
-    loss_df = df[['epoch', 'loss']].dropna()
-    eval_loss_df = df[['epoch', 'eval_loss']].dropna()
+        log_history = training_data.get("log_history", [])
+        df = pd.DataFrame(log_history)
 
-    fig_loss = go.Figure()
-    fig_eval_loss = go.Figure()
+        if 'eval_loss' not in df.columns:
+            df['eval_loss'] = pd.NA
 
-    fig_loss.add_trace(go.Scatter(
-        x=loss_df['epoch'],
-        y=loss_df['loss'],
-        mode='lines+markers',
-        name='Loss',
-        line=dict(color='blue'),
-        hovertemplate='Epoch: %{x}<br>Loss: %{y}<extra></extra>'
-    ))
+        df = df.where(pd.notnull(df), None)
 
-    fig_eval_loss.add_trace(go.Scatter(
-        x=eval_loss_df['epoch'],
-        y=eval_loss_df['eval_loss'],
-        mode='lines+markers',
-        name='Evaluation Loss',
-        line=dict(color='red'),
-        hovertemplate='Epoch: %{x}<br>Evaluation Loss: %{y}<extra></extra>'
-    ))
+        if df.empty:
+            st.info("No log history found in the trainer_state.json file.")
+            return
 
-    fig_loss.update_layout(
-        title='Training Loss',
-        xaxis_title='Epoch',
-        yaxis_title='Loss',
-        yaxis_type='log',
-        height=500,
-        legend=dict(
-            orientation='h',
-            yanchor='bottom',
-            y=1.02,
-            xanchor='right',
-            x=1
+        loss_df = df[['epoch', 'loss']].dropna()
+        eval_loss_df = df[['epoch', 'eval_loss']].dropna()
+
+        fig_loss = go.Figure()
+        fig_eval_loss = go.Figure()
+
+        fig_loss.add_trace(go.Scatter(
+            x=loss_df['epoch'],
+            y=loss_df['loss'],
+            mode='lines+markers',
+            name='Loss',
+            line=dict(color='blue'),
+            hovertemplate='Epoch: %{x}<br>Loss: %{y}<extra></extra>'
+        ))
+
+        fig_eval_loss.add_trace(go.Scatter(
+            x=eval_loss_df['epoch'],
+            y=eval_loss_df['eval_loss'],
+            mode='lines+markers',
+            name='Evaluation Loss',
+            line=dict(color='red'),
+            hovertemplate='Epoch: %{x}<br>Evaluation Loss: %{y}<extra></extra>'
+        ))
+
+        # Define the info icon text with HTML <br> for line breaks
+        info_icon_text_loss = """
+        Training loss represents how well the model is performing on the training data.
+        """
+
+        info_icon_text_eval_loss = """
+        Evaluation loss, measures how well the model is performing on unseen data.
+        """
+
+        # Add an annotation for the info icon in the training loss plot
+        fig_loss.update_layout(
+            title='Training Loss',
+            xaxis_title='Epoch',
+            yaxis_title='Loss',
+            yaxis_type='log',
+            height=600,
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=1.02,
+                xanchor='right',
+                x=1
+            ),
+            annotations=[
+                go.layout.Annotation(
+                    text="ℹ️",
+                    xref="paper", yref="paper",
+                    x=1, y=1.15,  # Adjusted position to be within the chart area
+                    showarrow=False,
+                    font=dict(size=18),
+                    hovertext=info_icon_text_loss,
+                    hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
+                )
+            ]
         )
-    )
 
-    fig_eval_loss.update_layout(
-        title='Evaluation Loss',
-        xaxis_title='Epoch',
-        yaxis_title='Evaluation Loss',
-        yaxis_type='log',
-        height=500,
-        legend=dict(
-            orientation='h',
-            yanchor='bottom',
-            y=1.02,
-            xanchor='right',
-            x=1
+        # Add an annotation for the info icon in the evaluation loss plot
+        fig_eval_loss.update_layout(
+            title='Evaluation Loss',
+            xaxis_title='Epoch',
+            yaxis_title='Evaluation Loss',
+            yaxis_type='log',
+            height=600,
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=1.02,
+                xanchor='right',
+                x=1
+            ),
+            annotations=[
+                go.layout.Annotation(
+                    text="ℹ️",
+                    xref="paper", yref="paper",
+                    x=1, y=1.15,  # Adjusted position to be within the chart area
+                    showarrow=False,
+                    font=dict(size=18),
+                    hovertext=info_icon_text_eval_loss,
+                    hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
+                )
+            ]
         )
-    )
 
-    col11, col12 = st.columns([7, 3])
-    with col11:
         chart_col1, chart_col2 = st.columns([1, 1])
         with chart_col1:
             st.plotly_chart(fig_loss, use_container_width=True)
         with chart_col2:
             st.plotly_chart(fig_eval_loss, use_container_width=True)
 
-        st.caption("Job Metadata")
-        selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
-
-        if selected_job:
-            job_data = {
-                "Epochs": [selected_job.num_epochs],
-                "Learning Rate": [selected_job.learning_rate],
-                "CPU": [selected_job.num_cpu],
-                "GPU": [selected_job.num_gpu],
-                "Memory": [selected_job.num_memory]
-            }
-
-            job_df = pd.DataFrame(job_data)
-            st.data_editor(job_df, use_container_width=True, hide_index=True)
-        else:
-            st.error("Selected job not found.")
-
-    with col12:
-        st.json(training_data)
-
 
 # Main Application
 
-
 display_page_header()
-current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
-cml_experiments_df = fetch_cml_experiments()
 
 tab1, tab2 = st.tabs(["**Jobs List**", "**View Jobs**"])
 
 with tab1:
-    display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict, cml_experiments_df)
+    display_jobs_list()
 
 with tab2:
-    display_training_metrics(current_jobs)
+    display_training_metrics()

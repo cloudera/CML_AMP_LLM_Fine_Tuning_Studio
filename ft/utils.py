@@ -6,6 +6,7 @@ import requests
 import torch
 from huggingface_hub import login
 import yaml
+from ft.consts import AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH
 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
@@ -144,3 +145,24 @@ def save_yaml_file(yaml_dict, file_path):
             yaml.dump(yaml_dict, file, default_flow_style=False)
     except (IOError, yaml.YAMLError) as e:
         raise IOError(f"Error saving YAML file to {file_path}: {e}")
+
+# Modify this function to handle unexpected types safely
+
+
+def format_status_with_icon(status):
+    if not isinstance(status, str):
+        status = 'Unknown'  # Default to 'Unknown' if status is not a string
+    icons = {
+        "succeeded": "🟢 Succeeded",
+        "running": "🔵 Running",
+        "scheduling": "🟡 Scheduling",
+        "failed": "🔴 Failed",
+        "Unknown": "⚪ Unknown"
+    }
+    return icons.get(status, f"⚪ {status.capitalize()}")
+
+
+def get_axolotl_training_config_template_yaml_str():
+    with open(AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH, 'r') as file:
+        yaml_content = file.read()
+    return yaml_content

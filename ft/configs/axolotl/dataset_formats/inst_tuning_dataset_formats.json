@@ -1,0 +1,184 @@
+{
+  "dataset_formats": {
+    "alpaca": {
+      "name": "alpaca",
+      "description": "Instruction with optional input.",
+      "format": {
+        "instruction": "...",
+        "input": "...",
+        "output": "..."
+      }
+    },
+    "jeopardy": {
+      "name": "jeopardy",
+      "description": "Question and answer.",
+      "format": {
+        "question": "...",
+        "category": "...",
+        "answer": "..."
+      }
+    },
+    "oasst": {
+      "name": "oasst",
+      "description": "Instruction and response.",
+      "format": {
+        "INSTRUCTION": "...",
+        "RESPONSE": "..."
+      }
+    },
+    "gpteacher": {
+      "name": "gpteacher",
+      "description": "Instruction with optional input.",
+      "format": {
+        "instruction": "...",
+        "input": "...",
+        "response": "..."
+      }
+    },
+    "reflection": {
+      "name": "reflection",
+      "description": "Instruction with reflection and optional input.",
+      "format": {
+        "instruction": "...",
+        "input": "...",
+        "output": "...",
+        "reflection": "...",
+        "corrected": "..."
+      }
+    },
+    "explainchoice": {
+      "name": "explainchoice",
+      "description": "Question, choices, and solution or explanation.",
+      "format": {
+        "question": "...",
+        "choices": ["..."],
+        "solution": "...",
+        "explanation": "..."
+      }
+    },
+    "concisechoice": {
+      "name": "concisechoice",
+      "description": "Question, choices, and solution or explanation.",
+      "format": {
+        "question": "...",
+        "choices": ["..."],
+        "solution": "...",
+        "explanation": "..."
+      }
+    },
+    "summarizetldr": {
+      "name": "summarizetldr",
+      "description": "Article and summary.",
+      "format": {
+        "article": "...",
+        "summary": "..."
+      }
+    },
+    "alpaca_chat": {
+      "name": "alpaca_chat",
+      "description": "Basic instruct for alpaca chat.",
+      "format": {
+        "instruction": "...",
+        "input": "...",
+        "response": "..."
+      }
+    },
+    "alpaca_chat.load_qa": {
+      "name": "alpaca_chat.load_qa",
+      "description": "Question and answer for alpaca chat.",
+      "format": {
+        "question": "...",
+        "answer": "..."
+      }
+    },
+    "alpaca_chat.load_concise": {
+      "name": "alpaca_chat.load_concise",
+      "description": "Question and answer for alpaca chat, for concise answers.",
+      "format": {
+        "instruction": "...",
+        "input": "...",
+        "response": "..."
+      }
+    },
+    "alpaca_chat.load_camel_ai": {
+      "name": "alpaca_chat.load_camel_ai",
+      "description": "Question and answer for alpaca chat, for load_camel_ai.",
+      "format": {
+        "message_1": "...",
+        "message_2": "..."
+      }
+    },
+    "alpaca_w_system.load_open_orca": {
+      "name": "alpaca_w_system.load_open_orca",
+      "description": "Support for open orca datasets with included system prompts, instruct.",
+      "format": {
+        "system_prompt": "...",
+        "question": "...",
+        "response": "..."
+      }
+    },
+    "context_qa": {
+      "name": "context_qa",
+      "description": "In context question answering from an article.",
+      "format": {
+        "article": "...",
+        "question": "...",
+        "answer": "..."
+      }
+    },
+    "context_qa.load_v2": {
+      "name": "context_qa.load_v2",
+      "description": "In context question answering (alternate).",
+      "format": {
+        "context": "...",
+        "question": "...",
+        "answer": "..."
+      }
+    },
+    "context_qa.load_404": {
+      "name": "context_qa.load_404",
+      "description": "In context question answering from an article, with default response for no answer from context.",
+      "format": {
+        "article": "...",
+        "unanswerable_question": "..."
+      }
+    },
+    "creative_acr.load_answer": {
+      "name": "creative_acr.load_answer",
+      "description": "Instruction and revision.",
+      "format": {
+        "instruction": "...",
+        "revision": "..."
+      }
+    },
+    "creative_acr.load_critique": {
+      "name": "creative_acr.load_critique",
+      "description": "Critique with scores, instruction, and answer.",
+      "format": {
+        "scores": "...",
+        "critiques": "...",
+        "instruction": "...",
+        "answer": "..."
+      }
+    },
+    "creative_acr.load_revise": {
+      "name": "creative_acr.load_revise",
+      "description": "Critique and revise.",
+      "format": {
+        "scores": "...",
+        "critiques": "...",
+        "instruction": "...",
+        "answer": "...",
+        "revision": "..."
+      }
+    },
+    "metharme": {
+      "name": "metharme",
+      "description": "Instruction with additional eos tokens.",
+      "format": {
+        "prompt": "...",
+        "generation": "..."
+      }
+    }
+  }
+}
