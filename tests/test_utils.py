@@ -34,7 +34,7 @@ class TestFormatStatusWithIcon(unittest.TestCase):
 
     def test_unknown_status(self):
         self.assertEqual(format_status_with_icon("Unknown"), "⚪ Unknown")
-        self.assertEqual(format_status_with_icon("anything_else"), "⚪ Error")
+        self.assertEqual(format_status_with_icon("anything_else"), "⚪ Anything_else")
 
     def test_non_string_input(self):
         self.assertEqual(format_status_with_icon(None), "⚪ Unknown")

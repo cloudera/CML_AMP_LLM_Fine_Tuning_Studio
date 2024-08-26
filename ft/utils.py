@@ -159,7 +159,7 @@ def format_status_with_icon(status):
         "failed": "🔴 Failed",
         "Unknown": "⚪ Unknown"
     }
-    return icons.get(status, "⚪ Error")
+    return icons.get(status, f"⚪ {status.capitalize()}")
 
 
 def get_axolotl_training_config_template_yaml_str():

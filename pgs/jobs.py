@@ -61,7 +61,6 @@ def list_checkpoints(finetuning_framework, out_dir, job_id):
             st.warning(f"Base path {base_path} does not exist.")
         return checkpoints
     except Exception as e:
-        st.error(f"Error listing checkpoints: {e}")
         return {}
 
 
@@ -141,10 +140,23 @@ def fetch_jobs_from_api():
         return pd.DataFrame()
 
 
-def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict, cml_experiments_df):
+@st.fragment
+def display_jobs_list():
+    current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
+    cml_experiments_df = fetch_cml_experiments()
     if not current_jobs:
         st.info("No fine-tuning jobs triggered.", icon=":material/info:")
         return
+
+    st.write("\n")
+
+    _, col1, col2 = st.columns([12, 2, 2])
+
+    with col1:
+        if st.button("Reload", use_container_width=True):
+            st.rerun(scope="fragment")
+
+    delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
 
     try:
         jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
@@ -213,8 +225,11 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
         lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
     display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
-    st.data_editor(
-        display_df[["Job ID", "status_with_icon", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+    display_df["Select"] = False
+
+    # Data editor for job table
+    edited_df = st.data_editor(
+        display_df[["Select", "Job ID", "status_with_icon", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
@@ -229,12 +244,38 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
             ),
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
-            "Prompt Name": st.column_config.TextColumn("Prompt Name")
+            "Prompt Name": st.column_config.TextColumn("Prompt Name"),
+            "Select": st.column_config.CheckboxColumn("", width="small")
         },
         height=500,
         hide_index=True,
         use_container_width=True
     )
+
+    if delete_button:
+        # Check if edited_df is not empty and contains the "Select" column
+        if edited_df.empty or "Select" not in edited_df.columns:
+            st.warning("No jobs available for deletion.")
+        else:
+            # Filter selected jobs
+            selected_jobs = edited_df[edited_df["Select"]]["Job ID"]
+
+            if not selected_jobs.empty:
+                st.toast(f"Deleting jobs: {', '.join(selected_jobs)}")
+                # Implement your job deletion logic here
+                for job_id in selected_jobs:
+                    try:
+                        response = fts.RemoveFineTuningJob(RemoveFineTuningJobRequest(
+                            id=job_id
+                        ))
+                        st.toast(f"Job {job_id} deleted successfully.")
+                    except Exception as e:
+                        st.error(f"Error deleting job {job_id}: {str(e)}")
+
+                # After all deletions, reload the specific component or data
+                st.rerun(scope="fragment")
+            else:
+                st.warning("No jobs selected for deletion.")
 
     st.info(
         """
@@ -245,12 +286,14 @@ def display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prom
     )
 
 
-def display_training_metrics(current_jobs):
+def display_training_metrics():
+    current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
+
     if not current_jobs:
         st.info("No fine-tuning jobs triggered.", icon=":material/info:")
         return
 
-    col1, col2 = st.columns([3, 7])
+    col1, _, col2 = st.columns([30, 1, 70])
     job_ids = [job.id for job in current_jobs]
 
     selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
@@ -277,6 +320,13 @@ def display_training_metrics(current_jobs):
 
             if selected_job.framework_type == FineTuningFrameworkType.LEGACY:
                 try:
+                    train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
+                    col1.caption("Training Configurations")
+                    col1.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching Training Config: {e}")
+
+                try:
                     lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
                     col1.caption("Lora Configurations")
                     col1.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
@@ -285,17 +335,10 @@ def display_training_metrics(current_jobs):
 
                 try:
                     bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
-                    col1.caption("BnB Configurations")
+                    col1.caption("BitsAndBytes Configurations")
                     col1.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
                 except Exception as e:
                     st.error(f"Error fetching BnB Config: {e}")
-
-                try:
-                    train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
-                    col1.caption("Training Configurations")
-                    col1.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
-                except Exception as e:
-                    st.error(f"Error fetching Training Config: {e}")
 
             elif selected_job.framework_type == FineTuningFrameworkType.AXOLOTL:
                 try:
@@ -312,8 +355,9 @@ def display_training_metrics(current_jobs):
     with col2:
         checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
         if not checkpoints:
+            st.caption("**Select Checkpoint**")
             st.info(
-                f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to complete",
+                f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to save a checkpoint.",
                 icon=":material/info:")
             return
 
@@ -372,34 +416,67 @@ def display_training_metrics(current_jobs):
             hovertemplate='Epoch: %{x}<br>Evaluation Loss: %{y}<extra></extra>'
         ))
 
+        # Define the info icon text with HTML <br> for line breaks
+        info_icon_text_loss = """
+        Training loss represents how well the model is performing on the training data.
+        """
+
+        info_icon_text_eval_loss = """
+        Evaluation loss, measures how well the model is performing on unseen data.
+        """
+
+        # Add an annotation for the info icon in the training loss plot
         fig_loss.update_layout(
             title='Training Loss',
             xaxis_title='Epoch',
             yaxis_title='Loss',
             yaxis_type='log',
-            height=500,
+            height=600,
             legend=dict(
                 orientation='h',
                 yanchor='bottom',
                 y=1.02,
                 xanchor='right',
                 x=1
-            )
+            ),
+            annotations=[
+                go.layout.Annotation(
+                    text="ℹ️",
+                    xref="paper", yref="paper",
+                    x=1, y=1.15,  # Adjusted position to be within the chart area
+                    showarrow=False,
+                    font=dict(size=18),
+                    hovertext=info_icon_text_loss,
+                    hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
+                )
+            ]
         )
 
+        # Add an annotation for the info icon in the evaluation loss plot
         fig_eval_loss.update_layout(
             title='Evaluation Loss',
             xaxis_title='Epoch',
             yaxis_title='Evaluation Loss',
             yaxis_type='log',
-            height=500,
+            height=600,
             legend=dict(
                 orientation='h',
                 yanchor='bottom',
                 y=1.02,
                 xanchor='right',
                 x=1
-            )
+            ),
+            annotations=[
+                go.layout.Annotation(
+                    text="ℹ️",
+                    xref="paper", yref="paper",
+                    x=1, y=1.15,  # Adjusted position to be within the chart area
+                    showarrow=False,
+                    font=dict(size=18),
+                    hovertext=info_icon_text_eval_loss,
+                    hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
+                )
+            ]
         )
 
         chart_col1, chart_col2 = st.columns([1, 1])
@@ -408,19 +485,15 @@ def display_training_metrics(current_jobs):
         with chart_col2:
             st.plotly_chart(fig_eval_loss, use_container_width=True)
 
-        st.json(training_data)
-
 
 # Main Application
 
 display_page_header()
-current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
-cml_experiments_df = fetch_cml_experiments()
 
 tab1, tab2 = st.tabs(["**Jobs List**", "**View Jobs**"])
 
 with tab1:
-    display_jobs_list(current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict, cml_experiments_df)
+    display_jobs_list()
 
 with tab2:
-    display_training_metrics(current_jobs)
+    display_training_metrics()
