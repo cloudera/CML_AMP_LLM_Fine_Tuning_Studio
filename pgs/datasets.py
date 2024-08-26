@@ -40,8 +40,8 @@ def handle_database_import():
                                     location=None
                                 )
                             )
-                            st.success("Dataset Loaded. Please go to **View Dataset** tab!", icon=":material/check:")
-                            st.toast("Dataset has been loaded successfully!", icon=":material/check:")
+                            st.success("Dataset Loaded. Please go to **View Dataset** tab.", icon=":material/check:")
+                            st.toast("Dataset has been loaded successfully.", icon=":material/check:")
                         except Exception as e:
                             st.error(f"Failed to load dataset: **{str(e)}**", icon=":material/error:")
                             st.toast(f"Failed to load dataset: **{str(e)}**", icon=":material/error:")

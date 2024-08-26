@@ -38,7 +38,8 @@ def setup_navigation():
         st.Page("pgs/view_datasets.py", title="View Datasets"),
         st.Page("pgs/models.py", title="Import Base Models"),
         st.Page("pgs/view_models.py", title="View Base Models"),
-        st.Page("pgs/prompts.py", title="Training Prompts"),
+        st.Page("pgs/prompts.py", title="Create Prompts"),
+        st.Page("pgs/view_prompts.py", title="View Prompts"),
         st.Page("pgs/train_adapter.py", title="Train a New Adapter"),
         st.Page("pgs/jobs.py", title="Training Job Tracking"),
         st.Page("pgs/evaluate.py", title="Local Adapter Comparison"),
@@ -65,7 +66,8 @@ def setup_sidebar():
         st.page_link("pgs/view_datasets.py", label="View Datasets", icon=":material/data_object:")
         st.page_link("pgs/models.py", label="Import Base Models", icon=":material/neurology:")
         st.page_link("pgs/view_models.py", label="View Base Models", icon=":material/view_day:")
-        st.page_link("pgs/prompts.py", label="Training Prompts", icon=":material/chat:")
+        st.page_link("pgs/prompts.py", label="Create Prompts", icon=":material/chat:")
+        st.page_link("pgs/view_prompts.py", label="View Prompts", icon=":material/forum:")
         st.write("\n")
 
         st.markdown("Experiments")

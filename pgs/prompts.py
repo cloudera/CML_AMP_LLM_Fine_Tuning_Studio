@@ -3,7 +3,6 @@ from ft.api import *
 from datasets import load_dataset
 import random
 from uuid import uuid4
-from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
 
@@ -17,7 +16,7 @@ def display_header():
         with col1:
             col1.image("./resources/images/chat_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
         with col2:
-            col2.subheader('Prompts')
+            col2.subheader('Create Prompts')
             col2.caption(
                 'Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.')
 
@@ -42,13 +41,15 @@ def display_create_prompt():
                 dataset = datasets[dataset_idx]
                 st.code("Dataset Columns: \n * " + '\n * '.join(json.loads(dataset.features)))
 
+                default_template = ""
+                for feature in json.loads(dataset.features):
+                    default_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
+                prompt_template = st.text_area("Prompt Template", value=default_template, height=200)
+
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)
 
-                cc1, cc2 = st.columns([1, 1])
-                prompt_template = cc1.text_area("Prompt Template", height=200)
-
-                prompt_output = None
+                prompt_output = ""
                 if generate_example_button:
                     with st.spinner("Generating Prompt..."):
                         loaded_dataset = load_dataset(dataset.huggingface_name)
@@ -58,11 +59,8 @@ def display_create_prompt():
                     dataset_idx = loaded_dataset["train"][idx_random]
                     prompt_output = prompt_template.format(**dataset_idx)
 
-                cc2.text_area(
-                    "Example Prompt",
-                    value=prompt_output,
-                    height=200,
-                    disabled=True)
+                st.caption("**Example Prompt**")
+                st.code(prompt_output)
 
                 if st.button("Create Prompt", type="primary", use_container_width=True):
                     if not new_prompt_name:
@@ -70,31 +68,40 @@ def display_create_prompt():
                     else:
                         try:
                             add_prompt(new_prompt_name, dataset.id, prompt_template)
-                            st.success("Prompt Created. Please go to **View Prompts** tab!", icon=":material/check:")
-                            st.toast("Prompt has been created successfully!", icon=":material/check:")
+                            st.success("Prompt Created. Please go to **View Prompts** tab.", icon=":material/check:")
+                            st.toast("Prompt has been created successfully.", icon=":material/check:")
                         except Exception as e:
                             st.error(f"Failed to create prompt: **{str(e)}**", icon=":material/error:")
                             st.toast(f"Failed to create prompt: **{str(e)}**", icon=":material/error:")
 
     with col2:
         st.info("""
-            ### How the Prompt Template Helps in Fine-Tuning
+        ### How to Create and Customize Training Prompts
 
-            ### 1. Task-Specific Formatting
-            - **Explanation**: Tailors the data format to the specific task.
-            - **Impact**: Enhances the model's performance on the specific task.
+        Creating effective prompts is key to fine-tuning models. Follow these steps:
 
-            ### 2. Enhanced Context Understanding
-            - **Explanation**: Provides additional context to each data entry.
-            - **Impact**: Improves the model's understanding and response generation.
+        ### 1. Customizing the Prompt Template
+        - **Default Template**: The text box will auto-generate a prompt template based on dataset features. For example:
+        ```
+        <Instruction>: {instruction}
+        <Input>: {input}
+        <Response>: {response}
+        <Text>: {text}
+        ```
+        - **Modifying Prompt**: Remove irrelevant fields and add context to better suit your task. For instance:
+        ```
+        Write the response as an SQL query.
+        <Instruction>: {instruction}
+        <Input>: {input}
+        <Response>: {response}
+        ```
 
-            ### 3. LoRA-Specific Benefits
-            - **Explanation**: Maximizes the information content of each input.
-            - **Impact**: Improves the model's adaptation to new tasks with a small number of parameters.
+        ### 2. Generating and Saving Prompts
+        - Click **Generate Prompt Example** to see your template in action and adjust as needed and **Save** the prompt.
+        - Manage your prompts in the **Available Prompts** tab.
 
-            ### Summary
-            The prompt template structures the input data consistently and informatively, aiding the model in understanding and learning more effectively during the LoRA fine-tuning process. This leads to better performance and more efficient adaptation to new tasks.
-            """)
+        Use these steps to effectively create and manage training prompts!
+        """)
 
 
 def add_prompt(name, dataset_id, template):
@@ -110,51 +117,6 @@ def add_prompt(name, dataset_id, template):
     )
 
 
-def display_available_prompts():
-    prompts: List[PromptMetadata] = fts.get_prompts()
-
-    if not prompts:
-        st.info("No prompts available.")
-        return
-
-    col1, col2 = st.columns(2)
-
-    for i, prompt in enumerate(prompts):
-        container = col1 if i % 2 == 0 else col2
-        display_prompt(prompt, container)
-
-
-def display_prompt(prompt: PromptMetadata, container):
-    with container.container(height=200):
-        c1, c2 = st.columns([3, 1])
-        c1.markdown(f"**{prompt.name}**")
-        c1.caption(prompt.id)
-        remove = c2.button("Remove", type="primary", key=f"{prompt.id}_remove_button", use_container_width=True)
-
-        c1, c2 = st.columns([3, 1])
-        c1.code(prompt.prompt_template)
-
-        c2.text("Dataset:")
-        c2.caption(fts.GetDataset(
-            GetDatasetRequest(
-                id=prompt.dataset_id
-            )
-        ).dataset.name)
-
-        if remove:
-            fts.RemovePrompt(
-                RemovePromptRequest(
-                    id=prompt.id
-                )
-            )
-            st.rerun()
-
-
 display_header()
-create_prompt_tab, available_prompts_tab = st.tabs(["**Create Prompt**", "**Available Prompts**"])
 
-with create_prompt_tab:
-    display_create_prompt()
-
-with available_prompts_tab:
-    display_available_prompts()
+display_create_prompt()

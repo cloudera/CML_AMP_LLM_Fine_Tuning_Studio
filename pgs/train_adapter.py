@@ -9,14 +9,14 @@ import yaml
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
-
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 
-
 # Container for header
+
+
 def create_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
@@ -25,7 +25,8 @@ def create_header():
         with col2:
             st.subheader('Train a new Adapter', divider='red')
             st.caption(
-                "Finetune your model using the imported datasets and models, leveraging advanced techniques to improve performance.")
+                "Finetune your model using the imported datasets and models, leveraging advanced techniques to improve performance."
+            )
 
 # Container for model and adapter selection
 
@@ -37,10 +38,20 @@ def create_train_adapter_page_with_proprietary():
 
             col1, col2 = st.columns(2)
             with col1:
-                adapter_name = st.text_input("Adapter Name", placeholder="Adapter name", key="adapter_name")
+                adapter_name = st.text_input(
+                    "Adapter Name",
+                    placeholder="Adapter name",
+                    key="adapter_name",
+                    help="Enter the name of the adapter to be created. This field is required."
+                )
 
             with col2:
-                adapter_output_dir = st.text_input("Output Location", value="data/adapters/", key="output_location")
+                adapter_output_dir = st.text_input(
+                    "Output Location",
+                    value="data/adapters/",
+                    key="output_location",
+                    help="Specify the directory where the adapter will be saved."
+                )
 
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
@@ -52,7 +63,8 @@ def create_train_adapter_page_with_proprietary():
                     range(len(current_datasets)),
                     format_func=lambda x: current_datasets[x].name,
                     index=None,
-                    key="proprietary_dataset_selectbox"
+                    key="proprietary_dataset_selectbox",
+                    help="Select the dataset to use for training. This field is required."
                 )
                 if dataset_idx is not None:
                     dataset = current_datasets[dataset_idx]
@@ -63,8 +75,14 @@ def create_train_adapter_page_with_proprietary():
                         range(len(current_prompts)),
                         format_func=lambda x: current_prompts[x].name,
                         index=None,
-                        key="proprietary_prompt_selectbox"
+                        key="proprietary_prompt_selectbox",
+                        help="Select the prompt to use with the selected dataset. This field is required."
                     )
+
+                    if len(current_prompts) == 0:
+                        st.error(
+                            "No prompts available. Please create a prompt tempplate for the selected dataset to proceed with training.",
+                            icon=":material/error:")
 
                     if prompt_idx is not None:
                         st.code(current_prompts[prompt_idx].prompt_template)
@@ -76,30 +94,71 @@ def create_train_adapter_page_with_proprietary():
                     range(len(current_models)),
                     format_func=lambda x: current_models[x].name,
                     index=None,
-                    key="proprietary_model_selectbox"
+                    key="proprietary_model_selectbox",
+                    help="Select the base model for training. This field is required."
                 )
 
             # Advanced options
             c1, c2 = st.columns(2)
             with c1:
-                num_epochs = st.text_input("Number of Epochs", value="10", key="num_epochs")
+                num_epochs = st.text_input(
+                    "Number of Epochs",
+                    value="10",
+                    key="num_epochs",
+                    help="Specify the number of epochs for training."
+                )
             with c2:
-                learning_rate = st.text_input("Learning Rate", value="2e-4", key="learning_rate")
+                learning_rate = st.text_input(
+                    "Learning Rate",
+                    value="2e-4",
+                    key="learning_rate",
+                    help="Set the learning rate for the training process."
+                )
             c1, c2, c3 = st.columns([1, 1, 2])
             with c1:
-                cpu = st.text_input("CPU (vCPU)", value="2", key="cpu")
+                cpu = st.text_input(
+                    "CPU (vCPU)",
+                    value="2",
+                    key="cpu",
+                    help="Specify the number of virtual CPUs to allocate for training."
+                )
             with c2:
-                memory = st.text_input("Memory (GiB)", value="8", key="memory")
+                memory = st.text_input(
+                    "Memory (GiB)",
+                    value="8",
+                    key="memory",
+                    help="Specify the amount of memory (in GiB) to allocate for training."
+                )
             with c3:
-                gpu = st.selectbox("GPU (NVIDIA)", options=[1], index=0, key="gpu")
+                gpu = st.selectbox(
+                    "GPU (NVIDIA)",
+                    options=[1],
+                    index=0,
+                    key="gpu",
+                    help="Select the number of GPUs to allocate for training."
+                )
 
             auto_add_adapter = st.checkbox(
                 "Add Adapter to Fine Tuning Studio after Training",
                 value=True,
-                key="auto_add_adapter")
+                key="auto_add_adapter",
+                help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
+            )
             c1, c2 = st.columns([1, 1])
-            dataset_fraction = c1.slider("Dataset Fraction", min_value=0.0, max_value=1.0, value=1.0)
-            dataset_train_test_split = c2.slider("Dataset Train/Test Split", min_value=0.0, max_value=1.0, value=0.9)
+            dataset_fraction = c1.slider(
+                "Dataset Fraction",
+                min_value=0.0,
+                max_value=1.0,
+                value=1.0,
+                help="Specify the fraction of the dataset to use for training."
+            )
+            dataset_train_test_split = c2.slider(
+                "Dataset Train/Test Split",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.9,
+                help="Set the ratio for splitting the dataset into training and test sets."
+            )
 
             c1, c2 = st.columns([1, 1])
 
@@ -118,7 +177,8 @@ def create_train_adapter_page_with_proprietary():
                     ),
                     indent=2
                 ),
-                height=200
+                height=200,
+                help="LoRA configuration for fine-tuning the model."
             )
             bnb_config_text = c2.text_area(
                 "BitsAndBytes Config",
@@ -130,7 +190,8 @@ def create_train_adapter_page_with_proprietary():
                     ),
                     indent=2
                 ),
-                height=200
+                height=200,
+                help="BitsAndBytes configuration for optimizing model training."
             )
 
             with st.expander("Advanced Training Options"):
@@ -150,7 +211,8 @@ def create_train_adapter_page_with_proprietary():
                         ),
                         indent=2
                     ),
-                    height=400
+                    height=400,
+                    help="Advanced training arguments in JSON format."
                 )
 
             # Start job button
@@ -159,102 +221,109 @@ def create_train_adapter_page_with_proprietary():
                 "Start Job",
                 type="primary",
                 use_container_width=True,
-                disabled=not button_enabled,
-                key="start_job_button"
+                key="start_job_button",
+                help="Start the fine-tuning job. Ensure all required fields are filled in before starting."
             )
 
             if start_job_button:
-                try:
-                    # Extract out relevant model metadata.
-                    model = current_models[model_idx]
-                    dataset = current_datasets[dataset_idx]
-                    prompt = current_prompts[prompt_idx]
+                if not button_enabled:
+                    st.warning(
+                        "Please complete the fields: Adapter Name, Dataset, Prompt, and Base Model before starting the job.",
+                        icon=":material/error:")
+                else:
+                    try:
+                        # Extract out relevant model metadata.
+                        model = current_models[model_idx]
+                        dataset = current_datasets[dataset_idx]
+                        prompt = current_prompts[prompt_idx]
 
-                    # If we've made changes to our configs, let's update them with FTS so other
-                    # components of FTS can access the configs. Note: if a pre-existing config
-                    # exactly matches these configs, the metadata (id) of the pre-existing config
-                    # will be returned.
-                    lora_config: ConfigMetadata = fts.AddConfig(
-                        AddConfigRequest(
-                            type=ConfigType.LORA_CONFIG,
-                            config=lora_config_text
-                        )
-                    ).config
-                    bnb_config: ConfigMetadata = fts.AddConfig(
-                        AddConfigRequest(
-                            type=ConfigType.BITSANDBYTES_CONFIG,
-                            config=bnb_config_text
-                        )
-                    ).config
+                        # If we've made changes to our configs, let's update them with FTS so other
+                        # components of FTS can access the configs. Note: if a pre-existing config
+                        # exactly matches these configs, the metadata (id) of the pre-existing config
+                        # will be returned.
+                        lora_config: ConfigMetadata = fts.AddConfig(
+                            AddConfigRequest(
+                                type=ConfigType.LORA_CONFIG,
+                                config=lora_config_text
+                            )
+                        ).config
+                        bnb_config: ConfigMetadata = fts.AddConfig(
+                            AddConfigRequest(
+                                type=ConfigType.BITSANDBYTES_CONFIG,
+                                config=bnb_config_text
+                            )
+                        ).config
 
-                    # Override the fields that were set in the UI. Note that the
-                    # output dir passed to the training job should only become
-                    # available when we have a UUID, which becomes available
-                    # further down the road. Because of this, we are adding multiple
-                    # training args configs to the config store right off the bat, which
-                    # we may want to clean later.
-                    training_args_config_dict = json.loads(training_args_text)
-                    training_args_config_dict["learning_rate"] = float(learning_rate)
-                    training_args_config_dict["num_train_epochs"] = int(num_epochs)
+                        # Override the fields that were set in the UI. Note that the
+                        # output dir passed to the training job should only become
+                        # available when we have a UUID, which becomes available
+                        # further down the road. Because of this, we are adding multiple
+                        # training args configs to the config store right off the bat, which
+                        # we may want to clean later.
+                        training_args_config_dict = json.loads(training_args_text)
+                        training_args_config_dict["learning_rate"] = float(learning_rate)
+                        training_args_config_dict["num_train_epochs"] = int(num_epochs)
 
-                    training_args_config: ConfigMetadata = fts.AddConfig(
-                        AddConfigRequest(
-                            type=ConfigType.TRAINING_ARGUMENTS,
-                            config=json.dumps(training_args_config_dict)
-                        )
-                    ).config
+                        training_args_config: ConfigMetadata = fts.AddConfig(
+                            AddConfigRequest(
+                                type=ConfigType.TRAINING_ARGUMENTS,
+                                config=json.dumps(training_args_config_dict)
+                            )
+                        ).config
 
-                    fts.StartFineTuningJob(
-                        StartFineTuningJobRequest(
-                            adapter_name=adapter_name,
-                            base_model_id=model.id,
-                            dataset_id=dataset.id,
-                            prompt_id=prompt.id,
-                            num_workers=int(1),
-                            auto_add_adapter=auto_add_adapter,
-                            num_epochs=int(num_epochs),
-                            learning_rate=float(learning_rate),
-                            cpu=int(cpu),
-                            gpu=gpu,
-                            memory=int(memory),
-                            model_bnb_config_id=bnb_config.id,
-                            adapter_bnb_config_id=bnb_config.id,
-                            lora_config_id=lora_config.id,
-                            training_arguments_config_id=training_args_config.id,
-                            output_dir=adapter_output_dir,
-                            dataset_fraction=dataset_fraction,
-                            train_test_split=dataset_train_test_split,
-                            framework_type=FineTuningFrameworkType.LEGACY
+                        fts.StartFineTuningJob(
+                            StartFineTuningJobRequest(
+                                adapter_name=adapter_name,
+                                base_model_id=model.id,
+                                dataset_id=dataset.id,
+                                prompt_id=prompt.id,
+                                num_workers=int(1),
+                                auto_add_adapter=auto_add_adapter,
+                                num_epochs=int(num_epochs),
+                                learning_rate=float(learning_rate),
+                                cpu=int(cpu),
+                                gpu=gpu,
+                                memory=int(memory),
+                                model_bnb_config_id=bnb_config.id,
+                                adapter_bnb_config_id=bnb_config.id,
+                                lora_config_id=lora_config.id,
+                                training_arguments_config_id=training_args_config.id,
+                                output_dir=adapter_output_dir,
+                                dataset_fraction=dataset_fraction,
+                                train_test_split=dataset_train_test_split,
+                                framework_type=FineTuningFrameworkType.LEGACY
+                            )
                         )
-                    )
-                    st.success(
-                        "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
-                        icon=":material/check:"
-                    )
-                    st.toast(
-                        "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
-                        icon=":material/check:"
-                    )
-                except Exception as e:
-                    st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
-                    st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
-                    print(traceback.format_exc())
-                    st.error(traceback.format_exc())
+                        st.success(
+                            "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
+                            icon=":material/check:"
+                        )
+                        st.toast(
+                            "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
+                            icon=":material/check:"
+                        )
+                    except Exception as e:
+                        st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
+                        st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
+                        print(traceback.format_exc())
+                        st.error(traceback.format_exc())
 
     with ccol2:
         st.info("""
-            ### Advanced Options
+        ### How to Train a Model with the Proprietary Solution
 
-            - **CPU**: Enter the number of CPU cores to be used for training.
-            - **Memory**: Specify the amount of memory (in GiB) to be allocated for the training process.
-            - **GPU**: Select the number of GPUs to be used. Currently, only one GPU option is available.
-            - **LoRA Config**: Provide the configuration for LoRA (Low-Rank Adaptation), which is a technique used to fine-tune models with fewer parameters.
-            - **BitsAndBytes Config**: Provide the configuration for the BitsAndBytes library, which can optimize model performance during training.
+        1. **Fill in the unique adapter name, base model, dataset, and prompts**: These are essential fields required to initiate the training process. Ensure each of these fields is correctly filled.
 
-            ### Starting the Job
+        2. **Output Location**: Specify the directory where the trained adapter will be saved. This directory will be created or will exist within the AMP project's directory.
 
-            The button will be enabled only when all required fields are filled out.
+        3. **Compute Configuration (CPU, Memory, GPU)**: Indicate the number of virtual CPUs (vCPUs), memory (in GiB), and GPUs to allocate for the training job in the CML Workspace. Ensure the configuration is sufficient to handle the model and dataset size efficiently, providing adequate resources to prevent errors and accelerate the training process.
+
+        4. **LoRA Config**: This configuration is used for Low-Rank Adaptation (LoRA), a technique to fine-tune models with fewer parameters, making the process more efficient. Review and adjust this configuration as necessary to match the training needs of your model.
+
+        5. **BitsAndBytes Config**: The BitsAndBytes configuration helps optimize model training by enabling efficient computation and memory usage. Adjust these settings to enhance the performance of the model during training, particularly in resource-constrained environments.
+
         """)
+
         ccol2.caption("**Resource Usage**")
         data = fetch_resource_usage_data(cdsw_api_url, project_owner, cdsw_api_key)
         if data:
@@ -284,13 +353,20 @@ def create_train_adapter_page_with_axolotl():
 
             col1, col2 = st.columns(2)
             with col1:
-                adapter_name = st.text_input("Adapter Name", placeholder="Adapter name", key="adapter_name_axolotl")
+                adapter_name = st.text_input(
+                    "Adapter Name",
+                    placeholder="Adapter name",
+                    key="adapter_name_axolotl",
+                    help="Enter the name of the adapter to be created. This field is required."
+                )
 
             with col2:
                 adapter_output_dir = st.text_input(
                     "Output Location",
                     value="data/adapters/",
-                    key="output_location_axolotl")
+                    key="output_location_axolotl",
+                    help="Specify the directory where the adapter will be saved."
+                )
 
             current_models = fts.get_models()
             model_idx = st.selectbox(
@@ -298,7 +374,8 @@ def create_train_adapter_page_with_axolotl():
                 range(len(current_models)),
                 format_func=lambda x: current_models[x].name,
                 index=None,
-                key="axolotl_model_selectbox"
+                key="axolotl_model_selectbox",
+                help="Select the base model for training. This field is required."
             )
 
             st.info("""
@@ -314,7 +391,8 @@ def create_train_adapter_page_with_axolotl():
                     range(len(current_datasets)),
                     format_func=lambda x: current_datasets[x].name,
                     index=None,
-                    key="axolotl_dataset_selectbox"
+                    key="axolotl_dataset_selectbox",
+                    help="Select the dataset to use for training. This field is required."
                 )
                 if dataset_idx is not None:
                     dataset = current_datasets[dataset_idx]
@@ -329,7 +407,8 @@ def create_train_adapter_page_with_axolotl():
                     range(len(current_dataset_formats)),
                     format_func=lambda x: current_dataset_formats[x].description,
                     index=None,
-                    key="axolotl_dataset_format_selectbox"
+                    key="axolotl_dataset_format_selectbox",
+                    help="Select the format of the dataset. This field is required."
                 )
                 if dataset_format_idx is not None:
                     dataset_format = current_dataset_formats[dataset_format_idx]
@@ -338,37 +417,72 @@ def create_train_adapter_page_with_axolotl():
             # Advanced options
             c1, c2 = st.columns(2)
             with c1:
-                num_epochs = st.text_input("Number of Epochs", value="10", key="num_epochs_axolotl")
+                num_epochs = st.text_input(
+                    "Number of Epochs",
+                    value="10",
+                    key="num_epochs_axolotl",
+                    help="Specify the number of epochs for training."
+                )
             with c2:
-                learning_rate = st.text_input("Learning Rate", value="2e-4", key="learning_rate_axolotl")
+                learning_rate = st.text_input(
+                    "Learning Rate",
+                    value="2e-4",
+                    key="learning_rate_axolotl",
+                    help="Set the learning rate for the training process."
+                )
 
             c1, c2, c3 = st.columns([1, 1, 2])
             with c1:
-                cpu = st.text_input("CPU (vCPU)", value="2", key="cpu_axolotl")
+                cpu = st.text_input(
+                    "CPU (vCPU)",
+                    value="2",
+                    key="cpu_axolotl",
+                    help="Specify the number of virtual CPUs to allocate for training."
+                )
             with c2:
-                memory = st.text_input("Memory (GiB)", value="8", key="memory_axolotl")
+                memory = st.text_input(
+                    "Memory (GiB)",
+                    value="8",
+                    key="memory_axolotl",
+                    help="Specify the amount of memory (in GiB) to allocate for training."
+                )
             with c3:
-                gpu = st.selectbox("GPU (NVIDIA)", options=[1], index=0, key="gpu_axolotl")
+                gpu = st.selectbox(
+                    "GPU (NVIDIA)",
+                    options=[1],
+                    index=0,
+                    key="gpu_axolotl",
+                    help="Select the number of GPUs to allocate for training."
+                )
 
             auto_add_adapter = st.checkbox(
                 "Add Adapter to Fine Tuning Studio after Training",
                 value=True,
-                key="auto_add_adapter_axolotl")
+                key="auto_add_adapter_axolotl",
+                help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
+            )
 
-            val_set_size = st.slider("Validation Set Size", min_value=0.0, max_value=1.0, value=0.05)
+            val_set_size = st.slider(
+                "Validation Set Size",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.05,
+                help="Specify the fraction of the dataset to be used as the validation set."
+            )
 
             st.info("""
-                - Below are the Axolotl Training Arguments, which are explained in more detail at the following link:
-                [**Axolotl Configuration Documentation**](https://github.com/axolotl-ai-cloud/axolotl/blob/main/docs/config.qmd).
-                - You can also check out various examples of Axolotl Training Arguments for multiple models and fine-tuning techniques here:
-                [**Axolotl Training Examples**](https://github.com/axolotl-ai-cloud/axolotl/tree/main/examples).
+                - Go to [**Axolotl Training Examples**](https://github.com/axolotl-ai-cloud/axolotl/tree/main/examples).
+                - Choose an example model, such as LLaMA-3, and then select a specific configuration file, like `qlora.yml`.
+                - Copy the contents of the YAML file and paste it directly into the Axolotl Training Arguments field in the form.
+                - Once you've pasted the configuration, simply click the "Start Job" button to begin the training process.
                 - **Note:** In the Axolotl Training Arguments below, the YAML fields **base_model**, **datasets.path**, **datasets.type**, **num_epochs**, **learning_rate** and **val_set_size** will be overridden by the values specified above.
             """)
 
             axolotl_training_args_text = st.text_area(
                 "**Axolotl Training Arguments**",
                 get_axolotl_training_config_template_yaml_str(),
-                height=400
+                height=400,
+                help="Advanced training arguments in YAML format."
             )
 
             button_enabled = dataset_idx is not None and dataset_format_idx is not None and model_idx is not None and adapter_name != ""
@@ -376,131 +490,116 @@ def create_train_adapter_page_with_axolotl():
                 "Start Job",
                 type="primary",
                 use_container_width=True,
-                disabled=not button_enabled,
-                key="start_job_button_axolotl"
+                key="start_job_button_axolotl",
+                help="Start the fine-tuning job. Ensure all required fields are filled in before starting."
             )
 
             if start_job_button:
-                try:
-                    model = current_models[model_idx]
-                    dataset = current_datasets[dataset_idx]
-
-                    training_args_config_dict = None
-                    # Parse the text input as YAML
+                if not button_enabled:
+                    st.warning(
+                        "Please complete the fields: Adapter Name, Dataset, Dataset Type, and Base Model before starting the job.",
+                        icon=":material/error:")
+                else:
                     try:
-                        # First, try to parse as YAML
-                        training_args_config_dict = yaml.safe_load(axolotl_training_args_text)
-                        training_args_config_dict['num_epochs'] = num_epochs
-                        training_args_config_dict['learning_rate'] = learning_rate
-                        training_args_config_dict['val_set_size'] = val_set_size
-                        # Ensure 'datasets' key exists and is a list
-                        if 'datasets' not in training_args_config_dict:
-                            training_args_config_dict['datasets'] = []
+                        model = current_models[model_idx]
+                        dataset = current_datasets[dataset_idx]
 
-                        # Ensure the first item in the 'datasets' list exists and is a dictionary
-                        if len(training_args_config_dict['datasets']) == 0:
-                            training_args_config_dict['datasets'].append({})
+                        training_args_config_dict = None
+                        # Parse the text input as YAML
+                        try:
+                            # First, try to parse as YAML
+                            training_args_config_dict = yaml.safe_load(axolotl_training_args_text)
+                            training_args_config_dict['num_epochs'] = num_epochs
+                            training_args_config_dict['learning_rate'] = learning_rate
+                            training_args_config_dict['val_set_size'] = val_set_size
+                            # Ensure 'datasets' key exists and is a list
+                            if 'datasets' not in training_args_config_dict:
+                                training_args_config_dict['datasets'] = []
 
-                        # Ensure the first item is a dictionary (if it isn't already)
-                        if not isinstance(training_args_config_dict['datasets'][0], dict):
-                            training_args_config_dict['datasets'][0] = {}
+                            # Ensure the first item in the 'datasets' list exists and is a dictionary
+                            if len(training_args_config_dict['datasets']) == 0:
+                                training_args_config_dict['datasets'].append({})
 
-                        # Now safely set the 'path' key
-                        training_args_config_dict['datasets'][0]['type'] = current_dataset_formats[dataset_format_idx].description
+                            # Ensure the first item is a dictionary (if it isn't already)
+                            if not isinstance(training_args_config_dict['datasets'][0], dict):
+                                training_args_config_dict['datasets'][0] = {}
 
+                            # Now safely set the 'type' key
+                            training_args_config_dict['datasets'][0]['type'] = current_dataset_formats[dataset_format_idx].description
+
+                        except Exception as e:
+                            st.error(
+                                f"Axolotl Training Arguments is not a valid YAML: **{str(e)}**",
+                                icon=":material/error:")
+                            st.toast(
+                                f"Axolotl Training Arguments is not a valid YAML: **{str(e)}**",
+                                icon=":material/error:")
+
+                            # Convert the dictionary back to YAML for storing in the configuration
+                        axolotl_train_config_yaml = yaml.dump(training_args_config_dict, default_flow_style=False)
+
+                        if training_args_config_dict is not None:
+                            # Add the configuration
+                            axolotl_train_config = fts.AddConfig(
+                                AddConfigRequest(
+                                    type=ConfigType.AXOLOTL,
+                                    config=axolotl_train_config_yaml
+                                )
+                            ).config
+
+                            fts.StartFineTuningJob(
+                                StartFineTuningJobRequest(
+                                    adapter_name=adapter_name,
+                                    base_model_id=model.id,
+                                    dataset_id=dataset.id,
+                                    num_workers=int(1),
+                                    auto_add_adapter=auto_add_adapter,
+                                    num_epochs=int(num_epochs),
+                                    learning_rate=float(learning_rate),
+                                    cpu=int(cpu),
+                                    gpu=gpu,
+                                    memory=int(memory),
+                                    output_dir=adapter_output_dir,
+                                    axolotl_config_id=axolotl_train_config.id,
+                                    framework_type=FineTuningFrameworkType.AXOLOTL
+                                )
+                            )
+                            st.success(
+                                "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
+                                icon=":material/check:"
+                            )
+                            st.toast(
+                                "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
+                                icon=":material/check:"
+                            )
+                        else:
+                            st.error(f"Axolotl Training Arguments cannot be empty.", icon=":material/error:")
+                            st.toast(f"Axolotl Training Arguments cannot be empty.", icon=":material/error:")
                     except Exception as e:
-                        st.error(
-                            f"Axolotl Training Arguments is not a valid YAML: **{str(e)}**",
-                            icon=":material/error:")
-                        st.toast(
-                            f"Axolotl Training Arguments is not a valid YAML: **{str(e)}**",
-                            icon=":material/error:")
-
-                        # Convert the dictionary back to YAML for storing in the configuration
-                    axolotl_train_config_yaml = yaml.dump(training_args_config_dict, default_flow_style=False)
-
-                    if training_args_config_dict is not None:
-                        # Add the configuration
-                        axolotl_train_config = fts.AddConfig(
-                            AddConfigRequest(
-                                type=ConfigType.AXOLOTL,
-                                config=axolotl_train_config_yaml
-                            )
-                        ).config
-
-                        fts.StartFineTuningJob(
-                            StartFineTuningJobRequest(
-                                adapter_name=adapter_name,
-                                base_model_id=model.id,
-                                dataset_id=dataset.id,
-                                num_workers=int(1),
-                                auto_add_adapter=auto_add_adapter,
-                                num_epochs=int(num_epochs),
-                                learning_rate=float(learning_rate),
-                                cpu=int(cpu),
-                                gpu=gpu,
-                                memory=int(memory),
-                                output_dir=adapter_output_dir,
-                                axolotl_config_id=axolotl_train_config.id,
-                                framework_type=FineTuningFrameworkType.AXOLOTL
-                            )
-                        )
-                        st.success(
-                            "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
-                            icon=":material/check:"
-                        )
-                        st.toast(
-                            "Create Finetuning Job. Please go to **Monitor Training Job** tab!",
-                            icon=":material/check:"
-                        )
-                    else:
-                        st.error(f"Axolotl Training Arguments can not be empty.", icon=":material/error:")
-                        st.toast(f"Axolotl Training Arguments can not be empty.", icon=":material/error:")
-                except Exception as e:
-                    st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
-                    st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
-                    print(traceback.format_exc())
-                    st.error(traceback.format_exc())
+                        st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
+                        st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
+                        print(traceback.format_exc())
+                        st.error(traceback.format_exc())
 
     with ccol2:
         st.info("""
-        **Axolotl Training Arguments Guide**
+        ### How to Train a Model with Axolotl
 
-        - **Model Type:**
-        Select the type of model to use from the following options:
-        `["AutoModelForCausalLM", "LlamaForCausalLM", "MambaLMHeadModel", "GPTNeoXForCausalLM", "MistralForCausalLM"]`
+        1. **Fill in the unique adapter name, base model, dataset, and dataset type**: These are essential fields required to initiate the training process. Ensure each of these fields is correctly filled.
 
-        - **Tokenizer Type:**
-        Select the type of tokenizer to use from the following options:
-        `["AutoTokenizer", "LlamaTokenizer", "CodeLlamaTokenizer", "GPT2Tokenizer"]`
+        2. **Dataset Format and Features**: The selected dataset type/format must match the dataset's features. Refer to the [Axolotl documentation](https://axolotl-ai-cloud.github.io/axolotl/docs/dataset-formats/inst_tune.html) to ensure that the dataset format is compatible with the features of the dataset you have chosen.
 
-        - **Adapter Type:**
-        Choose the type of adapter to use from the following options:
-        `["lora", "qlora"]`
+        3. **Compute Configuration (CPU, Memory, GPU)**: Indicate the number of virtual CPUs (vCPUs), memory (in GiB), and GPUs to allocate for the training job in the CML Workspace. Ensure the configuration is sufficient to handle the model and dataset size efficiently, providing adequate resources to prevent errors and accelerate the training process.
 
-        - **Dataset Type:**
-        Select the type of dataset to use from the following options:
-        `["alpaca", "jeopardy", "chat_template", "completion", "alpaca", "alpaca", "chat_template.argilla"]`
+        4. **Axolotl Training Arguments**: To fill in the Axolotl Training Arguments:
 
-        - **Quantization:**
-        Choose the type of quantization to apply:
-        `["None", "8-bit", "4-bit"]`
+            - Below are the Axolotl Training Arguments, which are explained in more detail at the following link:
+            [**Axolotl Configuration Documentation**](https://github.com/axolotl-ai-cloud/axolotl/blob/main/docs/config.qmd).
+            - You can also check out various examples of Axolotl Training Arguments for multiple models and fine-tuning techniques here:
+            [**Axolotl Training Examples**](https://github.com/axolotl-ai-cloud/axolotl/tree/main/examples).
 
-        - **Sequence Length:**
-        Specify the length of the input sequences. Default: `4096`
-
-        - **Learning Rate Scheduler:**
-        Select the scheduler for adjusting the learning rate:
-        `["cosine", "one_cycle", "log_sweep"]`
-
-        - **Optimizer:**
-        Choose the optimizer for the training process from the following options:
-        `["adamw_hf", "adamw_torch", "adamw_torch_fused", "adamw_torch_xla", "adamw_apex_fused", "adafactor", "adamw_anyprecision", "sgd", "adagrad", "adamw_bnb_8bit", "lion_8bit", "lion_32bit", "paged_adamw_32bit", "paged_adamw_8bit", "paged_lion_32bit", "paged_lion_8bit", "galore_adamw", "galore_adamw_8bit", "galore_adafactor", "galore_adamw_layerwise", "galore_adamw_8bit_layerwise", "galore_adafactor_layerwise"]`
-
-        - **Attention:**
-        Select the type of attention mechanism to use:
-        `["Flash Attention", "X-Former Attention", "None"]`
         """)
+
         ccol2.caption("**Resource Usage**")
         data = fetch_resource_usage_data(cdsw_api_url, project_owner, cdsw_api_key)
         if data:

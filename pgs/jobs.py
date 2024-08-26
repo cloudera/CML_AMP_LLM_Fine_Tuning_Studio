@@ -203,7 +203,9 @@ def display_jobs_list():
         'base_model_name',
         'dataset_name',
         'prompt_name',
-        'exp_id']
+        'exp_id',
+        'created_at'
+    ]
 
     for column in columns_we_care_about:
         if column not in display_df.columns:
@@ -225,9 +227,13 @@ def display_jobs_list():
 
     display_df["Select"] = False
 
+    # Converting the 'created_at' column from a string in the format '2024-08-27T10:45:38.900Z' to a datetime object
+    display_df['created_at'] = pd.to_datetime(display_df['created_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
+    display_df = display_df.sort_values(by='created_at', ascending=False)
+
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Select", "Job ID", "status_with_icon", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+        display_df[["Select", "Job ID", "status_with_icon", "created_at", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
@@ -243,7 +249,12 @@ def display_jobs_list():
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
             "Prompt Name": st.column_config.TextColumn("Prompt Name"),
-            "Select": st.column_config.CheckboxColumn("", width="small")
+            "Select": st.column_config.CheckboxColumn("", width="small"),
+            "created_at": st.column_config.DatetimeColumn(
+                "Created At",
+                format="D MMM YYYY, h:mm a",
+                step=60,
+            )
         },
         height=500,
         hide_index=True,
