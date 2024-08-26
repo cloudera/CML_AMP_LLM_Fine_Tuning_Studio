@@ -57,8 +57,6 @@ def list_checkpoints(finetuning_framework, out_dir, job_id):
                 if d.startswith('checkpoint-'):
                     checkpoint_path = os.path.join(base_path, d)
                     checkpoints[d] = checkpoint_path
-        else:
-            st.warning(f"Base path {base_path} does not exist.")
         return checkpoints
     except Exception as e:
         return {}
