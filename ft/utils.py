@@ -6,6 +6,7 @@ import requests
 import torch
 from huggingface_hub import login
 import yaml
+from ft.consts import AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH
 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
@@ -159,3 +160,9 @@ def format_status_with_icon(status):
         "Unknown": "⚪ Unknown"
     }
     return icons.get(status, "⚪ Error")
+
+
+def get_axolotl_training_config_template_yaml_str():
+    with open(AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH, 'r') as file:
+        yaml_content = file.read()
+    return yaml_content

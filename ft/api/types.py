@@ -1,4 +1,6 @@
 from enum import Enum
+from pydantic import BaseModel
+from typing import Dict, Any
 
 
 class DatasetType(str, Enum):
@@ -19,6 +21,7 @@ class ConfigType(str, Enum):
     LORA_CONFIG = "lora_config"
     CUSTOM = "custom"
     AXOLOTL = "axolotl"
+    AXOLOTL_DATASET_FORMATS = "axolotl_dataset_formats"
 
 
 class FineTuningFrameworkType(str, Enum):
@@ -56,3 +59,13 @@ class ModelFrameworkType(str, Enum):
 
 class EvaluationJobType(str, Enum):
     MFLOW = "mlflow"
+
+
+class DatasetFormatInfo(BaseModel):
+    name: str
+    description: str
+    format: Dict[str, Any]  # Allows any structure within the format dictionary
+
+
+class DatasetFormatsCollection(BaseModel):
+    dataset_formats: Dict[str, DatasetFormatInfo]

@@ -1,11 +1,10 @@
 import streamlit as st
 from ft.api import *
 import json
-from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
+from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str
 import traceback
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import yaml
-from ft.consts import AXOLOTL_TRAIN_YAML_STRING
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -293,9 +292,21 @@ def create_train_adapter_page_with_axolotl():
                     value="data/adapters/",
                     key="output_location_axolotl")
 
+            current_models = fts.get_models()
+            model_idx = st.selectbox(
+                "Base Models",
+                range(len(current_models)),
+                format_func=lambda x: current_models[x].name,
+                index=None,
+                key="axolotl_model_selectbox"
+            )
+
+            st.info("""
+                **Note:** Choose the correct dataset type from the Axolotl-supported options below. Refer to the [**Axolotl documentation**](https://axolotl-ai-cloud.github.io/axolotl/docs/dataset-formats/inst_tune.html) to ensure compatibility with your dataset.
+            """)
+
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
-
             with col1:
                 current_datasets = fts.get_datasets()
                 dataset_idx = st.selectbox(
@@ -305,16 +316,24 @@ def create_train_adapter_page_with_axolotl():
                     index=None,
                     key="axolotl_dataset_selectbox"
                 )
+                if dataset_idx is not None:
+                    dataset = current_datasets[dataset_idx]
+                    st.code("\n * " + '\n * '.join(json.loads(dataset.features) if dataset.features else []))
 
             with col2:
-                current_models = fts.get_models()
-                model_idx = st.selectbox(
-                    "Base Models",
-                    range(len(current_models)),
-                    format_func=lambda x: current_models[x].name,
+                current_dataset_formats = fts.ListConfigs(
+                    ListConfigsRequest(type=ConfigType.AXOLOTL_DATASET_FORMATS)
+                ).configs
+                dataset_format_idx = st.selectbox(
+                    "Dataset Types",
+                    range(len(current_dataset_formats)),
+                    format_func=lambda x: current_dataset_formats[x].description,
                     index=None,
-                    key="axolotl_model_selectbox"
+                    key="axolotl_dataset_format_selectbox"
                 )
+                if dataset_format_idx is not None:
+                    dataset_format = current_dataset_formats[dataset_format_idx]
+                    st.code(json.dumps(json.loads(dataset_format.config), indent=2), "json")
 
             # Advanced options
             c1, c2 = st.columns(2)
@@ -336,21 +355,23 @@ def create_train_adapter_page_with_axolotl():
                 value=True,
                 key="auto_add_adapter_axolotl")
 
+            val_set_size = st.slider("Validation Set Size", min_value=0.0, max_value=1.0, value=0.05)
+
             st.info("""
                 - Below are the Axolotl Training Arguments, which are explained in more detail at the following link:
                 [**Axolotl Configuration Documentation**](https://github.com/axolotl-ai-cloud/axolotl/blob/main/docs/config.qmd).
                 - You can also check out various examples of Axolotl Training Arguments for multiple models and fine-tuning techniques here:
                 [**Axolotl Training Examples**](https://github.com/axolotl-ai-cloud/axolotl/tree/main/examples).
-                - **Note:** In the Axolotl Training Arguments below, the YAML fields **base_model**, **datasets.path**, **num_epochs**, and **learning_rate** will be overridden by the values specified above.
+                - **Note:** In the Axolotl Training Arguments below, the YAML fields **base_model**, **datasets.path**, **datasets.type**, **num_epochs**, **learning_rate** and **val_set_size** will be overridden by the values specified above.
             """)
 
             axolotl_training_args_text = st.text_area(
                 "**Axolotl Training Arguments**",
-                AXOLOTL_TRAIN_YAML_STRING,
+                get_axolotl_training_config_template_yaml_str(),
                 height=400
             )
 
-            button_enabled = dataset_idx is not None and model_idx is not None and adapter_name != ""
+            button_enabled = dataset_idx is not None and dataset_format_idx is not None and model_idx is not None and adapter_name != ""
             start_job_button = st.button(
                 "Start Job",
                 type="primary",
@@ -371,6 +392,22 @@ def create_train_adapter_page_with_axolotl():
                         training_args_config_dict = yaml.safe_load(axolotl_training_args_text)
                         training_args_config_dict['num_epochs'] = num_epochs
                         training_args_config_dict['learning_rate'] = learning_rate
+                        training_args_config_dict['val_set_size'] = val_set_size
+                        # Ensure 'datasets' key exists and is a list
+                        if 'datasets' not in training_args_config_dict:
+                            training_args_config_dict['datasets'] = []
+
+                        # Ensure the first item in the 'datasets' list exists and is a dictionary
+                        if len(training_args_config_dict['datasets']) == 0:
+                            training_args_config_dict['datasets'].append({})
+
+                        # Ensure the first item is a dictionary (if it isn't already)
+                        if not isinstance(training_args_config_dict['datasets'][0], dict):
+                            training_args_config_dict['datasets'][0] = {}
+
+                        # Now safely set the 'path' key
+                        training_args_config_dict['datasets'][0]['type'] = current_dataset_formats[dataset_format_idx].description
+
                     except Exception as e:
                         st.error(
                             f"Axolotl Training Arguments is not a valid YAML: **{str(e)}**",

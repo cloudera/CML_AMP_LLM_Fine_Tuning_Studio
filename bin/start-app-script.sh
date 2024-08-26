@@ -6,6 +6,14 @@ PORT=50051
 
 echo Current FINE_TUNING_SERVICE_IP: $FINE_TUNING_SERVICE_IP
 
+# Try to initialize the database
+echo "Initializing the database..."
+if python bin/initialize-database.py; then
+  echo "Database initialization completed successfully."
+else
+  echo "Database initialization script failed. Continuing with gRPC server start..."
+fi 
+
 { # Try to start up the server
   echo "Starting up the gRPC server..."
   nohup python bin/start-grpc-server.py & 
