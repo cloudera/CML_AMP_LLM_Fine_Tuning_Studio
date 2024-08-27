@@ -6,6 +6,7 @@ import requests
 from ft.api import *
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.utils import format_status_with_icon
 import json
 
 # Instantiate the client to the FTS gRPC app server.
@@ -125,29 +126,23 @@ with col2:
 
                     display_df = display_df[['id', 'num_workers', 'latest']]
 
-                    status_mapping = {
-                        "succeeded": 100,
-                        "running": 30,
-                        "scheduling": 1
-                    }
-                    display_df['status'] = display_df['latest'].apply(
-                        lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
+                    display_df.rename(columns={
+                        'id': 'id',
+                        'latest': 'Status'
+                    }, inplace=True)
 
-                    display_df['adapter_name'] = display_df['id'].map(lambda x: next(
-                        (adapter.name for adapter in current_adapters if adapter.fine_tuning_job_id == x), "Unknown"))
+                    display_df['Status'] = display_df['Status'].apply(
+                        lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
+                    display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
                     st.data_editor(
-                        display_df[['id', 'status', 'adapter_name']],
+                        display_df[['id', 'status_with_icon']],
                         column_config={
                             "id": st.column_config.TextColumn("Job ID"),
-                            "status": st.column_config.ProgressColumn(
+                            "status_with_icon": st.column_config.TextColumn(
                                 "Status",
-                                help="Job status as progress",
-                                format="%.0f%%",
-                                min_value=0,
-                                max_value=100,
+                                help="Job status as text with icon"
                             ),
-                            "adapter_name": st.column_config.TextColumn("Adapter Name")
                         },
                         hide_index=True,
                         use_container_width=True,
@@ -156,19 +151,15 @@ with col2:
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
     else:
-        jobs_df = pd.DataFrame(columns=['id', 'status', 'adapter_name'])
+        jobs_df = pd.DataFrame(columns=['id', 'status'])
         st.data_editor(
-            jobs_df[['id', 'status', 'adapter_name']],
+            jobs_df[['id', 'status']],
             column_config={
                 "id": st.column_config.TextColumn("Job ID"),
-                "status": st.column_config.ProgressColumn(
+                "status": st.column_config.TextColumn(
                     "Status",
-                    help="Job status as progress",
-                    format="%d",
-                    min_value=0,
-                    max_value=100,
-                ),
-                "adapter_name": st.column_config.TextColumn("Adapter Name")
+                    help="Job status as text with icon"
+                )
             },
             hide_index=True,
             use_container_width=True
@@ -202,27 +193,22 @@ with col3:
 
                     display_df = display_df[['id', 'num_workers', 'latest']]
 
-                    status_mapping = {
-                        "succeeded": 100,
-                        "running": 30,
-                        "scheduling": 1
-                    }
-                    display_df['status'] = display_df['latest'].apply(
-                        lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
+                    display_df.rename(columns={
+                        'id': 'id',
+                        'latest': 'Status'
+                    }, inplace=True)
 
-                    display_df['adapter_name'] = display_df['id'].map(lambda x: next(
-                        (adapter.name for adapter in current_adapters if adapter.fine_tuning_job_id == x), "Unknown"))
+                    display_df['Status'] = display_df['Status'].apply(
+                        lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
+                    display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
                     st.data_editor(
-                        display_df[['job_id', 'status']],
+                        display_df[['id', 'status_with_icon']],
                         column_config={
-                            "job_id": st.column_config.TextColumn("Job ID"),
-                            "status": st.column_config.ProgressColumn(
+                            "id": st.column_config.TextColumn("Job ID"),
+                            "status_with_icon": st.column_config.TextColumn(
                                 "Status",
-                                help="Job status as progress",
-                                format="%.0f%%",
-                                min_value=0,
-                                max_value=100,
+                                help="Job status as text with icon"
                             )
                         },
                         hide_index=True,
@@ -232,17 +218,14 @@ with col3:
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
     else:
-        jobs_df = pd.DataFrame(columns=['job_id', 'status'])
+        jobs_df = pd.DataFrame(columns=['id', 'status'])
         st.data_editor(
-            jobs_df[['job_id', 'status']],
+            jobs_df[['id', 'status']],
             column_config={
-                "job_id": st.column_config.TextColumn("Job ID"),
-                "status": st.column_config.ProgressColumn(
+                "id": st.column_config.TextColumn("Job ID"),
+                "status": st.column_config.TextColumn(
                     "Status",
-                    help="Job status as progress",
-                    format="%d",
-                    min_value=0,
-                    max_value=100,
+                    help="Job status as text with icon"
                 )
             },
             hide_index=True,

@@ -81,7 +81,7 @@ def create_train_adapter_page_with_proprietary():
 
                     if len(current_prompts) == 0:
                         st.error(
-                            "No prompts available. Please create a prompt tempplate for the selected dataset to proceed with training.",
+                            "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
                             icon=":material/error:")
 
                     if prompt_idx is not None:
@@ -310,7 +310,7 @@ def create_train_adapter_page_with_proprietary():
 
     with ccol2:
         st.info("""
-        ### How to Train a Model with the Proprietary Solution
+        ### How to Train a Model ?
 
         1. **Fill in the unique adapter name, base model, dataset, and prompts**: These are essential fields required to initiate the training process. Ensure each of these fields is correctly filled.
 
@@ -345,6 +345,8 @@ def create_train_adapter_page_with_proprietary():
                 use_container_width=True
             )
 
+# TODO : This will be displayed in UI, after end to end support for inference and MLflow evaluation.
+
 
 def create_train_adapter_page_with_axolotl():
     ccol1, ccol2 = st.columns([3, 2])
@@ -378,41 +380,58 @@ def create_train_adapter_page_with_axolotl():
                 help="Select the base model for training. This field is required."
             )
 
-            st.info("""
-                **Note:** Choose the correct dataset type from the Axolotl-supported options below. Refer to the [**Axolotl documentation**](https://axolotl-ai-cloud.github.io/axolotl/docs/dataset-formats/inst_tune.html) to ensure compatibility with your dataset.
-            """)
-
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
-            with col1:
-                current_datasets = fts.get_datasets()
-                dataset_idx = st.selectbox(
-                    "Dataset",
-                    range(len(current_datasets)),
-                    format_func=lambda x: current_datasets[x].name,
-                    index=None,
-                    key="axolotl_dataset_selectbox",
-                    help="Select the dataset to use for training. This field is required."
-                )
-                if dataset_idx is not None:
-                    dataset = current_datasets[dataset_idx]
-                    st.code("\n * " + '\n * '.join(json.loads(dataset.features) if dataset.features else []))
+            current_datasets = fts.get_datasets()
+            dataset_idx = col1.selectbox(
+                "Dataset",
+                range(len(current_datasets)),
+                format_func=lambda x: current_datasets[x].name,
+                index=None,
+                key="axolotl_dataset_selectbox",
+                help="Select the dataset to use for training. This field is required."
+            )
 
-            with col2:
+            dataset_format_idx = None  # Initialize dataset_format_idx to avoid NameError
+            max_matching_keys = 0  # To track the maximum number of matching keys
+
+            if dataset_idx is not None:
+                dataset = current_datasets[dataset_idx]
+                dataset_features = json.loads(dataset.features) if dataset.features else []
+                col1.code("\n * " + '\n * '.join(dataset_features))
+
                 current_dataset_formats = fts.ListConfigs(
                     ListConfigsRequest(type=ConfigType.AXOLOTL_DATASET_FORMATS)
                 ).configs
-                dataset_format_idx = st.selectbox(
-                    "Dataset Types",
-                    range(len(current_dataset_formats)),
-                    format_func=lambda x: current_dataset_formats[x].description,
-                    index=None,
-                    key="axolotl_dataset_format_selectbox",
-                    help="Select the format of the dataset. This field is required."
-                )
-                if dataset_format_idx is not None:
+
+                for idx, dataset_format in enumerate(current_dataset_formats):
+                    format_config = json.loads(dataset_format.config)
+                    matching_keys = len(set(format_config.keys()) & set(dataset_features))
+
+                    if matching_keys > max_matching_keys:
+                        max_matching_keys = matching_keys
+                        dataset_format_idx = idx
+
+                if dataset_format_idx is not None and max_matching_keys > 0:
+                    st.info(
+                        "**Note:** A suitable dataset format has been auto-selected for training. Please verify or choose the correct type from the Axolotl-supported options. [**More info**](https://axolotl-ai-cloud.github.io/axolotl/docs/dataset-formats/inst_tune.html).")
+
+                    dataset_format_idx = col2.selectbox(
+                        "Dataset Types",
+                        range(len(current_dataset_formats)),
+                        format_func=lambda x: current_dataset_formats[x].description,
+                        index=dataset_format_idx,
+                        key="axolotl_dataset_format_selectbox",
+                        help="Select the format of the dataset. This field is required."
+                    )
+
                     dataset_format = current_dataset_formats[dataset_format_idx]
-                    st.code(json.dumps(json.loads(dataset_format.config), indent=2), "json")
+                    format_config = json.loads(dataset_format.config)
+                    col2.code(json.dumps(format_config, indent=2), "json")
+                else:
+                    st.error(
+                        "This is an unsupported dataset type. Please use a proprietary solution for training.",
+                        icon=":material/error:")
 
             # Advanced options
             c1, c2 = st.columns(2)
@@ -624,8 +643,5 @@ def create_train_adapter_page_with_axolotl():
 
 
 create_header()
-tab1, tab2 = st.tabs(["**Train with Proprietary Solution**", "**Train with Axolotl**"])
-with tab1:
-    create_train_adapter_page_with_proprietary()
-with tab2:
-    create_train_adapter_page_with_axolotl()
+
+create_train_adapter_page_with_proprietary()
