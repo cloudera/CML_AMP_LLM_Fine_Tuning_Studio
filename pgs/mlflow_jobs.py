@@ -3,7 +3,6 @@ import pandas as pd
 import os
 import requests
 from google.protobuf.json_format import MessageToDict
-from ft.proto.fine_tuning_studio_pb2 import RemoveEvaluationJobRequest
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.utils import format_status_with_icon
 
@@ -66,13 +65,13 @@ def display_jobs_list():
 
     st.write("\n")
 
-    _, col1, col2 = st.columns([12, 2, 2])
+    _, col1 = st.columns([14, 2])
 
     with col1:
-        if st.button("Reload", use_container_width=True):
+        if st.button("Reload", use_container_width=True, type='primary'):
             st.rerun(scope="fragment")
 
-    delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
+    # delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
 
     try:
         jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
@@ -130,7 +129,7 @@ def display_jobs_list():
         lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
     display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
-    display_df["Select"] = False
+    # display_df["Select"] = False
 
     # Converting the 'created_at' column from a string in the format '2024-08-27T10:45:38.900Z' to a datetime object
     display_df['created_at'] = pd.to_datetime(display_df['created_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
@@ -138,7 +137,8 @@ def display_jobs_list():
 
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Select", "Job ID", "status_with_icon", "created_at", "html_url", "Model Name", "Dataset Name", "Adapter Name"]],
+        display_df[["Job ID", "status_with_icon", "created_at",
+                    "html_url", "Model Name", "Dataset Name", "Adapter Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
@@ -151,7 +151,7 @@ def display_jobs_list():
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
             "Adapter Name": st.column_config.TextColumn("Adapter Name"),
-            "Select": st.column_config.CheckboxColumn("", width="small"),
+            # "Select": st.column_config.CheckboxColumn("", width="small"),
             "created_at": st.column_config.DatetimeColumn(
                 "Created At",
                 format="D MMM YYYY, h:mm a",
@@ -163,30 +163,30 @@ def display_jobs_list():
         use_container_width=True
     )
 
-    if delete_button:
-        # Check if edited_df is not empty and contains the "Select" column
-        if edited_df.empty or "Select" not in edited_df.columns:
-            st.warning("No jobs available for deletion.")
-        else:
-            # Filter selected jobs
-            selected_jobs = edited_df[edited_df["Select"]]["Job ID"]
+    # if delete_button:
+    #     # Check if edited_df is not empty and contains the "Select" column
+    #     if edited_df.empty or "Select" not in edited_df.columns:
+    #         st.warning("No jobs available for deletion.")
+    #     else:
+    #         # Filter selected jobs
+    #         selected_jobs = edited_df[edited_df["Select"]]["Job ID"]
 
-            if not selected_jobs.empty:
-                st.toast(f"Deleting jobs: {', '.join(selected_jobs)}")
-                # Implement your job deletion logic here
-                for job_id in selected_jobs:
-                    try:
-                        response = fts.RemoveEvaluationJob(RemoveEvaluationJobRequest(
-                            id=job_id
-                        ))
-                        st.toast(f"Job {job_id} deleted successfully.")
-                    except Exception as e:
-                        st.error(f"Error deleting job {job_id}: {str(e)}")
+    #         if not selected_jobs.empty:
+    #             st.toast(f"Deleting jobs: {', '.join(selected_jobs)}")
+    #             # Implement your job deletion logic here
+    #             for job_id in selected_jobs:
+    #                 try:
+    #                     response = fts.RemoveEvaluationJob(RemoveEvaluationJobRequest(
+    #                         id=job_id
+    #                     ))
+    #                     st.toast(f"Job {job_id} deleted successfully.")
+    #                 except Exception as e:
+    #                     st.error(f"Error deleting job {job_id}: {str(e)}")
 
-                # After all deletions, reload the specific component or data
-                st.rerun(scope="fragment")
-            else:
-                st.warning("No jobs selected for deletion.")
+    #             # After all deletions, reload the specific component or data
+    #             st.rerun(scope="fragment")
+    #         else:
+    #             st.warning("No jobs selected for deletion.")
 
 
 def display_mlflow_runs():

@@ -148,13 +148,13 @@ def display_jobs_list():
 
     st.write("\n")
 
-    _, col1, col2 = st.columns([12, 2, 2])
+    _, col1 = st.columns([14, 2])
 
     with col1:
-        if st.button("Reload", use_container_width=True):
+        if st.button("Reload", use_container_width=True, type="primary"):
             st.rerun(scope="fragment")
 
-    delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
+    # delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
 
     try:
         jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
@@ -225,7 +225,7 @@ def display_jobs_list():
         lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
     display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
-    display_df["Select"] = False
+    # display_df["Select"] = False
 
     # Converting the 'created_at' column from a string in the format '2024-08-27T10:45:38.900Z' to a datetime object
     display_df['created_at'] = pd.to_datetime(display_df['created_at'], format='%Y-%m-%dT%H:%M:%S.%fZ')
@@ -233,7 +233,8 @@ def display_jobs_list():
 
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Select", "Job ID", "status_with_icon", "created_at", "html_url", "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+        display_df[["Job ID", "status_with_icon", "created_at", "html_url",
+                    "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
@@ -249,7 +250,7 @@ def display_jobs_list():
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
             "Prompt Name": st.column_config.TextColumn("Prompt Name"),
-            "Select": st.column_config.CheckboxColumn("", width="small"),
+            # "Select": st.column_config.CheckboxColumn("", width="small"),
             "created_at": st.column_config.DatetimeColumn(
                 "Created At",
                 format="D MMM YYYY, h:mm a",
@@ -261,30 +262,30 @@ def display_jobs_list():
         use_container_width=True
     )
 
-    if delete_button:
-        # Check if edited_df is not empty and contains the "Select" column
-        if edited_df.empty or "Select" not in edited_df.columns:
-            st.warning("No jobs available for deletion.")
-        else:
-            # Filter selected jobs
-            selected_jobs = edited_df[edited_df["Select"]]["Job ID"]
+    # if delete_button:
+    #     # Check if edited_df is not empty and contains the "Select" column
+    #     if edited_df.empty or "Select" not in edited_df.columns:
+    #         st.warning("No jobs available for deletion.")
+    #     else:
+    #         # Filter selected jobs
+    #         selected_jobs = edited_df[edited_df["Select"]]["Job ID"]
 
-            if not selected_jobs.empty:
-                st.toast(f"Deleting jobs: {', '.join(selected_jobs)}")
-                # Implement your job deletion logic here
-                for job_id in selected_jobs:
-                    try:
-                        response = fts.RemoveFineTuningJob(RemoveFineTuningJobRequest(
-                            id=job_id
-                        ))
-                        st.toast(f"Job {job_id} deleted successfully.")
-                    except Exception as e:
-                        st.error(f"Error deleting job {job_id}: {str(e)}")
+    #         if not selected_jobs.empty:
+    #             st.toast(f"Deleting jobs: {', '.join(selected_jobs)}")
+    #             # Implement your job deletion logic here
+    #             for job_id in selected_jobs:
+    #                 try:
+    #                     response = fts.RemoveFineTuningJob(RemoveFineTuningJobRequest(
+    #                         id=job_id
+    #                     ))
+    #                     st.toast(f"Job {job_id} deleted successfully.")
+    #                 except Exception as e:
+    #                     st.error(f"Error deleting job {job_id}: {str(e)}")
 
-                # After all deletions, reload the specific component or data
-                st.rerun(scope="fragment")
-            else:
-                st.warning("No jobs selected for deletion.")
+    #             # After all deletions, reload the specific component or data
+    #             st.rerun(scope="fragment")
+    #         else:
+    #             st.warning("No jobs selected for deletion.")
 
     st.info(
         """
@@ -302,76 +303,30 @@ def display_training_metrics():
         st.info("No fine-tuning jobs triggered.", icon=":material/info:")
         return
 
-    col1, _, col2 = st.columns([30, 1, 70])
+    col1, _, col2 = st.columns([70, 1, 30])
+    subcol1, subcol2 = col1.columns([6, 4])
     job_ids = [job.id for job in current_jobs]
 
-    selected_job_id = col1.selectbox('Select Job ID', job_ids, index=0)
+    selected_job_id = subcol1.selectbox('Select Job ID', job_ids, index=0)
 
     selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
     if selected_job:
         finetuning_framework = selected_job.framework_type
         out_dir = selected_job.out_dir
     else:
-        st.error("Selected job not found.")
+        col1.error("Selected job not found.")
         return
 
-    with col1:
-        col1.caption("**Job Metadata**")
-        if selected_job:
-            job_data = {
-                "CPU": [selected_job.num_cpu],
-                "GPU": [selected_job.num_gpu],
-                "Memory": [selected_job.num_memory]
-            }
-            job_df = pd.DataFrame(job_data)
-            col1.caption("Compute Configurations")
-            st.data_editor(job_df, use_container_width=True, hide_index=True)
+    checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
+    if not checkpoints:
+        subcol2.selectbox('Select Checkpoint', [], index=0)
+        col1.info(
+            f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to save a checkpoint.",
+            icon=":material/info:")
 
-            if selected_job.framework_type == FineTuningFrameworkType.LEGACY:
-                try:
-                    train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
-                    col1.caption("Training Configurations")
-                    col1.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
-                except Exception as e:
-                    st.error(f"Error fetching Training Config: {e}")
-
-                try:
-                    lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
-                    col1.caption("Lora Configurations")
-                    col1.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
-                except Exception as e:
-                    st.error(f"Error fetching Lora Config: {e}")
-
-                try:
-                    bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
-                    col1.caption("BitsAndBytes Configurations")
-                    col1.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
-                except Exception as e:
-                    st.error(f"Error fetching BnB Config: {e}")
-
-            elif selected_job.framework_type == FineTuningFrameworkType.AXOLOTL:
-                try:
-                    axolotl_config = fts.GetConfig(GetConfigRequest(id=selected_job.axolotl_config_id))
-                    col1.caption("Axolotl Train Configurations")
-                    col1.code(axolotl_config.config.config, "yaml")
-                except Exception as e:
-                    st.error(f"Error fetching Axolotl Config: {e}")
-            else:
-                st.error(f"Unsupported Finetuning framework used for: **{selected_job_id}**.", icon=":material/info:")
-        else:
-            st.error("Selected job not found.")
-
-    with col2:
-        checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
-        if not checkpoints:
-            st.caption("**Select Checkpoint**")
-            st.info(
-                f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to save a checkpoint.",
-                icon=":material/info:")
-            return
-
+    else:
         checkpoint_names = list(checkpoints.keys())
-        selected_checkpoint_name = col2.selectbox('Select Checkpoint', checkpoint_names, index=0)
+        selected_checkpoint_name = subcol2.selectbox('Select Checkpoint', checkpoint_names, index=0)
         checkpoint_dir = checkpoints[selected_checkpoint_name]
         trainer_json_path = os.path.join(checkpoint_dir, 'trainer_state.json')
 
@@ -379,14 +334,14 @@ def display_training_metrics():
             with open(trainer_json_path, 'r') as file:
                 training_data = json.load(file)
         except FileNotFoundError:
-            st.error("trainer_state.json not found.")
+            col1.error("trainer_state.json not found.")
             training_data = None
         except json.JSONDecodeError as e:
-            st.error(f"Failed to decode JSON: {e}")
+            col1.error(f"Failed to decode JSON: {e}")
             training_data = None
 
         if not training_data:
-            st.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
+            col1.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
             return
 
         log_history = training_data.get("log_history", [])
@@ -488,18 +443,63 @@ def display_training_metrics():
             ]
         )
 
-        chart_col1, chart_col2 = st.columns([1, 1])
+        chart_col1, chart_col2 = col1.columns([1, 1])
         with chart_col1:
             st.plotly_chart(fig_loss, use_container_width=True)
         with chart_col2:
             st.plotly_chart(fig_eval_loss, use_container_width=True)
 
+    col2.caption("**Job Metadata**")
+    if selected_job:
+        job_data = {
+            "CPU": [selected_job.num_cpu],
+            "GPU": [selected_job.num_gpu],
+            "Memory": [selected_job.num_memory]
+        }
+        job_df = pd.DataFrame(job_data)
+        col2.caption("Compute Configurations")
+        col2.data_editor(job_df, use_container_width=True, hide_index=True)
+
+        if selected_job.framework_type == FineTuningFrameworkType.LEGACY:
+            try:
+                train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
+                col2.caption("Training Configurations")
+                col2.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
+            except Exception as e:
+                col2.error(f"Error fetching Training Config: {e}")
+
+            try:
+                lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
+                col2.caption("Lora Configurations")
+                col2.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
+            except Exception as e:
+                col2.error(f"Error fetching Lora Config: {e}")
+
+            try:
+                bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
+                col2.caption("BitsAndBytes Configurations")
+                col2.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
+            except Exception as e:
+                col2.error(f"Error fetching BnB Config: {e}")
+
+        elif selected_job.framework_type == FineTuningFrameworkType.AXOLOTL:
+            try:
+                axolotl_config = fts.GetConfig(GetConfigRequest(id=selected_job.axolotl_config_id))
+                col2.caption("Axolotl Train Configurations")
+                col2.code(axolotl_config.config.config, "yaml")
+            except Exception as e:
+                col2.error(f"Error fetching Axolotl Config: {e}")
+        else:
+            col2.error(f"Unsupported Finetuning framework used for: **{selected_job_id}**.", icon=":material/info:")
+    else:
+        col2.error("Selected job not found.")
 
 # Main Application
 
+
 display_page_header()
 
-tab1, tab2 = st.tabs(["**Jobs List**", "**View Jobs**"])
+tab1, tab2 = st.tabs(["**View Jobs**", "**Job Details**"])
 
 with tab1:
     display_jobs_list()
