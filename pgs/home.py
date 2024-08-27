@@ -213,7 +213,8 @@ with col3:
                         },
                         hide_index=True,
                         use_container_width=True,
-                        height=140
+                        height=140,
+                        key="mlflow"
                     )
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
@@ -229,7 +230,8 @@ with col3:
                 )
             },
             hide_index=True,
-            use_container_width=True
+            use_container_width=True,
+            key="mlflow"
         )
 
 st.write("\n")
