@@ -157,7 +157,7 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
             config: Config = Config(
                 id=str(uuid4()),
                 type=request.type,
-                description=request.description,
+                description=description,
                 config=config_content
             )
             session.add(config)
