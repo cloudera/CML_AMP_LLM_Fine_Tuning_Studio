@@ -47,7 +47,6 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
         with ds_cont:
             c1, c2 = st.columns([4, 1])
             c1.markdown(f"**{model.name}**")
-            c1.caption(f"**{model.id}**")
 
             remove = c2.button("Remove", type="primary", key=f"{model.id}_remove", use_container_width=True)
 
