@@ -77,16 +77,17 @@ def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> Lis
     if request.axolotl_config_id:
         arg_list.extend(["--axolotl_config_id", request.axolotl_config_id])
     
-    if request.num_workers:
-        arg_list.extend(["--dist_num", request.num_workers])
-    if request.cpu:
-        arg_list.extend(["--dist_cpu", request.cpu])
-    if request.memory:
-        arg_list.extend(["--dist_mem", request.memory])
-    if request.gpu:
-        arg_list.extend(["--dist_gpu", request.gpu])
-    if request.gpu_label_id:
-        arg_list.extend(["--gpu_label_id", request.gpu_label_id])
+    if request.framework_type == FineTuningFrameworkType.LEGACY:
+        if request.num_workers:
+            arg_list.extend(["--dist_num", request.num_workers])
+        if request.cpu:
+            arg_list.extend(["--dist_cpu", request.cpu])
+        if request.memory:
+            arg_list.extend(["--dist_mem", request.memory])
+        if request.gpu:
+            arg_list.extend(["--dist_gpu", request.gpu])
+        if request.gpu_label_id:
+            arg_list.extend(["--gpu_label_id", request.gpu_label_id])
 
     return arg_list
 

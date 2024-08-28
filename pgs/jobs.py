@@ -151,7 +151,7 @@ def display_jobs_list():
     _, col1 = st.columns([14, 2])
 
     with col1:
-        if st.button("Reload", use_container_width=True, type="primary"):
+        if st.button("Refresh", use_container_width=True, type="primary"):
             st.rerun(scope="fragment")
 
     # delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)

@@ -114,6 +114,8 @@ class Prompt(Base, MappedProtobuf):
     description = Column(String, nullable=True)
     dataset_id = Column(String, ForeignKey('datasets.id'), nullable=True)
     prompt_template = Column(String)
+    input_template = Column(String)
+    completion_template = Column(String)
 
 
 class FineTuningJob(Base, MappedProtobuf):
