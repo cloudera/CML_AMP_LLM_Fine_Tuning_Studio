@@ -372,6 +372,9 @@ message StartFineTuningJobRequest {
 
   // Optional axolotol config, if working with axolotl
   string axolotl_config_id = 24;
+
+  // The GPU label to use for this job
+  int32 gpu_label_id = 25;
 }
 
 message StartFineTuningJobResponse {
@@ -741,6 +744,9 @@ message FineTuningJobMetadata {
 
   // Optional axolotol config, if working with axolotl
   string axolotl_config_id = 24;
+
+  // The GPU label to use for this job
+  int32 gpu_label_id = 25;
 }
 
 

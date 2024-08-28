@@ -141,6 +141,7 @@ class FineTuningJob(Base, MappedProtobuf):
     user_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     framework_type = Column(String, nullable=True)
     axolotl_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
+    gpu_label_id = Column(Integer, nullable=True)
 
 
 class EvaluationJob(Base, MappedProtobuf):

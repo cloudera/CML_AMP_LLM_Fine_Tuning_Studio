@@ -141,6 +141,13 @@ if args.finetuning_framework_type == FineTuningFrameworkType.AXOLOTL:
         )
     ).model
 
+    # Extract prompt template information.
+    prompt_md: PromptMetadata = fts.GetPrompt(
+        GetPromptRequest(
+            id=args.prompt_id
+        )
+    ).prompt
+
     axolotl_train_config_dict['base_model'] = base_model_md.huggingface_model_name
     axolotl_train_config_dict['datasets'][0]['path'] = dataset_metadata.huggingface_name
 
@@ -174,6 +181,7 @@ if args.finetuning_framework_type == FineTuningFrameworkType.AXOLOTL:
                     model_id=base_model_md.id,
                     location=args.out_dir,
                     fine_tuning_job_id=args.experimentid,
+                    prompt_id=prompt_md.id
                 )
             )
     except FileNotFoundError as e:

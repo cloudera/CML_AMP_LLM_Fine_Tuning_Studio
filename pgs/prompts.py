@@ -32,8 +32,7 @@ def display_create_prompt():
             datasets = fts.get_datasets()
             dataset_idx = st.selectbox(
                 "Dataset",
-                range(
-                    len(datasets)),
+                range(len(datasets)),
                 format_func=lambda x: datasets[x].name,
                 index=0)  # Set the default index as needed
 
@@ -41,10 +40,16 @@ def display_create_prompt():
                 dataset = datasets[dataset_idx]
                 st.code("Dataset Columns: \n * " + '\n * '.join(json.loads(dataset.features)))
 
-                default_template = ""
+                default_template = "Add instructions to better suit you task. \n\n"
                 for feature in json.loads(dataset.features):
                     default_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
+
                 prompt_template = st.text_area("Prompt Template", value=default_template, height=200)
+
+                if "Add instructions to better suit you task." in prompt_template:
+                    prompt_template = prompt_template.replace("Add instructions to better suit you task.", "")
+
+                prompt_template = prompt_template.lstrip("\n")
 
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)
@@ -82,23 +87,26 @@ def display_create_prompt():
 
         ### 1. Customizing the Prompt Template
         - **Default Template**: The text box will auto-generate a prompt template based on dataset features. For example:
-        ```
-        <Instruction>: {instruction}
-        <Input>: {input}
-        <Response>: {response}
-        <Text>: {text}
-        ```
-        - **Modifying Prompt**: Remove irrelevant fields and add context to better suit your task. For instance:
-        ```
-        Write the response as an SQL query.
-        <Instruction>: {instruction}
-        <Input>: {input}
-        <Response>: {response}
-        ```
+
+            ```
+            <Instruction>: {instruction}
+            <Input>: {input}
+            <Response>: {response}
+            <Text>: {text}
+            ```
+        - **Modifying Prompt**: Remove irrelevant fields and add instructions to better suit your task. For example:
+
+            ```
+            You are a customer chatbot. Please respond politely with information to help the customer based on the intent retrieved.
+
+            <Instruction>: {instruction}
+            <Input>: {input}
+            <Response>: {response}
+            ```
 
         ### 2. Generating and Saving Prompts
-        - Click **Generate Prompt Example** to see your template in action and adjust as needed and **Save** the prompt.
-        - Manage your prompts in the **Available Prompts** tab.
+        - Click **Generate Prompt Example** to see your template in action and adjust as needed and **Create** the prompt.
+        - Manage your prompts in the **View Prompts** tab.
 
         Use these steps to effectively create and manage training prompts!
         """)

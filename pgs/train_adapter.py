@@ -1,13 +1,14 @@
 import streamlit as st
 from ft.api import *
 import json
-from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str
+from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str, fetch_cml_site_config
 import traceback
-from pgs.streamlit_utils import get_fine_tuning_studio_client
+from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import yaml
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
+cml = get_cml_client()
 
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
@@ -15,7 +16,6 @@ cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 
 # Container for header
-
 
 def create_header():
     with st.container(border=True):
@@ -32,10 +32,9 @@ def create_header():
 
 
 def create_train_adapter_page_with_proprietary():
-    ccol1, ccol2 = st.columns([3, 2])
+    ccol1, ccol2 = st.columns([4, 2])
     with ccol1:
         with st.container(border=True):
-
             col1, col2 = st.columns(2)
             with col1:
                 adapter_name = st.text_input(
@@ -98,67 +97,124 @@ def create_train_adapter_page_with_proprietary():
                     help="Select the base model for training. This field is required."
                 )
 
-            # Advanced options
-            c1, c2 = st.columns(2)
-            with c1:
-                num_epochs = st.text_input(
-                    "Number of Epochs",
-                    value="10",
-                    key="num_epochs",
-                    help="Specify the number of epochs for training."
+            # Resource Options
+            if 'dist_type_chosen' not in st.session_state:
+                st.session_state['dist_type_chosen'] = "None"
+
+            with st.container(border=True):
+                c1, c2= st.columns([1, 1])
+                with c1:
+                    st.caption("Training Cluster Size")
+                    num_workers = st.number_input(
+                        "Number of Machines to Launch",
+                        min_value=1,
+                        max_value=100,
+                        help="Specify the number of machines that will launched in CML to perform training.")
+                with c2:
+                    if(num_workers> 1):
+                        tc_arch="Distribution - Multi Node (%d)" % num_workers
+                        tc_descrip="Depending on resource availability, the %d training machines may be provisioned across multiple physical nodes in your CML Workspace." % num_workers
+                    else:
+                        tc_arch="Dsitribution - Single Node"
+                        tc_descrip="A single training machine will be provisioned within one physical CML Workspace Node."
+                    st.warning("**%s**\n\n%s" %(tc_arch, tc_descrip))
+                st.divider()
+                st.caption("Machine Profile")
+                c1, c2, c3= st.columns([1, 1, 2])
+                with c1:
+                    cpu = st.number_input(
+                        "CPU (vCPU)",
+                        value=2,
+                        min_value=1,
+                        key="cpu",
+                        help="Specify the number of virtual CPUs to allocate for training."
+                    )
+                    # Handling the potential for heterogeneous GPU clusters, need to load gpu max num limits and label namess
+                    # This is all very heavy, probably want to do this on page load and cache it once in a more reasonable data struct
+                    accelerator_labels = []
+                    try: 
+                        accelerator_labels = cml.list_all_accelerator_node_labels().accelerator_node_label
+                        accelerator_labels_dict = {x.label_value: vars(x) for x in accelerator_labels}
+                    except Exception as e:
+                        site_conf = fetch_cml_site_config(cdsw_api_url, project_owner, cdsw_api_key)
+                        site_max_gpu = site_conf.get("max_gpu_per_engine")
+                        # Dummy accelerator label that will get ignored in older clusters without heterogeneous gpu support
+                        accelerator_labels_dict ={'Default': {'_availability': True,
+                            '_id': '-1',
+                            '_label_value': 'Default',
+                            '_max_gpu_per_workload': site_max_gpu,
+                            }}
+                    gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
+                    gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list, index=0)
+                    gpu_num_max = int(accelerator_labels_dict[gpu_label]['_max_gpu_per_workload'])
+                    gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
+                with c2:
+                    placeholder = st.empty()
+                    memory = st.number_input(
+                        "Memory (GiB)",
+                        value=8,
+                        min_value=1,
+                        key="memory",
+                        help="Specify the amount of memory (in GiB) to allocate for training."
+                    )
+                    gpu = st.number_input(
+                        "Number of GPUs",
+                        min_value=1,
+                        max_value=gpu_num_max,
+                        key="gpu",
+                        help="Select the number of GPUs to allocate for training. This is limited to the maximum number of GPUs available per node on this CML Workspace Cluster."
+                    )
+                with c3:
+                    if (num_workers > 1 or gpu > 1):
+                        tdp = "Multi-GPU Training (%d)" % (num_workers*gpu)
+                        tdp_descrip = "%d GPU(s) on each %d launched machine(s) will each load the entire model and process a portion of the Dataset." % (gpu, num_workers)
+                    else:
+                        tdp = "Single-GPU Training"
+                        tdp_descrip = "A single GPU will load the entire model and process the Dataset"
+                    st.warning("**%s**\n\n%s" %(tdp, tdp_descrip))
+                    
+            # Training Options
+            with st.container(border=True):
+                st.caption("Training Options")
+                c1, c2 = st.columns(2)
+                with c1:
+                    num_epochs = st.text_input(
+                        "Number of Epochs",
+                        value="10",
+                        key="num_epochs",
+                        help="Specify the number of epochs for training."
+                    )
+                with c2:
+                    learning_rate = st.text_input(
+                        "Learning Rate",
+                        value="2e-4",
+                        key="learning_rate",
+                        help="Set the learning rate for the training process."
+                    )
+
+                auto_add_adapter = st.checkbox(
+                    "Add Adapter to Fine Tuning Studio after Training",
+                    value=True,
+                    key="auto_add_adapter",
+                    help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
                 )
-            with c2:
-                learning_rate = st.text_input(
-                    "Learning Rate",
-                    value="2e-4",
-                    key="learning_rate",
-                    help="Set the learning rate for the training process."
+                c1, c2 = st.columns([1, 1])
+                dataset_fraction = c1.slider(
+                    "Dataset Fraction",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=1.0,
+                    help="Specify the fraction of the dataset to use for training."
                 )
-            c1, c2, c3 = st.columns([1, 1, 2])
-            with c1:
-                cpu = st.text_input(
-                    "CPU (vCPU)",
-                    value="2",
-                    key="cpu",
-                    help="Specify the number of virtual CPUs to allocate for training."
-                )
-            with c2:
-                memory = st.text_input(
-                    "Memory (GiB)",
-                    value="8",
-                    key="memory",
-                    help="Specify the amount of memory (in GiB) to allocate for training."
-                )
-            with c3:
-                gpu = st.selectbox(
-                    "GPU (NVIDIA)",
-                    options=[1],
-                    index=0,
-                    key="gpu",
-                    help="Select the number of GPUs to allocate for training."
+                dataset_train_test_split = c2.slider(
+                    "Dataset Train/Test Split",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.9,
+                    help="Set the ratio for splitting the dataset into training and test sets."
                 )
 
-            auto_add_adapter = st.checkbox(
-                "Add Adapter to Fine Tuning Studio after Training",
-                value=True,
-                key="auto_add_adapter",
-                help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
-            )
-            c1, c2 = st.columns([1, 1])
-            dataset_fraction = c1.slider(
-                "Dataset Fraction",
-                min_value=0.0,
-                max_value=1.0,
-                value=1.0,
-                help="Specify the fraction of the dataset to use for training."
-            )
-            dataset_train_test_split = c2.slider(
-                "Dataset Train/Test Split",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.9,
-                help="Set the ratio for splitting the dataset into training and test sets."
-            )
+                c1, c2 = st.columns([1, 1])
 
             c1, c2 = st.columns([1, 1])
 
@@ -207,13 +263,13 @@ def create_train_adapter_page_with_proprietary():
                         json.loads(
                             fts.ListConfigs(
                                 ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS, model_id=current_models[model_idx].id)
-                            ).configs[0].config
+                                ).configs[0].config
+                            ),
+                            indent=2
                         ),
-                        indent=2
-                    ),
-                    height=400,
-                    help="Advanced training arguments in JSON format."
-                )
+                        height=400,
+                        help="Advanced training arguments in JSON format."
+                    )
 
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
@@ -286,6 +342,7 @@ def create_train_adapter_page_with_proprietary():
                                 learning_rate=float(learning_rate),
                                 cpu=int(cpu),
                                 gpu=gpu,
+                                gpu_label_id=int(gpu_label_id),
                                 memory=int(memory),
                                 model_bnb_config_id=bnb_config.id,
                                 adapter_bnb_config_id=bnb_config.id,
@@ -313,7 +370,7 @@ def create_train_adapter_page_with_proprietary():
 
     with ccol2:
         st.info("""
-        ### How to Train a Model with the Proprietary Solution
+        ### How to Train a Model ?
 
         1. **Fill in the unique adapter name, base model, dataset, and prompts**: These are essential fields required to initiate the training process. Ensure each of these fields is correctly filled.
 
@@ -348,6 +405,8 @@ def create_train_adapter_page_with_proprietary():
                 use_container_width=True
             )
 
+# TODO : This will be displayed in UI, after end to end support for inference and MLflow evaluation.
+
 
 def create_train_adapter_page_with_axolotl():
     ccol1, ccol2 = st.columns([3, 2])
@@ -381,41 +440,58 @@ def create_train_adapter_page_with_axolotl():
                 help="Select the base model for training. This field is required."
             )
 
-            st.info("""
-                **Note:** Choose the correct dataset type from the Axolotl-supported options below. Refer to the [**Axolotl documentation**](https://axolotl-ai-cloud.github.io/axolotl/docs/dataset-formats/inst_tune.html) to ensure compatibility with your dataset.
-            """)
-
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
-            with col1:
-                current_datasets = fts.get_datasets()
-                dataset_idx = st.selectbox(
-                    "Dataset",
-                    range(len(current_datasets)),
-                    format_func=lambda x: current_datasets[x].name,
-                    index=None,
-                    key="axolotl_dataset_selectbox",
-                    help="Select the dataset to use for training. This field is required."
-                )
-                if dataset_idx is not None:
-                    dataset = current_datasets[dataset_idx]
-                    st.code("\n * " + '\n * '.join(json.loads(dataset.features) if dataset.features else []))
+            current_datasets = fts.get_datasets()
+            dataset_idx = col1.selectbox(
+                "Dataset",
+                range(len(current_datasets)),
+                format_func=lambda x: current_datasets[x].name,
+                index=None,
+                key="axolotl_dataset_selectbox",
+                help="Select the dataset to use for training. This field is required."
+            )
 
-            with col2:
+            dataset_format_idx = None  # Initialize dataset_format_idx to avoid NameError
+            max_matching_keys = 0  # To track the maximum number of matching keys
+
+            if dataset_idx is not None:
+                dataset = current_datasets[dataset_idx]
+                dataset_features = json.loads(dataset.features) if dataset.features else []
+                col1.code("\n * " + '\n * '.join(dataset_features))
+
                 current_dataset_formats = fts.ListConfigs(
                     ListConfigsRequest(type=ConfigType.AXOLOTL_DATASET_FORMATS)
                 ).configs
-                dataset_format_idx = st.selectbox(
-                    "Dataset Types",
-                    range(len(current_dataset_formats)),
-                    format_func=lambda x: current_dataset_formats[x].description,
-                    index=None,
-                    key="axolotl_dataset_format_selectbox",
-                    help="Select the format of the dataset. This field is required."
-                )
-                if dataset_format_idx is not None:
+
+                for idx, dataset_format in enumerate(current_dataset_formats):
+                    format_config = json.loads(dataset_format.config)
+                    matching_keys = len(set(format_config.keys()) & set(dataset_features))
+
+                    if matching_keys > max_matching_keys:
+                        max_matching_keys = matching_keys
+                        dataset_format_idx = idx
+
+                if dataset_format_idx is not None and max_matching_keys > 0:
+                    st.info(
+                        "**Note:** A suitable dataset format has been auto-selected for training. Please verify or choose the correct type from the Axolotl-supported options. [**More info**](https://axolotl-ai-cloud.github.io/axolotl/docs/dataset-formats/inst_tune.html).")
+
+                    dataset_format_idx = col2.selectbox(
+                        "Dataset Types",
+                        range(len(current_dataset_formats)),
+                        format_func=lambda x: current_dataset_formats[x].description,
+                        index=dataset_format_idx,
+                        key="axolotl_dataset_format_selectbox",
+                        help="Select the format of the dataset. This field is required."
+                    )
+
                     dataset_format = current_dataset_formats[dataset_format_idx]
-                    st.code(json.dumps(json.loads(dataset_format.config), indent=2), "json")
+                    format_config = json.loads(dataset_format.config)
+                    col2.code(json.dumps(format_config, indent=2), "json")
+                else:
+                    st.error(
+                        "This is an unsupported dataset type. Please use a proprietary solution for training.",
+                        icon=":material/error:")
 
             # Advanced options
             c1, c2 = st.columns(2)
@@ -627,8 +703,5 @@ def create_train_adapter_page_with_axolotl():
 
 
 create_header()
-tab1, tab2 = st.tabs(["**Train with Proprietary Solution**", "**Train with Axolotl**"])
-with tab1:
-    create_train_adapter_page_with_proprietary()
-with tab2:
-    create_train_adapter_page_with_axolotl()
+
+create_train_adapter_page_with_proprietary()
