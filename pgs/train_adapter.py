@@ -217,7 +217,6 @@ def create_train_adapter_page_with_proprietary():
                 c1, c2 = st.columns([1, 1])
 
             c1, c2 = st.columns([1, 1])
-
             # Extract out the lora config and the bnb config to use. For now,
             # server-side there is no selection logic based on model & adapters,
             # but there may be in the future, which is why we are specifying this here.
@@ -228,7 +227,8 @@ def create_train_adapter_page_with_proprietary():
                 json.dumps(
                     json.loads(
                         fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.LORA_CONFIG, model_id=current_models[model_idx].id)
+                                ListConfigsRequest(type=ConfigType.LORA_CONFIG, model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(type=ConfigType.LORA_CONFIG)
+                            
                         ).configs[0].config
                     ),
                     indent=2
@@ -241,7 +241,7 @@ def create_train_adapter_page_with_proprietary():
                 json.dumps(
                     json.loads(
                         fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG, model_id=current_models[model_idx].id)
+                            ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG, model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
                         ).configs[0].config
                     ),
                     indent=2
@@ -262,7 +262,7 @@ def create_train_adapter_page_with_proprietary():
                     json.dumps(
                         json.loads(
                             fts.ListConfigs(
-                                ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS, model_id=current_models[model_idx].id)
+                                ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS, model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
                                 ).configs[0].config
                             ),
                             indent=2
