@@ -35,13 +35,13 @@ tasks:
   #   cpu: 2
   #   memory: 4
 
-  # - type: run_session
-  #   name: Install Dependencies
-  #   script: bin/install-dependencies.py
-  #   short_summary: Install Dependencies
-  #   kernel: python3
-  #   cpu: 2
-  #   memory: 8
+  - type: run_session
+    name: Install Dependencies
+    script: bin/install-dependencies.py
+    short_summary: Install Dependencies
+    kernel: python3
+    cpu: 2
+    memory: 8
   
   # - type: run_session
   #   name: Validate GPU CUDA Capability
