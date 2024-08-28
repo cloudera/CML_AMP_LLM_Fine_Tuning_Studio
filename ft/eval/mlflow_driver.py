@@ -17,6 +17,7 @@ def driver(
         adapter_id: str = None,
         bnb_config_id: str = None,
         generation_config_id: str = None,
+        prompt_id: str = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
@@ -26,21 +27,21 @@ def driver(
     logger = ModelLogger()
     evaluator = ModelEvaluator()
 
-    # Load dataset
-    eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(dataset_id, client=client)
 
     # Get the model and adapter metadata.
     # given that this is a script that runs on a remote worker (not the same host
     # as the application), need to make gRPC calls to the app server.
     base_model: ModelMetadata = client.GetModel(GetModelRequest(id=base_model_id)).model
     adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
-
+    prompt : PromptMetadata = client.GetPrompt(GetPromptRequest(id=prompt_id)).prompt
     # Load in the generation config and bnb config.
     bnb_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=bnb_config_id)).config.config) if bnb_config_id else None
     generation_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=generation_config_id)).config.config) if generation_config_id else None
 
+    # Load dataset
+    eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(dataset_id, client=client, prompt_metadata = prompt)
     # Load Model Pipeline
     # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
     # is available in the project files location, and that the base model is available
