@@ -2,7 +2,7 @@ from datasets import load_dataset
 import pandas as pd
 # from eval.configs import DATASETS, PROMPTS
 from ft.fine_tune import get_unique_cache_dir
-from ft.eval.utils.template_utils import format_template, extract_eval_column_name
+from ft.eval.utils.template_utils import format_template, extract_eval_column_name, guess_eval_column
 from ft.client import FineTuningStudioClient
 from ft.api import *
 
@@ -24,10 +24,18 @@ class Dataloader:
         except:
             print("There is no test data split present. Hence loading the train split.")
             eval_df = pd.DataFrame(loaded_dataset["train"])
-        eval_prompt_string = prompt_metadata.input_template
-        eval_column_name = extract_eval_column_name(prompt_metadata.completion_template)
-        eval_df = eval_df.sample(n=total_examples)
-        eval_df['model_input'] = eval_df.apply(lambda x: format_template(eval_prompt_string, x), axis=1)
+        try: #if prompt_metadata.input_template:
+            eval_prompt_string = prompt_metadata.input_template
+            eval_column_name = extract_eval_column_name(prompt_metadata.completion_template)
+            eval_df = eval_df.sample(n=total_examples)
+            eval_df['model_input'] = eval_df.apply(lambda x: format_template(eval_prompt_string, x), axis=1)
+        except:
+            eval_prompt_string = prompt_metadata.prompt_template
+            eval_column_name = guess_eval_column(eval_prompt_string)
+            eval_df = eval_df.sample(n=total_examples)
+            eval_df['model_input'] = eval_df.apply(lambda x: format_template(eval_prompt_string, x), axis=1)
+
+            
         print(eval_df)
         return eval_df, eval_column_name
 

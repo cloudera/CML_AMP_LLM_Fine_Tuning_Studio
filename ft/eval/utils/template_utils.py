@@ -26,3 +26,8 @@ def extract_eval_column_name(template: str) -> str:
     placeholders = re.findall(pattern, template)
     return placeholders[0] if placeholders else None
 
+
+def guess_eval_column(template: str) ->str:
+    pattern = r'\{(.*?)\}'
+    placeholders = re.findall(pattern, template)
+    return placeholders[-1] if placeholders else None
