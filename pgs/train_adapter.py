@@ -336,7 +336,7 @@ def create_train_adapter_page_with_proprietary():
                                 base_model_id=model.id,
                                 dataset_id=dataset.id,
                                 prompt_id=prompt.id,
-                                num_workers=int(1),
+                                num_workers=int(num_workers),
                                 auto_add_adapter=auto_add_adapter,
                                 num_epochs=int(num_epochs),
                                 learning_rate=float(learning_rate),
