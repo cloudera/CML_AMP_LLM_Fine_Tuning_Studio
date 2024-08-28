@@ -10,9 +10,9 @@ from sqlalchemy import delete
 from sqlalchemy.orm.session import Session
 
 from typing import List
-
-from uuid import uuid4
 from ft import consts
+from uuid import uuid4
+from ft.consts import *
 from ft.utils import dict_to_yaml_string
 from ft.config.model_configs.config_loader import ModelMetadataFinder
 
@@ -26,6 +26,8 @@ def get_configs_for_model_id(session: Session, configs: List[Config], model_id: 
     model_hf_name = model.huggingface_model_name
     model_metadata_finder = ModelMetadataFinder(model_hf_name)
     model_family = model_metadata_finder.fetch_model_family_from_config()
+    # Filter configs for default configs
+    model_family = model_family + DEFAULT_CONFIG_DESCRIPTION
     filtered_configs = [c for c in configs if c.description == model_family]
     # if filtered_configs == 0, show default config
     if len(filtered_configs) == 0:
@@ -35,7 +37,7 @@ def get_configs_for_model_id(session: Session, configs: List[Config], model_id: 
 def transform_name_to_family(model_name: str) -> str:
     model_metadata_finder = ModelMetadataFinder(model_name)
     model_family = model_metadata_finder.fetch_model_family_from_config()
-    return model_family
+    return model_family + USER_CONFIG_DESCRIPTION
 
 def list_configs(request: ListConfigsRequest, dao: FineTuningStudioDao = None) -> ListConfigsResponse:
 

@@ -2,4 +2,5 @@ HF_LOGO = "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main
 DEFAULT_FTS_GRPC_PORT = "50051"
 AXOLOTL_DATASET_FORMAT_CONFIGS_FOLDER_PATH = "ft/config/axolotl/dataset_formats"
 AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH = "ft/config/axolotl/training_config/template.yaml"
-DEFAULT_CONFIG_DESCRIPTION = "default"
+DEFAULT_CONFIG_DESCRIPTION = "_default"
+USER_CONFIG_DESCRIPTION = "_user"
