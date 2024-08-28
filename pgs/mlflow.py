@@ -153,13 +153,15 @@ with ccol1:
                 bnb_config_md: ConfigMetadata = fts.AddConfig(
                     AddConfigRequest(
                         type=ConfigType.BITSANDBYTES_CONFIG,
-                        config=bnb_config_text
+                        config=bnb_config_text,
+                        description= model.huggingface_model_name
                     )
                 ).config
                 generation_config_md: ConfigMetadata = fts.AddConfig(
                     AddConfigRequest(
                         type=ConfigType.GENERATION_CONFIG,
-                        config=generation_config_text
+                        config=generation_config_text,
+                        description= model.huggingface_model_name
                     )
                 ).config
 

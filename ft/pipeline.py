@@ -9,6 +9,7 @@ from transformers import (
 )
 from peft import PeftModel
 from typing import Dict
+from ft.config.model_configs.config_loader import ModelMetadataFinder
 
 
 def load_adapted_hf_generation_pipeline(
@@ -23,7 +24,7 @@ def load_adapted_hf_generation_pipeline(
     Load a huggingface model & adapt with PEFT.
     Borrowed from https://github.com/tloen/alpaca-lora/blob/main/generate.py
     """
-
+    model_metadata_finder = ModelMetadataFinder(base_model_name)
     if device == "cuda":
         if not is_accelerate_available():
             raise ValueError("Install `accelerate`")
@@ -83,7 +84,7 @@ def load_adapted_hf_generation_pipeline(
 
     model.eval()
     model.config.pad_token_id = tokenizer.pad_token_id = 0  # unk
-    model.config.bos_token_id = 1
+    model.config.bos_token_id = model_metadata_finder.fetch_bos_token_id_from_config(base_model_name)  # Todo: make this dynamic for different configs
     model.config.eos_token_id = 2
 
     config = GenerationConfig(**gen_config_dict)

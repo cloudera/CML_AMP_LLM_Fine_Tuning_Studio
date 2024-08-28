@@ -5,27 +5,39 @@ import json
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import Config, Model
-
+import sqlalchemy
 from sqlalchemy import delete
 from sqlalchemy.orm.session import Session
 
 from typing import List
-
+from ft import consts
 from uuid import uuid4
-
+from ft.consts import *
 from ft.utils import dict_to_yaml_string
+from ft.config.model_configs.config_loader import ModelMetadataFinder
+
 
 
 def get_configs_for_model_id(session: Session, configs: List[Config], model_id: str) -> List[Config]:
 
     # Get the model type.
     model: Model = session.get(Model, model_id)
-
     # TODO: implement extracting the best config based on model data.
     model_hf_name = model.huggingface_model_name
+    model_metadata_finder = ModelMetadataFinder(model_hf_name)
+    model_family = model_metadata_finder.fetch_model_family_from_config()
+    # Filter configs for default configs
+    model_family = model_family + DEFAULT_CONFIG_DESCRIPTION
+    filtered_configs = [c for c in configs if c.description == model_family]
+    # if filtered_configs == 0, show default config
+    if len(filtered_configs) == 0:
+        return configs 
+    return filtered_configs
 
-    return configs
-
+def transform_name_to_family(model_name: str) -> str:
+    model_metadata_finder = ModelMetadataFinder(model_name)
+    model_family = model_metadata_finder.fetch_model_family_from_config()
+    return model_family + USER_CONFIG_DESCRIPTION
 
 def list_configs(request: ListConfigsRequest, dao: FineTuningStudioDao = None) -> ListConfigsResponse:
 
@@ -64,6 +76,35 @@ def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> Ge
     return response
 
 
+# Need more discussion about this
+'''
+def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> GetConfigResponse:
+    response = GetConfigResponse()
+    try:
+        if request.type == None:
+            with dao.get_session() as session:
+                config: Config = session.query(Config).where(Config.id == request.id).one()
+                response = GetConfigResponse(
+                    config=config.to_protobuf(ConfigMetadata) if config is not None else None
+                )
+        else:
+            with dao.get_session() as session:
+                try:
+                    config: Config = session.query(Config).where(Config.type == request.type, Config.description == request.description).one()
+                    response = GetConfigResponse(
+                        config=config.to_protobuf(ConfigMetadata) if config is not None else None
+                    )
+                # get default configs if the config for the model family is not present
+                except sqlalchemy.orm.exc.NoResultFound:
+                    config: Config = session.query(Config).where(Config.type == request.type, Config.description == consts.DEFAULT_CONFIG_DESCRIPTION).one()
+                    response = GetConfigResponse(
+                        config=config.to_protobuf(ConfigMetadata) if config is not None else None
+                    )
+        return response
+    except Exception as e:
+        raise ValueError(f"ERROR: Failed to get config. {e}")
+'''
+
 def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> AddConfigResponse:
     """
     Add a new configuration to the datastore. Returns a configuration metadata object
@@ -77,7 +118,11 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
     response: AddConfigResponse = AddConfigResponse()
 
     with dao.get_session() as session:
-        configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
+        if 'description' in [x[0].name for x in request.ListFields()]:
+            description = transform_name_to_family(request.description)
+            configs: List[Config] = session.query(Config).where(Config.type == request.type, Config.description == description).all()
+        else:
+            configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
 
         # Handle AXOLOTL type by parsing the config as YAML
         if request.type == ConfigType.AXOLOTL:
@@ -112,7 +157,7 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
             config: Config = Config(
                 id=str(uuid4()),
                 type=request.type,
-                description=request.description,
+                description=description,
                 config=config_content
             )
             session.add(config)
