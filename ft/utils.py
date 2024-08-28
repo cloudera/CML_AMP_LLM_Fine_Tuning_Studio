@@ -30,6 +30,17 @@ def fetch_resource_usage_data(host: str, project_owner: str, api_key: str) -> Op
     except requests.RequestException as e:
         st.error(f"Failed to fetch data: {e}")
         return None
+    
+def fetch_cml_site_config(host: str, project_owner: str, api_key: str) -> Optional[Dict[str, Any]]:
+    """Fetch data from API and handle errors."""
+    url = f"{host}/site/config/"
+    try:
+        res = requests.get(url, headers={"Content-Type": "application/json"}, auth=(api_key, ""))
+        res.raise_for_status()
+        return res.json()
+    except requests.RequestException as e:
+        st.error(f"Failed to fetch siteconfig: {e}")
+        return None
 
 
 def load_markdown_file(file_path: str) -> str:

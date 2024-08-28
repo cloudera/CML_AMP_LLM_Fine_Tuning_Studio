@@ -1,13 +1,14 @@
 import streamlit as st
 from ft.api import *
 import json
-from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str
+from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str, fetch_cml_site_config
 import traceback
-from pgs.streamlit_utils import get_fine_tuning_studio_client
+from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import yaml
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
+cml = get_cml_client()
 
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
@@ -15,7 +16,6 @@ cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 
 # Container for header
-
 
 def create_header():
     with st.container(border=True):
@@ -32,10 +32,9 @@ def create_header():
 
 
 def create_train_adapter_page_with_proprietary():
-    ccol1, ccol2 = st.columns([3, 2])
+    ccol1, ccol2 = st.columns([4, 2])
     with ccol1:
         with st.container(border=True):
-
             col1, col2 = st.columns(2)
             with col1:
                 adapter_name = st.text_input(
@@ -98,122 +97,177 @@ def create_train_adapter_page_with_proprietary():
                     help="Select the base model for training. This field is required."
                 )
 
-            # Advanced options
-            c1, c2 = st.columns(2)
-            with c1:
-                num_epochs = st.text_input(
-                    "Number of Epochs",
-                    value="10",
-                    key="num_epochs",
-                    help="Specify the number of epochs for training."
+            # Resource Options
+            if 'dist_type_chosen' not in st.session_state:
+                st.session_state['dist_type_chosen'] = "None"
+
+            with st.container(border=True):
+                c1, c2= st.columns([1, 1])
+                with c1:
+                    st.caption("Training Cluster Size")
+                    num_workers = st.number_input(
+                        "Number of Machines to Launch",
+                        min_value=1,
+                        max_value=100,
+                        help="Specify the number of machines that will launched in CML to perform training.")
+                with c2:
+                    if(num_workers> 1):
+                        tc_arch="Distribution - Multi Node (%d)" % num_workers
+                        tc_descrip="Depending on resource availability, the %d training machines may be provisioned across multiple physical nodes in your CML Workspace." % num_workers
+                    else:
+                        tc_arch="Dsitribution - Single Node"
+                        tc_descrip="A single training machine will be provisioned within one physical CML Workspace Node."
+                    st.warning("**%s**\n\n%s" %(tc_arch, tc_descrip))
+                st.divider()
+                st.caption("Machine Profile")
+                c1, c2, c3= st.columns([1, 1, 2])
+                with c1:
+                    cpu = st.number_input(
+                        "CPU (vCPU)",
+                        value=2,
+                        min_value=1,
+                        key="cpu",
+                        help="Specify the number of virtual CPUs to allocate for training."
+                    )
+                    # Handling the potential for heterogeneous GPU clusters, need to load gpu max num limits and label namess
+                    # This is all very heavy, probably want to do this on page load and cache it once in a more reasonable data struct
+                    accelerator_labels = []
+                    try: 
+                        accelerator_labels = cml.list_all_accelerator_node_labels().accelerator_node_label
+                        accelerator_labels_dict = {x.label_value: vars(x) for x in accelerator_labels}
+                    except Exception as e:
+                        site_conf = fetch_cml_site_config(cdsw_api_url, project_owner, cdsw_api_key)
+                        site_max_gpu = site_conf.get("max_gpu_per_engine")
+                        # Dummy accelerator label that will get ignored in older clusters without heterogeneous gpu support
+                        accelerator_labels_dict ={'Default': {'_availability': True,
+                            '_id': '-1',
+                            '_label_value': 'Default',
+                            '_max_gpu_per_workload': site_max_gpu,
+                            }}
+                    gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
+                    gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list, index=0)
+                    gpu_num_max = int(accelerator_labels_dict[gpu_label]['_max_gpu_per_workload'])
+                    gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
+                with c2:
+                    placeholder = st.empty()
+                    memory = st.number_input(
+                        "Memory (GiB)",
+                        value=8,
+                        min_value=1,
+                        key="memory",
+                        help="Specify the amount of memory (in GiB) to allocate for training."
+                    )
+                    gpu = st.number_input(
+                        "Number of GPUs",
+                        min_value=1,
+                        max_value=gpu_num_max,
+                        key="gpu",
+                        help="Select the number of GPUs to allocate for training. This is limited to the maximum number of GPUs available per node on this CML Workspace Cluster."
+                    )
+                with c3:
+                    if (num_workers > 1 or gpu > 1):
+                        tdp = "Multi-GPU Training (%d)" % (num_workers*gpu)
+                        tdp_descrip = "%d GPU(s) on each %d launched machine(s) will each load the entire model and process a portion of the Dataset." % (gpu, num_workers)
+                    else:
+                        tdp = "Single-GPU Training"
+                        tdp_descrip = "A single GPU will load the entire model and process the Dataset"
+                    st.warning("**%s**\n\n%s" %(tdp, tdp_descrip))
+                    
+            # Training Options
+            with st.container(border=True):
+                st.caption("Training Options")
+                c1, c2 = st.columns(2)
+                with c1:
+                    num_epochs = st.text_input(
+                        "Number of Epochs",
+                        value="10",
+                        key="num_epochs",
+                        help="Specify the number of epochs for training."
+                    )
+                with c2:
+                    learning_rate = st.text_input(
+                        "Learning Rate",
+                        value="2e-4",
+                        key="learning_rate",
+                        help="Set the learning rate for the training process."
+                    )
+
+                auto_add_adapter = st.checkbox(
+                    "Add Adapter to Fine Tuning Studio after Training",
+                    value=True,
+                    key="auto_add_adapter",
+                    help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
                 )
-            with c2:
-                learning_rate = st.text_input(
-                    "Learning Rate",
-                    value="2e-4",
-                    key="learning_rate",
-                    help="Set the learning rate for the training process."
+                c1, c2 = st.columns([1, 1])
+                dataset_fraction = c1.slider(
+                    "Dataset Fraction",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=1.0,
+                    help="Specify the fraction of the dataset to use for training."
                 )
-            c1, c2, c3 = st.columns([1, 1, 2])
-            with c1:
-                cpu = st.text_input(
-                    "CPU (vCPU)",
-                    value="2",
-                    key="cpu",
-                    help="Specify the number of virtual CPUs to allocate for training."
-                )
-            with c2:
-                memory = st.text_input(
-                    "Memory (GiB)",
-                    value="8",
-                    key="memory",
-                    help="Specify the amount of memory (in GiB) to allocate for training."
-                )
-            with c3:
-                gpu = st.selectbox(
-                    "GPU (NVIDIA)",
-                    options=[1],
-                    index=0,
-                    key="gpu",
-                    help="Select the number of GPUs to allocate for training."
+                dataset_train_test_split = c2.slider(
+                    "Dataset Train/Test Split",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.9,
+                    help="Set the ratio for splitting the dataset into training and test sets."
                 )
 
-            auto_add_adapter = st.checkbox(
-                "Add Adapter to Fine Tuning Studio after Training",
-                value=True,
-                key="auto_add_adapter",
-                help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
-            )
-            c1, c2 = st.columns([1, 1])
-            dataset_fraction = c1.slider(
-                "Dataset Fraction",
-                min_value=0.0,
-                max_value=1.0,
-                value=1.0,
-                help="Specify the fraction of the dataset to use for training."
-            )
-            dataset_train_test_split = c2.slider(
-                "Dataset Train/Test Split",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.9,
-                help="Set the ratio for splitting the dataset into training and test sets."
-            )
+                c1, c2 = st.columns([1, 1])
 
-            c1, c2 = st.columns([1, 1])
-
-            # Extract out the lora config and the bnb config to use. For now,
-            # server-side there is no selection logic based on model & adapters,
-            # but there may be in the future, which is why we are specifying this here.
-            # Right now, we are just extracting out the first available config and
-            # showing that to the user.
-            lora_config_text = c1.text_area(
-                "LoRA Config",
-                json.dumps(
-                    json.loads(
-                        fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.LORA_CONFIG)
-                        ).configs[0].config
-                    ),
-                    indent=2
-                ),
-                height=200,
-                help="LoRA configuration for fine-tuning the model."
-            )
-            bnb_config_text = c2.text_area(
-                "BitsAndBytes Config",
-                json.dumps(
-                    json.loads(
-                        fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
-                        ).configs[0].config
-                    ),
-                    indent=2
-                ),
-                height=200,
-                help="BitsAndBytes configuration for optimizing model training."
-            )
-
-            with st.expander("Advanced Training Options"):
-                st.info("""
-                        NOTE: the following fields in the below JSON will be overridden by the values set in the UI above:
-                        * Output Location (TrainingArguments.output_dir)
-                        * Number of Epochs (TrainingArguments.num_train_epochs)
-                        * Learning Rate (TrainingArguments.learning_rate)
-                        """)
-                training_args_text = st.text_area(
-                    "Training Arguments",
+                # Extract out the lora config and the bnb config to use. For now,
+                # server-side there is no selection logic based on model & adapters,
+                # but there may be in the future, which is why we are specifying this here.
+                # Right now, we are just extracting out the first available config and
+                # showing that to the user.
+                lora_config_text = c1.text_area(
+                    "LoRA Config",
                     json.dumps(
                         json.loads(
                             fts.ListConfigs(
-                                ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
+                                ListConfigsRequest(type=ConfigType.LORA_CONFIG)
                             ).configs[0].config
                         ),
                         indent=2
                     ),
-                    height=400,
-                    help="Advanced training arguments in JSON format."
+                    height=200,
+                    help="LoRA configuration for fine-tuning the model."
                 )
+                bnb_config_text = c2.text_area(
+                    "BitsAndBytes Config",
+                    json.dumps(
+                        json.loads(
+                            fts.ListConfigs(
+                                ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
+                            ).configs[0].config
+                        ),
+                        indent=2
+                    ),
+                    height=200,
+                    help="BitsAndBytes configuration for optimizing model training."
+                )
+
+                with st.expander("Advanced Training Options"):
+                    st.info("""
+                            NOTE: the following fields in the below JSON will be overridden by the values set in the UI above:
+                            * Output Location (TrainingArguments.output_dir)
+                            * Number of Epochs (TrainingArguments.num_train_epochs)
+                            * Learning Rate (TrainingArguments.learning_rate)
+                            """)
+                    training_args_text = st.text_area(
+                        "Training Arguments",
+                        json.dumps(
+                            json.loads(
+                                fts.ListConfigs(
+                                    ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
+                                ).configs[0].config
+                            ),
+                            indent=2
+                        ),
+                        height=400,
+                        help="Advanced training arguments in JSON format."
+                    )
 
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
@@ -283,6 +337,7 @@ def create_train_adapter_page_with_proprietary():
                                 learning_rate=float(learning_rate),
                                 cpu=int(cpu),
                                 gpu=gpu,
+                                gpu_label_id=int(gpu_label_id),
                                 memory=int(memory),
                                 model_bnb_config_id=bnb_config.id,
                                 adapter_bnb_config_id=bnb_config.id,
