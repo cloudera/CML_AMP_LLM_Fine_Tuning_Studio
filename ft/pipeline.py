@@ -9,7 +9,7 @@ from transformers import (
 )
 from peft import PeftModel
 from typing import Dict
-from ft.configs.model_configs.config_loader import ModelMetadataFinder
+from ft.config.model_configs.config_loader import ModelMetadataFinder
 
 
 def load_adapted_hf_generation_pipeline(

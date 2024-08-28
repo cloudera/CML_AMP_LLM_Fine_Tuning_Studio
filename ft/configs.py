@@ -14,7 +14,7 @@ from typing import List
 from uuid import uuid4
 from ft import consts
 from ft.utils import dict_to_yaml_string
-from ft.configs.model_configs.config_loader import ModelMetadataFinder
+from ft.config.model_configs.config_loader import ModelMetadataFinder
 
 
 
