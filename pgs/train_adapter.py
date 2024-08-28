@@ -81,7 +81,7 @@ def create_train_adapter_page_with_proprietary():
 
                     if len(current_prompts) == 0:
                         st.error(
-                            "No prompts available. Please create a prompt tempplate for the selected dataset to proceed with training.",
+                            "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
                             icon=":material/error:")
 
                     if prompt_idx is not None:
@@ -172,7 +172,7 @@ def create_train_adapter_page_with_proprietary():
                 json.dumps(
                     json.loads(
                         fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.LORA_CONFIG)
+                            ListConfigsRequest(type=ConfigType.LORA_CONFIG, model_id=current_models[model_idx].id)
                         ).configs[0].config
                     ),
                     indent=2
@@ -185,7 +185,7 @@ def create_train_adapter_page_with_proprietary():
                 json.dumps(
                     json.loads(
                         fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
+                            ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG, model_id=current_models[model_idx].id)
                         ).configs[0].config
                     ),
                     indent=2
@@ -206,7 +206,7 @@ def create_train_adapter_page_with_proprietary():
                     json.dumps(
                         json.loads(
                             fts.ListConfigs(
-                                ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
+                                ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS, model_id=current_models[model_idx].id)
                             ).configs[0].config
                         ),
                         indent=2
@@ -244,13 +244,15 @@ def create_train_adapter_page_with_proprietary():
                         lora_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.LORA_CONFIG,
-                                config=lora_config_text
+                                config=lora_config_text,
+                                description= model.huggingface_model_name
                             )
                         ).config
                         bnb_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.BITSANDBYTES_CONFIG,
-                                config=bnb_config_text
+                                config=bnb_config_text,
+                                description= model.huggingface_model_name
                             )
                         ).config
 
@@ -267,7 +269,8 @@ def create_train_adapter_page_with_proprietary():
                         training_args_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.TRAINING_ARGUMENTS,
-                                config=json.dumps(training_args_config_dict)
+                                config=json.dumps(training_args_config_dict),
+                                description= model.huggingface_model_name
                             )
                         ).config
 
