@@ -5,17 +5,14 @@ import json
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import Config, Model
-import sqlalchemy
 from sqlalchemy import delete
 from sqlalchemy.orm.session import Session
 
 from typing import List
-from ft import consts
 from uuid import uuid4
 from ft.consts import *
 from ft.utils import dict_to_yaml_string
 from ft.config.model_configs.config_loader import ModelMetadataFinder
-
 
 
 def get_configs_for_model_id(session: Session, configs: List[Config], model_id: str) -> List[Config]:
@@ -31,13 +28,15 @@ def get_configs_for_model_id(session: Session, configs: List[Config], model_id: 
     filtered_configs = [c for c in configs if c.description == model_family]
     # if filtered_configs == 0, show default config
     if len(filtered_configs) == 0:
-        return configs 
+        return configs
     return filtered_configs
+
 
 def transform_name_to_family(model_name: str) -> str:
     model_metadata_finder = ModelMetadataFinder(model_name)
     model_family = model_metadata_finder.fetch_model_family_from_config()
     return model_family + USER_CONFIG_DESCRIPTION
+
 
 def list_configs(request: ListConfigsRequest, dao: FineTuningStudioDao = None) -> ListConfigsResponse:
 
@@ -105,6 +104,7 @@ def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> Ge
         raise ValueError(f"ERROR: Failed to get config. {e}")
 '''
 
+
 def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> AddConfigResponse:
     """
     Add a new configuration to the datastore. Returns a configuration metadata object
@@ -120,8 +120,10 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
     with dao.get_session() as session:
         if 'description' in [x[0].name for x in request.ListFields()]:
             description = transform_name_to_family(request.description)
-            configs: List[Config] = session.query(Config).where(Config.type == request.type, Config.description == description).all()
+            configs: List[Config] = session.query(Config).where(
+                Config.type == request.type, Config.description == description).all()
         else:
+            description = None
             configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
 
         # Handle AXOLOTL type by parsing the config as YAML

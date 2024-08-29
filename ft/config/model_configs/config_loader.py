@@ -14,16 +14,15 @@ class ModelMetadataFinder:
         except IndexError:
             print("Model family not found in the configuration")
             return None
-    
+
     @staticmethod
     def fetch_bos_token_id_from_config(model_name_or_path):
         config = AutoConfig.from_pretrained(model_name_or_path)
         try:
             return config.bos_token_id
-        except:
+        except BaseException:
             print("Bos token Id can't be found out returning default alpaca ID")
             return 1
-    
 
 
 if __name__ == "__main__":
@@ -32,4 +31,3 @@ if __name__ == "__main__":
     bos_token_id = model_family_finder.fetch_bos_token_id_from_config("nvidia/Mistral-NeMo-Minitron-8B-Base")
     print(f"Model family: {model_family}")
     print(f"The bos id for model is {bos_token_id}")
-

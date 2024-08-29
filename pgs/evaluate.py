@@ -10,7 +10,6 @@ from ft.utils import get_device
 from ft.utils import attempt_hf_login
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
-import time
 
 # Instantiate (or get the pre-existing) client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -40,7 +39,7 @@ if 'input_prompt_idx' not in st.session_state:
     st.session_state.input_prompt_idx = None
 if 'selected_adapters' not in st.session_state:
     st.session_state.selected_adapters = []
-if 'model_idx'  not in st.session_state:
+if 'model_idx' not in st.session_state:
     st.session_state.model_idx = None
 
 # Handle Huggingface login attempt
@@ -48,17 +47,22 @@ hf_token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN")
 if hf_token:
     attempt_hf_login(hf_token)
 
+
 def on_model_change():
     st.session_state.model_idx = st.session_state.selected_model_idx
+
 
 def on_adapters_change():
     st.session_state.selected_adapters = st.session_state.selected_adapters_key_name
 
+
 def on_text_area_change():
     st.session_state.input_prompt_template = st.session_state.text_area_value
 
+
 def on_input_prompt_change():
     st.session_state.input_prompt = st.session_state.input_prompt_key
+
 
 def update_text_area():
     st.session_state.input_prompt_idx = st.session_state.input_prompt_idx_key
@@ -74,6 +78,7 @@ def update_text_area():
             st.warning("Selected prompt index is out of bounds. Please select a valid prompt.", icon=":material/error:")
     except Exception as e:
         st.error(f"Failed to update text area: {str(e)}", icon=":material/error:")
+
 
 def generate_random():
     try:
@@ -103,6 +108,7 @@ def generate_random():
     except Exception as e:
         st.error(f"Failed to generate random prompt: {str(e)}", icon=":material/error:")
 
+
 @st.fragment
 def prompt_fragment():
     try:
@@ -113,13 +119,13 @@ def prompt_fragment():
         if prompts:
             cont.selectbox(
                 "Import Prompt Template",
-                range(len(prompts)),
+                range(
+                    len(prompts)),
                 key="input_prompt_idx_key",
                 index=st.session_state.input_prompt_idx,
                 format_func=lambda x: f"{prompts[x].name} [dataset: {fts.GetDataset(GetDatasetRequest(id=prompts[x].dataset_id)).dataset.name}]",
-                on_change=update_text_area
-            )
-            
+                on_change=update_text_area)
+
             cont.text_area(
                 "Prompt Template",
                 height=120,
@@ -128,7 +134,8 @@ def prompt_fragment():
                 on_change=on_text_area_change
             )
 
-            cont.button("Generate Random Prompt from Dataset and Template", on_click=generate_random, use_container_width=True)
+            cont.button("Generate Random Prompt from Dataset and Template",
+                        on_click=generate_random, use_container_width=True)
             cont.text_area(
                 "Input Prompt",
                 height=120,
@@ -142,6 +149,7 @@ def prompt_fragment():
     except Exception as e:
         st.error(f"Error in prompt fragment: {str(e)}", icon=":material/error:")
 
+
 def evaluate_fragment():
     try:
         cont = st.container()
@@ -149,13 +157,14 @@ def evaluate_fragment():
         generate_button = cont.button("Generate", type="primary", use_container_width=True)
         current_model_metadata = st.session_state.current_model_metadata
 
-
         if generate_button:
 
             if current_model_metadata:
-                
+
                 if not st.session_state.input_prompt or st.session_state.input_prompt.strip() == "":
-                    st.error("Input Prompt is empty or contains only whitespace. Please provide the Input Prompt in the format of the Prompt Template.", icon=":material/error:")
+                    st.error(
+                        "Input Prompt is empty or contains only whitespace. Please provide the Input Prompt in the format of the Prompt Template.",
+                        icon=":material/error:")
                     return
 
                 with st.spinner("Loading model..."):
@@ -169,8 +178,7 @@ def evaluate_fragment():
 
                     if st.session_state.prv_model_metadata != st.session_state.current_model_metadata:
                         st.session_state.current_model = AutoModelForCausalLM.from_pretrained(
-                            current_model_metadata.huggingface_model_name, quantization_config=bnb_config, return_dict=True
-                        )
+                            current_model_metadata.huggingface_model_name, quantization_config=bnb_config, return_dict=True)
                         st.session_state.prv_model_metadata = current_model_metadata
                         st.session_state.loaded_adapters = []
                         st.session_state.adapter_outputs = {}
@@ -181,7 +189,9 @@ def evaluate_fragment():
                     model_adapters = list(filter(lambda x: os.path.isdir(x.location), model_adapters))
 
                     if not model_adapters:
-                        st.warning("No adapters found for this model. Please fine-tune the selected base model to generate an adapter.", icon=":material/error:")
+                        st.warning(
+                            "No adapters found for this model. Please fine-tune the selected base model to generate an adapter.",
+                            icon=":material/error:")
                         return
 
                     st.session_state.model_adapters = model_adapters
@@ -197,7 +207,8 @@ def evaluate_fragment():
                                     st.warning(f"Adapter directory does not exist: {loc}")
 
                 with st.spinner("Generating text..."):
-                    tokenizer = AutoTokenizer.from_pretrained(st.session_state.current_model_metadata.huggingface_model_name)
+                    tokenizer = AutoTokenizer.from_pretrained(
+                        st.session_state.current_model_metadata.huggingface_model_name)
                     input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to(get_device())
 
                     st.session_state.current_model.disable_adapters()
@@ -206,7 +217,8 @@ def evaluate_fragment():
                     with torch.amp.autocast('cuda'):
                         model_out = st.session_state.current_model.generate(**input_tokens, **generation_config_dict)
 
-                    tok_out = tokenizer.decode(model_out[0], skip_special_tokens=False)[len(st.session_state.input_prompt):]
+                    tok_out = tokenizer.decode(model_out[0], skip_special_tokens=False)[
+                        len(st.session_state.input_prompt):]
                     st.session_state.base_output = tok_out
 
                     # Generate outputs for each selected adapter
@@ -217,8 +229,10 @@ def evaluate_fragment():
                             st.session_state.current_model.enable_adapters()
                             st.session_state.current_model.set_adapter(adapter.id)
                             with torch.amp.autocast('cuda'):
-                                model_out = st.session_state.current_model.generate(**input_tokens, **generation_config_dict)
-                            tok_out_adapter = tokenizer.decode(model_out[0], skip_special_tokens=False)[len(st.session_state.input_prompt):]
+                                model_out = st.session_state.current_model.generate(
+                                    **input_tokens, **generation_config_dict)
+                            tok_out_adapter = tokenizer.decode(model_out[0], skip_special_tokens=False)[
+                                len(st.session_state.input_prompt):]
                             st.session_state.adapter_outputs[adapter.name] = tok_out_adapter
                     else:
                         st.warning("No adapters selected for text generation.", icon=":material/error:")
@@ -226,6 +240,7 @@ def evaluate_fragment():
                 st.error("No model selected. Please select a base model.", icon=":material/error:")
     except Exception as e:
         st.error(f"Error during evaluation: {str(e)}", icon=":material/error:")
+
 
 # UI Layout
 with st.container(border=True):
@@ -272,7 +287,9 @@ with col1:
                         )
                         st.session_state.selected_adapters = selected_adapters or []
                     else:
-                        st.warning("No adapters available for the selected model. Please fine-tune this model to generate adapters.", icon=":material/error:")
+                        st.warning(
+                            "No adapters available for the selected model. Please fine-tune this model to generate adapters.",
+                            icon=":material/error:")
                         st.session_state.selected_adapters = []
 
                 else:
@@ -317,7 +334,13 @@ with col2:
         cont.code(st.session_state.base_output)
     else:
         cont.text(f"Base Model Response:")
-        cont.text_area("Base Model Response Empty", value="", disabled=True, key="base_output_empty", label_visibility="collapsed", height=200)
+        cont.text_area(
+            "Base Model Response Empty",
+            value="",
+            disabled=True,
+            key="base_output_empty",
+            label_visibility="collapsed",
+            height=200)
 
     cont.write("\n")
 
@@ -328,5 +351,10 @@ with col2:
             if output:
                 cont.code(output)
             else:
-                cont.text_area(f"Base+Adapter Response Empty", value="", disabled=True, key=f"{adapter_name}_output_empty", label_visibility="collapsed", height=200)
-
+                cont.text_area(
+                    f"Base+Adapter Response Empty",
+                    value="",
+                    disabled=True,
+                    key=f"{adapter_name}_output_empty",
+                    label_visibility="collapsed",
+                    height=200)

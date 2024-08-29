@@ -2,6 +2,7 @@ import unittest
 from ft.utils import dict_to_yaml_string, format_status_with_icon
 from ft.utils import generate_templates
 
+
 class TestYamlFunctions(unittest.TestCase):
 
     def test_dict_to_yaml_string_basic(self):
@@ -42,6 +43,7 @@ class TestFormatStatusWithIcon(unittest.TestCase):
         self.assertEqual(format_status_with_icon(["running"]), "⚪ Unknown")
         self.assertEqual(format_status_with_icon({"status": "running"}), "⚪ Unknown")
 
+
 class TestGenerateTemplates(unittest.TestCase):
 
     def test_single_output_column(self):
@@ -50,8 +52,7 @@ class TestGenerateTemplates(unittest.TestCase):
             "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
             "<Instruction>: {instruction}\n"
             "<Input>: {input}\n"
-            "<Response>: \n"
-        )
+            "<Response>: \n")
         expected_completion_template = "{response}\n"
 
         prompt_template, completion_template = generate_templates(columns)
@@ -64,8 +65,7 @@ class TestGenerateTemplates(unittest.TestCase):
             "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
             "<Instruction>: {instruction}\n"
             "<Input>: {input}\n"
-            "<Response>: \n"
-        )
+            "<Response>: \n")
         expected_completion_template = (
             "{response}\n"
             "<Output>: {output}\n"
@@ -81,8 +81,7 @@ class TestGenerateTemplates(unittest.TestCase):
             "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
             "<Col1>: {col1}\n"
             "<Col2>: {col2}\n"
-            "<Col3>: \n"
-        )
+            "<Col3>: \n")
         expected_completion_template = (
             "{col3}\n"
             "<Col4>: {col4}\n"

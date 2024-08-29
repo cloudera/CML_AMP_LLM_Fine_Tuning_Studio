@@ -46,9 +46,8 @@ def display_create_prompt():
                 default_prompt_template, default_completion_template = generate_templates(columns)
                 subcol1, subcol2 = st.columns(2)
                 prompt_template = subcol1.text_area("Prompt Template", value=default_prompt_template, height=260)
-                completion_template = subcol2.text_area("Completion Template", value=default_completion_template, height=260)
-                
-
+                completion_template = subcol2.text_area(
+                    "Completion Template", value=default_completion_template, height=260)
 
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)
@@ -62,7 +61,7 @@ def display_create_prompt():
                     dataset_size = len(loaded_dataset["train"])
                     idx_random = random.randint(0, dataset_size - 1)
                     dataset_idx = loaded_dataset["train"][idx_random]
-                    
+
                     # Generate the example prompt and completion using the templates
                     example_input_prompt = prompt_template.format(**dataset_idx)
                     example_completion_prompt = completion_template.format(**dataset_idx)
@@ -70,7 +69,7 @@ def display_create_prompt():
                 # Display the example input prompt and completion prompt
                 subcol1.caption("Example Input Prompt")
                 subcol1.code(example_input_prompt)
-                
+
                 subcol2.caption("Example Completion Prompt")
                 subcol2.code(example_completion_prompt)
 
@@ -88,39 +87,39 @@ def display_create_prompt():
 
     with col2:
         st.info(
-        """
+            """
         ### How to Create and Customize Training Prompts
 
         1. **Input Prompt (Prompt Template)**
             - **Default Template:** Auto-generated template based on dataset features.
-            
+
                 ```
                 You are an LLM. Provide a response below.
 
                 <Instruction>: {instruction}
                 <Input>: {input}
-                <Response>: 
+                <Response>:
                 ```
-            
+
             - **Modifying the Input Prompt:** Adjust by removing fields or adding instructions.
-            
+
                 ```
                 You are a customer chatbot. Please respond politely with information to help the customer based on the intent retrieved.
 
                 <Instruction>: {instruction}
                 <Input>: {input}
-                <Assistant>: 
+                <Assistant>:
                 ```
 
         2. **Completion Prompt (Completion Template)**
             - **Default Template:** Defines expected output from the model.
-            
+
                 ```
                 {response}
                 ```
-            
+
             - **Customizing Completion:** Add fields for more specific outputs.
-            
+
                 ```
                 {response}
                 <Source>: {source}
@@ -130,15 +129,14 @@ def display_create_prompt():
             - **Generate Example:** Preview Input and Completion Prompts with dataset data.
             - **Create Prompt:** Save when satisfied with the templates.
         """
-    )
-
+        )
 
 
 def add_prompt(name, dataset_id, prompt_template, completion_template):
     # Remove the newline from the end of the prompt template and concatenate with the response template
     if prompt_template.endswith("\n"):
         prompt_template = prompt_template.rstrip("\n")
-    
+
     # Concatenate the response within the template properly
     template = prompt_template + completion_template.strip()
 

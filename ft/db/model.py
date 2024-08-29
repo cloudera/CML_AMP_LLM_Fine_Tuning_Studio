@@ -65,6 +65,34 @@ class MappedProtobuf:
         return protobuf_message
 
 
+class MappedJSON:
+    """
+    A declarative base class inheriting this MappedJSON class will allow
+    the entire model in its state to be written to a JSON dict.
+    """
+
+    def to_dict(self):
+        """
+        Return a JSON dictionary of the base model.
+        """
+
+        if isinstance(self.__class__, DeclarativeMeta):
+            fields = {}
+            for field in [x for x in dir(self) if not x.startswith('_') and x != 'metadata']:
+                data = self.__getattribute__(field)
+                if isinstance(data, list):
+                    fields[field] = [self.to_dict(item) for item in data]
+                else:
+                    try:
+                        json.dumps(data)
+                        fields[field] = data
+                    except TypeError:
+                        fields[field] = str(data)
+            return fields
+        else:
+            return self
+
+
 class Model(Base, MappedProtobuf):
     __tablename__ = 'models'
     id = Column(String, primary_key=True, nullable=False)

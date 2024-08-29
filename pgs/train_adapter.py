@@ -17,6 +17,7 @@ project_owner = get_env_variable('PROJECT_OWNER', 'User')
 
 # Container for header
 
+
 def create_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
@@ -102,7 +103,7 @@ def create_train_adapter_page_with_proprietary():
                 st.session_state['dist_type_chosen'] = "None"
 
             with st.container(border=True):
-                c1, c2= st.columns([1, 1])
+                c1, c2 = st.columns([1, 1])
                 with c1:
                     st.caption("Training Cluster Size")
                     num_workers = st.number_input(
@@ -111,16 +112,16 @@ def create_train_adapter_page_with_proprietary():
                         max_value=100,
                         help="Specify the number of machines that will launched in CML to perform training.")
                 with c2:
-                    if(num_workers> 1):
-                        tc_arch="Distribution - Multi Node (%d)" % num_workers
-                        tc_descrip="Depending on resource availability, the %d training machines may be provisioned across multiple physical nodes in your CML Workspace." % num_workers
+                    if (num_workers > 1):
+                        tc_arch = "Distribution - Multi Node (%d)" % num_workers
+                        tc_descrip = "Depending on resource availability, the %d training machines may be provisioned across multiple physical nodes in your CML Workspace." % num_workers
                     else:
-                        tc_arch="Dsitribution - Single Node"
-                        tc_descrip="A single training machine will be provisioned within one physical CML Workspace Node."
-                    st.warning("**%s**\n\n%s" %(tc_arch, tc_descrip))
+                        tc_arch = "Dsitribution - Single Node"
+                        tc_descrip = "A single training machine will be provisioned within one physical CML Workspace Node."
+                    st.warning("**%s**\n\n%s" % (tc_arch, tc_descrip))
                 st.divider()
                 st.caption("Machine Profile")
-                c1, c2, c3= st.columns([1, 1, 2])
+                c1, c2, c3 = st.columns([1, 1, 2])
                 with c1:
                     cpu = st.number_input(
                         "CPU (vCPU)",
@@ -130,20 +131,22 @@ def create_train_adapter_page_with_proprietary():
                         help="Specify the number of virtual CPUs to allocate for training."
                     )
                     # Handling the potential for heterogeneous GPU clusters, need to load gpu max num limits and label namess
-                    # This is all very heavy, probably want to do this on page load and cache it once in a more reasonable data struct
+                    # This is all very heavy, probably want to do this on page load and cache
+                    # it once in a more reasonable data struct
                     accelerator_labels = []
-                    try: 
+                    try:
                         accelerator_labels = cml.list_all_accelerator_node_labels().accelerator_node_label
                         accelerator_labels_dict = {x.label_value: vars(x) for x in accelerator_labels}
                     except Exception as e:
                         site_conf = fetch_cml_site_config(cdsw_api_url, project_owner, cdsw_api_key)
                         site_max_gpu = site_conf.get("max_gpu_per_engine")
-                        # Dummy accelerator label that will get ignored in older clusters without heterogeneous gpu support
-                        accelerator_labels_dict ={'Default': {'_availability': True,
-                            '_id': '-1',
-                            '_label_value': 'Default',
-                            '_max_gpu_per_workload': site_max_gpu,
-                            }}
+                        # Dummy accelerator label that will get ignored in older clusters without
+                        # heterogeneous gpu support
+                        accelerator_labels_dict = {'Default': {'_availability': True,
+                                                               '_id': '-1',
+                                                               '_label_value': 'Default',
+                                                               '_max_gpu_per_workload': site_max_gpu,
+                                                               }}
                     gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
                     gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list, index=0)
                     gpu_num_max = int(accelerator_labels_dict[gpu_label]['_max_gpu_per_workload'])
@@ -166,13 +169,14 @@ def create_train_adapter_page_with_proprietary():
                     )
                 with c3:
                     if (num_workers > 1 or gpu > 1):
-                        tdp = "Multi-GPU Training (%d)" % (num_workers*gpu)
-                        tdp_descrip = "%d GPU(s) on each %d launched machine(s) will each load the entire model and process a portion of the Dataset." % (gpu, num_workers)
+                        tdp = "Multi-GPU Training (%d)" % (num_workers * gpu)
+                        tdp_descrip = "%d GPU(s) on each %d launched machine(s) will each load the entire model and process a portion of the Dataset." % (
+                            gpu, num_workers)
                     else:
                         tdp = "Single-GPU Training"
                         tdp_descrip = "A single GPU will load the entire model and process the Dataset"
-                    st.warning("**%s**\n\n%s" %(tdp, tdp_descrip))
-                    
+                    st.warning("**%s**\n\n%s" % (tdp, tdp_descrip))
+
             # Training Options
             with st.container(border=True):
                 st.caption("Training Options")
@@ -227,28 +231,25 @@ def create_train_adapter_page_with_proprietary():
                 json.dumps(
                     json.loads(
                         fts.ListConfigs(
-                                ListConfigsRequest(type=ConfigType.LORA_CONFIG, model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(type=ConfigType.LORA_CONFIG)
-                            
-                        ).configs[0].config
-                    ),
-                    indent=2
-                ),
+                            ListConfigsRequest(
+                                type=ConfigType.LORA_CONFIG,
+                                model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
+                                type=ConfigType.LORA_CONFIG)).configs[0].config),
+                    indent=2),
                 height=200,
-                help="LoRA configuration for fine-tuning the model."
-            )
+                help="LoRA configuration for fine-tuning the model.")
             bnb_config_text = c2.text_area(
                 "BitsAndBytes Config",
                 json.dumps(
                     json.loads(
                         fts.ListConfigs(
-                            ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG, model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
-                        ).configs[0].config
-                    ),
-                    indent=2
-                ),
+                            ListConfigsRequest(
+                                type=ConfigType.BITSANDBYTES_CONFIG,
+                                model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
+                                type=ConfigType.BITSANDBYTES_CONFIG)).configs[0].config),
+                    indent=2),
                 height=200,
-                help="BitsAndBytes configuration for optimizing model training."
-            )
+                help="BitsAndBytes configuration for optimizing model training.")
 
             with st.expander("Advanced Training Options"):
                 st.info("""
@@ -262,14 +263,13 @@ def create_train_adapter_page_with_proprietary():
                     json.dumps(
                         json.loads(
                             fts.ListConfigs(
-                                ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS, model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
-                                ).configs[0].config
-                            ),
-                            indent=2
-                        ),
-                        height=400,
-                        help="Advanced training arguments in JSON format."
-                    )
+                                ListConfigsRequest(
+                                    type=ConfigType.TRAINING_ARGUMENTS,
+                                    model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
+                                    type=ConfigType.TRAINING_ARGUMENTS)).configs[0].config),
+                        indent=2),
+                    height=400,
+                    help="Advanced training arguments in JSON format.")
 
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
@@ -301,14 +301,14 @@ def create_train_adapter_page_with_proprietary():
                             AddConfigRequest(
                                 type=ConfigType.LORA_CONFIG,
                                 config=lora_config_text,
-                                description= model.huggingface_model_name
+                                description=model.huggingface_model_name
                             )
                         ).config
                         bnb_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.BITSANDBYTES_CONFIG,
                                 config=bnb_config_text,
-                                description= model.huggingface_model_name
+                                description=model.huggingface_model_name
                             )
                         ).config
 
@@ -326,7 +326,7 @@ def create_train_adapter_page_with_proprietary():
                             AddConfigRequest(
                                 type=ConfigType.TRAINING_ARGUMENTS,
                                 config=json.dumps(training_args_config_dict),
-                                description= model.huggingface_model_name
+                                description=model.huggingface_model_name
                             )
                         ).config
 

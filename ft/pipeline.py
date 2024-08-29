@@ -84,7 +84,8 @@ def load_adapted_hf_generation_pipeline(
 
     model.eval()
     model.config.pad_token_id = tokenizer.pad_token_id = 0  # unk
-    model.config.bos_token_id = model_metadata_finder.fetch_bos_token_id_from_config(base_model_name)  # Todo: make this dynamic for different configs
+    model.config.bos_token_id = model_metadata_finder.fetch_bos_token_id_from_config(
+        base_model_name)  # Todo: make this dynamic for different configs
     model.config.eos_token_id = 2
 
     config = GenerationConfig(**gen_config_dict)

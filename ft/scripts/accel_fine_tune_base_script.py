@@ -1,3 +1,11 @@
+from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
+from accelerate.utils import (
+    PrepareForLaunch,
+    check_cuda_p2p_ib_support,
+    is_torch_version,
+    patch_environment,
+)
+import torch
 import argparse
 import sys
 import datasets
@@ -5,7 +13,6 @@ import json
 import os
 
 from accelerate import Accelerator, notebook_launcher
-from accelerate.commands import launch as accel_launch
 from typing import Tuple
 from ft.utils import attempt_hf_login
 from ft.client import FineTuningStudioClient
@@ -55,10 +62,25 @@ parser.add_argument(
     help="Automatically add an adapter to database if training succeeds.")
 
 parser.add_argument("--dist_num", help="Number of workers to distriibute across", default=1, type=int)
-parser.add_argument("--dist_cpu", help="Num vCPU specified for the FT job (for distributed worker launching)", default=0, type=float)
-parser.add_argument("--dist_mem", help="Num mem in GB size specified for the FT job (for distributed worker launching)", default=0, type=float)
-parser.add_argument("--dist_gpu", help="Num GPU specified for the FT job (for distributed worker launching)", default=0, type=int)
-parser.add_argument("--gpu_label_id", help=" GPU Label specified for the FT job (for distributed worker launching)", default='')
+parser.add_argument(
+    "--dist_cpu",
+    help="Num vCPU specified for the FT job (for distributed worker launching)",
+    default=0,
+    type=float)
+parser.add_argument(
+    "--dist_mem",
+    help="Num mem in GB size specified for the FT job (for distributed worker launching)",
+    default=0,
+    type=float)
+parser.add_argument(
+    "--dist_gpu",
+    help="Num GPU specified for the FT job (for distributed worker launching)",
+    default=0,
+    type=int)
+parser.add_argument(
+    "--gpu_label_id",
+    help=" GPU Label specified for the FT job (for distributed worker launching)",
+    default='')
 parser.add_argument(
     "--finetuning_framework_type",
     help="Finetuning frameowork to be used for Model training.",
@@ -78,7 +100,7 @@ IS_MASTER = os.getenv('CDSW_ENGINE_TYPE') != "worker" and NODE_RANK == 0
 JOB_MASTER_IP = os.environ.get('CML_FTS_JOB_MASTER_IP', os.environ.get('CDSW_IP_ADDRESS'))
 
 # test local single rank run
-#args.dist_num=1
+# args.dist_num=1
 
 # Create a client connection to the FTS server
 fts: FineTuningStudioClient = FineTuningStudioClient()
@@ -193,6 +215,8 @@ def map_dataset_with_prompt_template(dataset, prompt_template, eos_token):
     return dataset.map(ds_map)
 
 # Single Training loop function to use with accelerate launchers
+
+
 def training_loop():
     from transformers import (
         AutoTokenizer,
@@ -270,7 +294,7 @@ def training_loop():
         max_seq_length=512,
         args=TrainingArguments(**training_args_dict),
         data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
-       callbacks=[],
+        callbacks=[],
     ))
 
     trainer.train()
@@ -280,24 +304,14 @@ def training_loop():
     # This should only execute on the master worker in distributed mode
     trainer.save_model(args.out_dir)
 
-    
+
 print("This training should occur across %d workers" % args.dist_num)
 
-## TODO: BEGIN Remove this monkeypatch when a PR is approved to fix the single gpu machines issue
+# TODO: BEGIN Remove this monkeypatch when a PR is approved to fix the single gpu machines issue
 # HF notebook_launcher implementation does not support 1 gpu machines in multi-node training
 # https://github.com/huggingface/accelerate/blob/v0.32.0-release/src/accelerate/launchers.py#L165
 # Implementing trainer_launcher to achieve this until this is fixed
 
-import os
-import torch
-from accelerate.utils import (
-    PrecisionType,
-    PrepareForLaunch,
-    check_cuda_p2p_ib_support,
-    is_torch_version,
-    patch_environment,
-)
-from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
 
 def notebook_launcher_single_gpu_dist(
     function,
@@ -317,10 +331,9 @@ def notebook_launcher_single_gpu_dist(
     log_line_prefix_template=None,
 ):
 
-    if num_processes*num_nodes > 1:
+    if num_processes * num_nodes > 1:
         # Multi-GPU launch across nodes or gpu or both
         from torch.distributed.launcher.api import LaunchConfig, elastic_launch
-        from torch.multiprocessing import start_processes
         from torch.multiprocessing.spawn import ProcessRaisedException
 
         patched_env = dict(
@@ -376,13 +389,15 @@ def notebook_launcher_single_gpu_dist(
         else:
             print("Launching training on CPU.")
         function(*args)
+
+
 # Monkey-patch imported notebook_launcher
 notebook_launcher = notebook_launcher_single_gpu_dist
-## TODO: END Remove this monkeypatch when a PR is approved to fix the single gpu machines issue
+# TODO: END Remove this monkeypatch when a PR is approved to fix the single gpu machines issue
 
 
 # Script launching logic do handle all training loop launching and workers spinup
-if IS_MASTER: 
+if IS_MASTER:
     # Parent workload needs to handle launching additional workers and then launch a finetuning loop itself
     for i in reversed(range(args.dist_num)):
         print("Handling rank number %d" % i)
@@ -393,7 +408,7 @@ if IS_MASTER:
                               node_rank=NODE_RANK,
                               num_nodes=int(args.dist_num),
                               num_processes=int(args.dist_gpu)
-                            )
+                              )
         else:
             print(" - Launching worker %d for data distributed finetuning" % i)
             print(" - master_addr = %s" % JOB_MASTER_IP)
@@ -404,23 +419,23 @@ if IS_MASTER:
             worker_envs['CML_FTS_JOB_NODE_RANK'] = str(i)
 
             # This is to support compatibility with old workspaces without heterogeneous gpu support
-            if args.gpu_label_id != -1 :
+            if args.gpu_label_id != -1:
                 launch_workers(n=1, cpu=args.dist_cpu, memory=args.dist_mem,
-                            nvidia_gpu=args.dist_gpu,
-                            script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
-                            env=worker_envs,
-                            accelerator_label_id=args.gpu_label_id
-                            )
-            else: 
+                               nvidia_gpu=args.dist_gpu,
+                               script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
+                               env=worker_envs,
+                               accelerator_label_id=args.gpu_label_id
+                               )
+            else:
                 launch_workers(n=1, cpu=args.dist_cpu, memory=args.dist_mem,
-                            nvidia_gpu=args.dist_gpu,
-                            script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
-                            env=worker_envs,
-                            )
+                               nvidia_gpu=args.dist_gpu,
+                               script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
+                               env=worker_envs,
+                               )
             print("Launched woker for rank %d" % i)
-    if (args.dist_num > 1): 
+    if (args.dist_num > 1):
         # Wait for all workers to complete
-        worker_statuses = await_workers(ids = list_workers(), wait_for_completion=True)
+        worker_statuses = await_workers(ids=list_workers(), wait_for_completion=True)
         print(worker_statuses)
         if len(worker_statuses["failures"]) >= 1:
             sys.exit("A worker failed. Exiting training")
@@ -443,5 +458,5 @@ else:
     print(" - master_addr = %s" % JOB_MASTER_IP)
     notebook_launcher(training_loop, master_addr=JOB_MASTER_IP, node_rank=NODE_RANK,
                       num_nodes=int(args.dist_num), num_processes=int(args.dist_gpu))
-    
+
 print("Exiting job finetuning script.")

@@ -30,7 +30,8 @@ def fetch_resource_usage_data(host: str, project_owner: str, api_key: str) -> Op
     except requests.RequestException as e:
         st.error(f"Failed to fetch data: {e}")
         return None
-    
+
+
 def fetch_cml_site_config(host: str, project_owner: str, api_key: str) -> Optional[Dict[str, Any]]:
     """Fetch data from API and handle errors."""
     url = f"{host}/site/config/"
@@ -178,24 +179,25 @@ def get_axolotl_training_config_template_yaml_str():
         yaml_content = file.read()
     return yaml_content
 
+
 def generate_templates(columns):
     output_column_names = [
-        "label", "response", "answer", "target", "output", "sentiment", "toxicity", "rating", 
-        "classification", "label_text", "summary", "translation", "emotion", "verdict", "decision", 
-        "output_text", "stance", "score", "rank", "opinion", "relevance", "truth", "gold_label", 
-        "sentiment_score", "category", "label_id", "target_text", "intent", "pred", "prediction", 
-        "logits", "is_hate_speech", "is_spam", "score1", "output1", "human_label", "is_humor", "fact", 
-        "is_sarcasm", "category_label", "true_label", "response_text", "alignment_score", 
-        "classification_label", "stance_label", "verdict_label", "truth_label", "final_score", 
-        "answer_text", "diagnosis", "rating_label", "output_label", "is_positive", "summary_text", 
-        "hate_speech_label", "sarcasm_label", "opinion_label", "emotion_label", "quality_label", 
-        "alignment_label", "category_text", "stance_score", "humor_label", "is_offensive", "spam_label", 
-        "fact_score", "final_label", "decision_label", "gold_standard", "prediction_text", 
-        "emotion_score", "intent_label", "opinion_text", "stance_text", "humor_score", "is_fake_news", 
-        "is_true", "sarcasm_score", "spam_score", "final_decision", "output_final", "is_correct", 
-        "label_final", "is_positive_sentiment", "output_summary", "toxicity_score", "rating_score", 
-        "truth_score", "is_toxic", "prediction_final", "gold_label_text", "category_final", 
-        "output_gold", "final_opinion", "stance_final", "sarcasm_final", "spam_final", "humor_final", 
+        "label", "response", "answer", "target", "output", "sentiment", "toxicity", "rating",
+        "classification", "label_text", "summary", "translation", "emotion", "verdict", "decision",
+        "output_text", "stance", "score", "rank", "opinion", "relevance", "truth", "gold_label",
+        "sentiment_score", "category", "label_id", "target_text", "intent", "pred", "prediction",
+        "logits", "is_hate_speech", "is_spam", "score1", "output1", "human_label", "is_humor", "fact",
+        "is_sarcasm", "category_label", "true_label", "response_text", "alignment_score",
+        "classification_label", "stance_label", "verdict_label", "truth_label", "final_score",
+        "answer_text", "diagnosis", "rating_label", "output_label", "is_positive", "summary_text",
+        "hate_speech_label", "sarcasm_label", "opinion_label", "emotion_label", "quality_label",
+        "alignment_label", "category_text", "stance_score", "humor_label", "is_offensive", "spam_label",
+        "fact_score", "final_label", "decision_label", "gold_standard", "prediction_text",
+        "emotion_score", "intent_label", "opinion_text", "stance_text", "humor_score", "is_fake_news",
+        "is_true", "sarcasm_score", "spam_score", "final_decision", "output_final", "is_correct",
+        "label_final", "is_positive_sentiment", "output_summary", "toxicity_score", "rating_score",
+        "truth_score", "is_toxic", "prediction_final", "gold_label_text", "category_final",
+        "output_gold", "final_opinion", "stance_final", "sarcasm_final", "spam_final", "humor_final",
         "output_humor", "final_verdict"
     ]
 

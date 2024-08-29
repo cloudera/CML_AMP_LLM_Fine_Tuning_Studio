@@ -76,7 +76,7 @@ def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> Lis
         arg_list.extend(["--hf_token", hf_token])
     if request.axolotl_config_id:
         arg_list.extend(["--axolotl_config_id", request.axolotl_config_id])
-    
+
     if request.framework_type == FineTuningFrameworkType.LEGACY:
         if request.num_workers:
             arg_list.extend(["--dist_num", request.num_workers])
@@ -173,9 +173,9 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         framework_type = FineTuningFrameworkType.LEGACY
     else:
         framework_type: FineTuningFrameworkType = request.framework_type
-        
+
     if framework_type == FineTuningFrameworkType.LEGACY:
-        base_job_name ="Accel_Finetuning_Base_Job"
+        base_job_name = "Accel_Finetuning_Base_Job"
     else:
         base_job_name = "Finetuning_Base_Job"
 
@@ -186,7 +186,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
     # Shortcut: lookup the template job created by the amp
     #  Use the template job to create any new jobs
     ft_base_job_id = cml.list_jobs(project_id,
-                                   search_filter='{"name":"%s"}'%base_job_name).jobs[0].id
+                                   search_filter='{"name":"%s"}' % base_job_name).jobs[0].id
     template_job = cml.get_job(
         project_id=project_id,
         job_id=ft_base_job_id
