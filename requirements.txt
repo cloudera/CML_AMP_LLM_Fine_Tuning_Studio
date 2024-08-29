@@ -31,3 +31,5 @@ grpcio==1.65.4
 protobuf==5.27.3
 autoflake==2.3.1
 grpcio-tools==1.65.4
+rouge_score==0.1.2
+nltk==3.9.1
