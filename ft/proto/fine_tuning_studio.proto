@@ -753,6 +753,9 @@ message FineTuningJobMetadata {
 
   // The GPU label to use for this job
   int32 gpu_label_id = 25;
+
+  // Human-friendly identifier for the name of the output adapter.
+  string adapter_name = 26;
 }
 
 
@@ -814,4 +817,7 @@ message EvaluationJobMetadata {
 
   // type of evaluation job.
   string type = 14;
+
+  // ID of the prompt to use for evals
+  string prompt_id = 15;
 }

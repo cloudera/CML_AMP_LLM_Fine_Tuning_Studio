@@ -204,7 +204,8 @@ def display_jobs_list():
         'dataset_name',
         'prompt_name',
         'exp_id',
-        'created_at'
+        'created_at',
+        'adapter_name'
     ]
 
     for column in columns_we_care_about:
@@ -218,7 +219,8 @@ def display_jobs_list():
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
         'prompt_name': 'Prompt Name',
-        'latest': 'Status'
+        'latest': 'Status',
+        'adapter_name': 'Adapter Name'
     }, inplace=True)
 
     display_df['Status'] = display_df['Status'].apply(
@@ -233,14 +235,15 @@ def display_jobs_list():
 
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Job ID", "status_with_icon", "created_at", "html_url",
-                    "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+        display_df[["Job ID", "status_with_icon", "Adapter Name", "html_url",
+                    "exp_id", "created_at", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
                 "Status",
                 help="Job status as text with icon",
             ),
+            "Adapter Name": st.column_config.TextColumn("Adapter Name"),
             "html_url": st.column_config.LinkColumn(
                 "CML Job Link", display_text="Open CML Job"
             ),

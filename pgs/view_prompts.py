@@ -36,7 +36,7 @@ def display_prompt(prompt: PromptMetadata, container):
     with container.container(height=200):
         c1, c2 = st.columns([3, 1])
         c1.markdown(f"**{prompt.name}**")
-        remove = c2.button("Remove", type="primary", key=f"{prompt.id}_remove_button", use_container_width=True)
+        # remove = c2.button("Remove", type="primary", key=f"{prompt.id}_remove_button", use_container_width=True)
 
         c1, _, c2 = st.columns([30, 2, 10])
         c1.code(prompt.prompt_template)
@@ -48,13 +48,13 @@ def display_prompt(prompt: PromptMetadata, container):
             )
         ).dataset.name)
 
-        if remove:
-            fts.RemovePrompt(
-                RemovePromptRequest(
-                    id=prompt.id
-                )
-            )
-            st.rerun()
+        # if remove:
+        #     fts.RemovePrompt(
+        #         RemovePromptRequest(
+        #             id=prompt.id
+        #         )
+        #     )
+        #     st.rerun()
 
 
 display_header()

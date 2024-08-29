@@ -79,14 +79,6 @@ def create_train_adapter_page_with_proprietary():
                         help="Select the prompt to use with the selected dataset. This field is required."
                     )
 
-                    if len(current_prompts) == 0:
-                        st.error(
-                            "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
-                            icon=":material/error:")
-
-                    if prompt_idx is not None:
-                        st.code(current_prompts[prompt_idx].prompt_template)
-
             with col2:
                 current_models = fts.get_models()
                 model_idx = st.selectbox(
@@ -97,34 +89,52 @@ def create_train_adapter_page_with_proprietary():
                     key="proprietary_model_selectbox",
                     help="Select the base model for training. This field is required."
                 )
+                if dataset_idx is not None:
+                    if len(current_prompts) == 0:
+                        st.error(
+                            "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
+                            icon=":material/error:")
 
+                    if prompt_idx is not None:
+                        st.code(current_prompts[prompt_idx].prompt_template)
+            st.divider()
             # Resource Options
-            if 'dist_type_chosen' not in st.session_state:
-                st.session_state['dist_type_chosen'] = "None"
-
+            if 'ft_multi_node' not in st.session_state:
+                st.session_state['ft_multi_node'] = False
+            c1, c2 = st.columns([1, 1])
+            with c1:
+                ft_type_name = st.selectbox(
+                    "Finetuning Type",
+                    options=["Single Node", "Multi Node"],
+                    index=0,
+                    key="ft_type",
+                    help="Select whether finetuning runs in standalone mode or distributed across  many processes"
+                )
+                st.session_state['ft_multi_node'] = ft_type_name == "Multi Node"
+            with c2:
+                st.empty()
             with st.container(border=True):
+                num_workers = 1
+                if st.session_state['ft_multi_node']:
+                    c1, c2 = st.columns([1, 1])
+                    with c1:
+                        st.caption("Distributed Finetuning Units")
+                        num_workers = st.number_input(
+                            "Number of Distribution Units",
+                            min_value=1,
+                            max_value=100,
+                            help="Specify the number of machines that will launched in CML to perform training.")
+                    with c2:
+                        tc_arch = "Distribution - Multi Node"
+                        tc_descrip = "**Distributed Finetuning Units** may be provisioned across multiple physical nodes in the CML Workspace."
+                        st.info("%s" % (tc_descrip))
                 c1, c2 = st.columns([1, 1])
                 with c1:
-                    st.caption("Training Cluster Size")
-                    num_workers = st.number_input(
-                        "Number of Machines to Launch",
-                        min_value=1,
-                        max_value=100,
-                        help="Specify the number of machines that will launched in CML to perform training.")
-                with c2:
-                    if (num_workers > 1):
-                        tc_arch = "Distribution - Multi Node (%d)" % num_workers
-                        tc_descrip = "Depending on resource availability, the %d training machines may be provisioned across multiple physical nodes in your CML Workspace." % num_workers
-                    else:
-                        tc_arch = "Dsitribution - Single Node"
-                        tc_descrip = "A single training machine will be provisioned within one physical CML Workspace Node."
-                    st.warning("**%s**\n\n%s" % (tc_arch, tc_descrip))
-                st.divider()
-                st.caption("Machine Profile")
-                c1, c2, c3 = st.columns([1, 1, 2])
-                with c1:
+                    resource_label_suffix = ""
+                    if st.session_state['ft_multi_node']:
+                        resource_label_suffix = " per Distribution Unit"
                     cpu = st.number_input(
-                        "CPU (vCPU)",
+                        "CPU" + resource_label_suffix,
                         value=2,
                         min_value=1,
                         key="cpu",
@@ -154,28 +164,19 @@ def create_train_adapter_page_with_proprietary():
                 with c2:
                     placeholder = st.empty()
                     memory = st.number_input(
-                        "Memory (GiB)",
+                        "Memory (GiB)" + resource_label_suffix,
                         value=8,
                         min_value=1,
                         key="memory",
                         help="Specify the amount of memory (in GiB) to allocate for training."
                     )
                     gpu = st.number_input(
-                        "Number of GPUs",
+                        "GPU" + resource_label_suffix,
                         min_value=1,
                         max_value=gpu_num_max,
                         key="gpu",
                         help="Select the number of GPUs to allocate for training. This is limited to the maximum number of GPUs available per node on this CML Workspace Cluster."
                     )
-                with c3:
-                    if (num_workers > 1 or gpu > 1):
-                        tdp = "Multi-GPU Training (%d)" % (num_workers * gpu)
-                        tdp_descrip = "%d GPU(s) on each %d launched machine(s) will each load the entire model and process a portion of the Dataset." % (
-                            gpu, num_workers)
-                    else:
-                        tdp = "Single-GPU Training"
-                        tdp_descrip = "A single GPU will load the entire model and process the Dataset"
-                    st.warning("**%s**\n\n%s" % (tdp, tdp_descrip))
 
             # Training Options
             with st.container(border=True):
@@ -195,13 +196,6 @@ def create_train_adapter_page_with_proprietary():
                         key="learning_rate",
                         help="Set the learning rate for the training process."
                     )
-
-                auto_add_adapter = st.checkbox(
-                    "Add Adapter to Fine Tuning Studio after Training",
-                    value=True,
-                    key="auto_add_adapter",
-                    help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
-                )
                 c1, c2 = st.columns([1, 1])
                 dataset_fraction = c1.slider(
                     "Dataset Fraction",
@@ -220,56 +214,62 @@ def create_train_adapter_page_with_proprietary():
 
                 c1, c2 = st.columns([1, 1])
 
-            c1, c2 = st.columns([1, 1])
-            # Extract out the lora config and the bnb config to use. For now,
-            # server-side there is no selection logic based on model & adapters,
-            # but there may be in the future, which is why we are specifying this here.
-            # Right now, we are just extracting out the first available config and
-            # showing that to the user.
-            lora_config_text = c1.text_area(
-                "LoRA Config",
-                json.dumps(
-                    json.loads(
-                        fts.ListConfigs(
-                            ListConfigsRequest(
-                                type=ConfigType.LORA_CONFIG,
-                                model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
-                                type=ConfigType.LORA_CONFIG)).configs[0].config),
-                    indent=2),
-                height=200,
-                help="LoRA configuration for fine-tuning the model.")
-            bnb_config_text = c2.text_area(
-                "BitsAndBytes Config",
-                json.dumps(
-                    json.loads(
-                        fts.ListConfigs(
-                            ListConfigsRequest(
-                                type=ConfigType.BITSANDBYTES_CONFIG,
-                                model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
-                                type=ConfigType.BITSANDBYTES_CONFIG)).configs[0].config),
-                    indent=2),
-                height=200,
-                help="BitsAndBytes configuration for optimizing model training.")
+                # Extract out the lora config and the bnb config to use. For now,
+                # server-side there is no selection logic based on model & adapters,
+                # but there may be in the future, which is why we are specifying this here.
+                # Right now, we are just extracting out the first available config and
+                # showing that to the user.
+                with c1:
+                    with st.expander("LoRA Config"):
+                        lora_config_text = st.text_area(
+                            "",
+                            json.dumps(
+                                json.loads(
+                                    fts.ListConfigs(
+                                        ListConfigsRequest(type=ConfigType.LORA_CONFIG)
+                                    ).configs[0].config
+                                ),
+                                indent=2
+                            ),
+                            height=200,
+                            help="LoRA configuration for fine-tuning the model."
+                        )
+                with c2:
+                    with st.expander("BitsAndBytes Config"):
+                        bnb_config_text = st.text_area(
+                            "",
+                            json.dumps(
+                                json.loads(
+                                    fts.ListConfigs(
+                                        ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
+                                    ).configs[0].config
+                                ),
+                                indent=2
+                            ),
+                            height=200,
+                            help="BitsAndBytes configuration for optimizing model training."
+                        )
 
-            with st.expander("Advanced Training Options"):
-                st.info("""
-                        NOTE: the following fields in the below JSON will be overridden by the values set in the UI above:
-                        * Output Location (TrainingArguments.output_dir)
-                        * Number of Epochs (TrainingArguments.num_train_epochs)
-                        * Learning Rate (TrainingArguments.learning_rate)
-                        """)
-                training_args_text = st.text_area(
-                    "Training Arguments",
-                    json.dumps(
-                        json.loads(
-                            fts.ListConfigs(
-                                ListConfigsRequest(
-                                    type=ConfigType.TRAINING_ARGUMENTS,
-                                    model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
-                                    type=ConfigType.TRAINING_ARGUMENTS)).configs[0].config),
-                        indent=2),
-                    height=400,
-                    help="Advanced training arguments in JSON format.")
+                with st.expander("Advanced Training Options"):
+                    st.info("""
+                            NOTE: the following fields in the below JSON will be overridden by the values set in the UI above:
+                            * Output Location (TrainingArguments.output_dir)
+                            * Number of Epochs (TrainingArguments.num_train_epochs)
+                            * Learning Rate (TrainingArguments.learning_rate)
+                            """)
+                    training_args_text = st.text_area(
+                        "Training Arguments",
+                        json.dumps(
+                            json.loads(
+                                fts.ListConfigs(
+                                    ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
+                                ).configs[0].config
+                            ),
+                            indent=2
+                        ),
+                        height=400,
+                        help="Advanced training arguments in JSON format."
+                    )
 
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
@@ -300,15 +300,13 @@ def create_train_adapter_page_with_proprietary():
                         lora_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.LORA_CONFIG,
-                                config=lora_config_text,
-                                description=model.huggingface_model_name
+                                config=lora_config_text
                             )
                         ).config
                         bnb_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.BITSANDBYTES_CONFIG,
-                                config=bnb_config_text,
-                                description=model.huggingface_model_name
+                                config=bnb_config_text
                             )
                         ).config
 
@@ -325,8 +323,7 @@ def create_train_adapter_page_with_proprietary():
                         training_args_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.TRAINING_ARGUMENTS,
-                                config=json.dumps(training_args_config_dict),
-                                description=model.huggingface_model_name
+                                config=json.dumps(training_args_config_dict)
                             )
                         ).config
 
@@ -337,7 +334,7 @@ def create_train_adapter_page_with_proprietary():
                                 dataset_id=dataset.id,
                                 prompt_id=prompt.id,
                                 num_workers=int(num_workers),
-                                auto_add_adapter=auto_add_adapter,
+                                auto_add_adapter=True,
                                 num_epochs=int(num_epochs),
                                 learning_rate=float(learning_rate),
                                 cpu=int(cpu),
@@ -534,12 +531,13 @@ def create_train_adapter_page_with_axolotl():
                     help="Select the number of GPUs to allocate for training."
                 )
 
-            auto_add_adapter = st.checkbox(
-                "Add Adapter to Fine Tuning Studio after Training",
-                value=True,
-                key="auto_add_adapter_axolotl",
-                help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
-            )
+            auto_add_adapter = True
+            # st.checkbox(
+            #    "Add Adapter to Fine Tuning Studio after Training",
+            #    value=True,
+            #    key="auto_add_adapter_axolotl",
+            #    help="Automatically add the trained adapter to the Fine Tuning Studio after the job completes."
+            # )
 
             val_set_size = st.slider(
                 "Validation Set Size",
