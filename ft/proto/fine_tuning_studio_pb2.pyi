@@ -776,7 +776,8 @@ class FineTuningJobMetadata(_message.Message):
         "user_config",
         "framework_type",
         "axolotl_config_id",
-        "gpu_label_id")
+        "gpu_label_id",
+        "adapter_name")
     ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -802,6 +803,7 @@ class FineTuningJobMetadata(_message.Message):
     FRAMEWORK_TYPE_FIELD_NUMBER: _ClassVar[int]
     AXOLOTL_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     GPU_LABEL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_NAME_FIELD_NUMBER: _ClassVar[int]
     id: str
     base_model_id: str
     dataset_id: str
@@ -827,6 +829,7 @@ class FineTuningJobMetadata(_message.Message):
     framework_type: str
     axolotl_config_id: str
     gpu_label_id: int
+    adapter_name: str
 
     def __init__(
         self,
@@ -854,7 +857,8 @@ class FineTuningJobMetadata(_message.Message):
         user_config: _Optional[str] = ...,
         framework_type: _Optional[str] = ...,
         axolotl_config_id: _Optional[str] = ...,
-        gpu_label_id: _Optional[int] = ...) -> None: ...
+        gpu_label_id: _Optional[int] = ...,
+        adapter_name: _Optional[str] = ...) -> None: ...
 
 
 class ConfigMetadata(_message.Message):
@@ -886,7 +890,8 @@ class EvaluationJobMetadata(_message.Message):
         "model_bnb_config_id",
         "adapter_bnb_config_id",
         "generation_config_id",
-        "type")
+        "type",
+        "prompt_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -901,6 +906,7 @@ class EvaluationJobMetadata(_message.Message):
     ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
+    PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     cml_job_id: str
     base_model_id: str
@@ -915,6 +921,7 @@ class EvaluationJobMetadata(_message.Message):
     adapter_bnb_config_id: str
     generation_config_id: str
     type: str
+    prompt_id: str
 
     def __init__(
         self,
@@ -931,4 +938,5 @@ class EvaluationJobMetadata(_message.Message):
         model_bnb_config_id: _Optional[str] = ...,
         adapter_bnb_config_id: _Optional[str] = ...,
         generation_config_id: _Optional[str] = ...,
-        type: _Optional[str] = ...) -> None: ...
+        type: _Optional[str] = ...,
+        prompt_id: _Optional[str] = ...) -> None: ...

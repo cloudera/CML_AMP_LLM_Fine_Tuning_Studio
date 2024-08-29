@@ -124,11 +124,12 @@ with col2:
                         how='inner',
                         suffixes=('', '_cml'))
 
-                    display_df = display_df[['id', 'num_workers', 'latest']]
+                    display_df = display_df[['id', 'num_workers', 'latest', 'adapter_name']]
 
                     display_df.rename(columns={
                         'id': 'id',
-                        'latest': 'Status'
+                        'latest': 'Status',
+                        'adapter_name': 'Adapter Name'
                     }, inplace=True)
 
                     display_df['Status'] = display_df['Status'].apply(
@@ -136,13 +137,14 @@ with col2:
                     display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
                     st.data_editor(
-                        display_df[['id', 'status_with_icon']],
+                        display_df[['id', 'status_with_icon', 'Adapter Name']],
                         column_config={
                             "id": st.column_config.TextColumn("Job ID"),
                             "status_with_icon": st.column_config.TextColumn(
                                 "Status",
                                 help="Job status as text with icon"
                             ),
+                            "Adapter Name": st.column_config.TextColumn("Adapter Name"),
                         },
                         hide_index=True,
                         use_container_width=True,
@@ -151,15 +153,16 @@ with col2:
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
     else:
-        jobs_df = pd.DataFrame(columns=['id', 'status'])
+        jobs_df = pd.DataFrame(columns=['id', 'status', 'Adapter Name'])
         st.data_editor(
-            jobs_df[['id', 'status']],
+            jobs_df[['id', 'status', 'Adapter Name']],
             column_config={
                 "id": st.column_config.TextColumn("Job ID"),
                 "status": st.column_config.TextColumn(
                     "Status",
                     help="Job status as text with icon"
-                )
+                ),
+                "Adapter Name": st.column_config.TextColumn("Adapter Name")
             },
             hide_index=True,
             use_container_width=True,
