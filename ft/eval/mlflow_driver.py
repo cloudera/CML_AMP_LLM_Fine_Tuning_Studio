@@ -17,7 +17,7 @@ def driver(
         adapter_id: str = None,
         bnb_config_id: str = None,
         generation_config_id: str = None,
-        prompt_id: str = "7ee0f633-faf0-4827-b4cf-2eab4795fc53",
+        prompt_id: str = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals

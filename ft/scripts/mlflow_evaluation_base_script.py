@@ -18,9 +18,10 @@ arg_string = os.environ.get('JOB_ARGUMENTS', '')
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("--dataset_id", help="Path of the dataset", default=None)
-parser.add_argument("--base_model_id", help="Path of the base model", default=None)
-parser.add_argument("--adapter_id", help="Path of the adapter", default=None)
+parser.add_argument("--dataset_id", help="Dataset ID to use", default=None)
+parser.add_argument("--base_model_id", help="Base model ID to use.", default=None)
+parser.add_argument("--adapter_id", help="Adapter ID to use", default=None)
+parser.add_argument("--prompt_id", help="Prompt ID to use", default=None)
 parser.add_argument("--result_dir", help="Path of result dir", required=True)
 parser.add_argument("--adapter_bnb_config_id", help="ID of the adapter quantization config", default=None)
 parser.add_argument("--model_bnb_config_id", help="ID of the model quantization config", default=None)
@@ -38,6 +39,7 @@ try:
         dataset_id=args.dataset_id,
         base_model_id=args.base_model_id,
         adapter_id=args.adapter_id,
+        prompt_id=args.prompt_id,
         bnb_config_id=args.adapter_bnb_config_id,  # only use bnb config of the adapter for all model layers, for now
         generation_config_id=args.generation_config_id,
         client=client
