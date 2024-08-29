@@ -5,6 +5,7 @@ from typing import List
 from ft.api import *
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -20,9 +21,9 @@ cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
     with col1:
-        col1.image("./resources/images/model_training_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+        col1.image(IconPaths.Experiments.RUN_MLFLOW_EVALUATION)
     with col2:
-        col2.subheader('Run MLFlow Evaluation', divider='red')
+        col2.subheader('Run MLFlow Evaluation', divider=DIVIDER_COLOR)
         st.caption("Execute comprehensive MLFlow evaluations on your fine-tuned model to ensure accuracy, performance, and reliability, gaining valuable insights.")
 
 st.write("\n")

@@ -2,6 +2,7 @@ import streamlit as st
 from ft.api import *
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -11,9 +12,9 @@ def display_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/view_day_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.AIToolkit.VIEW_BASE_MODELS)
         with col2:
-            col2.subheader('Base Models & Adapters', divider='red')
+            col2.subheader('Base Models & Adapters', divider=DIVIDER_COLOR)
             st.caption("Review the imported base models and the adapters generated during the fine-tuning process. Note that a single model can contain multiple adapters.")
 
 

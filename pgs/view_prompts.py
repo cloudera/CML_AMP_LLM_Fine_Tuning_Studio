@@ -2,6 +2,7 @@ import streamlit as st
 from ft.api import *
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -11,9 +12,9 @@ def display_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/forum_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.AIToolkit.VIEW_PROMPTS)
         with col2:
-            col2.subheader('View Prompts')
+            col2.subheader('View Prompts', divider=DIVIDER_COLOR)
             col2.caption(
                 'View all the created prompts for your fine-tuning tasks')
 

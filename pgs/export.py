@@ -3,6 +3,7 @@ import streamlit as st
 from ft.api import *
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -10,9 +11,9 @@ fts = get_fine_tuning_studio_client()
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
     with col1:
-        col1.image("./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+        col1.image(IconPaths.CML.EXPORT_TO_CML_MODEL_REGISTRY)
     with col2:
-        col2.subheader('Export to CML Model Registry', divider='red')
+        col2.subheader('Export to CML Model Registry', divider=DIVIDER_COLOR)
         st.caption("Export your fine-tuned models and adapters to the Cloudera Model Registry for easy access and deployment.")
 
 # Container for model and adapter selection
