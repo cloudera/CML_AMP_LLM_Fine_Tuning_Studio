@@ -296,6 +296,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         user_config_id=user_config_id,
         axolotl_config_id=request.axolotl_config_id,
         gpu_label_id=request.gpu_label_id,
+        adapter_name=request.adapter_name
     )
 
     response = StartFineTuningJobResponse()

@@ -26,15 +26,17 @@ def fetch_job_data():
         models = fts.get_models()
         adapters = fts.get_adapters()
         datasets = fts.get_datasets()
+        prompts = fts.get_prompts()
 
         model_dict = {model.id: model.name for model in models}
         adapter_dict = {adapter.id: adapter.name for adapter in adapters}
         dataset_dict = {dataset.id: dataset.name for dataset in datasets}
+        prompt_dict = {prompt.id: prompt.name for prompt in prompts}
 
-        return current_jobs, model_dict, adapter_dict, dataset_dict
+        return current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict
     except Exception as e:
         st.error(f"Error fetching job data: {e}")
-        return [], {}, {}, {}
+        return [], {}, {}, {}, {}
 
 
 def fetch_api_jobs():
@@ -57,7 +59,7 @@ def fetch_api_jobs():
 
 @st.fragment
 def display_jobs_list():
-    current_jobs, model_dict, adapter_dict, dataset_dict = fetch_job_data()
+    current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_job_data()
 
     if not current_jobs:
         st.info("No MLflow jobs triggered.", icon=":material/info:")
@@ -100,6 +102,7 @@ def display_jobs_list():
     display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
+    display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
 
     columns_we_care_about = [
         'id',
@@ -108,6 +111,7 @@ def display_jobs_list():
         'base_model_name',
         'dataset_name',
         'adapter_name',
+        'prompt_name',
         'created_at'
     ]
 
@@ -122,6 +126,7 @@ def display_jobs_list():
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
         'adapter_name': 'Adapter Name',
+        'prompt_name': 'Prompt Name',
         'latest': 'Status'
     }, inplace=True)
 
@@ -138,7 +143,7 @@ def display_jobs_list():
     # Data editor for job table
     edited_df = st.data_editor(
         display_df[["Job ID", "status_with_icon", "created_at",
-                    "html_url", "Model Name", "Dataset Name", "Adapter Name"]],
+                    "html_url", "Model Name", "Adapter Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
@@ -151,6 +156,7 @@ def display_jobs_list():
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),
             "Adapter Name": st.column_config.TextColumn("Adapter Name"),
+            "Prompt Name": st.column_config.TextColumn("Prompt Name"),
             # "Select": st.column_config.CheckboxColumn("", width="small"),
             "created_at": st.column_config.DatetimeColumn(
                 "Created At",
@@ -190,7 +196,7 @@ def display_jobs_list():
 
 
 def display_mlflow_runs():
-    current_jobs, model_dict, adapter_dict, dataset_dict = fetch_job_data()
+    current_jobs, _, _, _, _ = fetch_job_data()
     if not current_jobs:
         st.info("No MLflow jobs triggered.", icon=":material/info:")
         return
