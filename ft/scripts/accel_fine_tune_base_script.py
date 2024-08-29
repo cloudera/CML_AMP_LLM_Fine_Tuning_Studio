@@ -250,7 +250,7 @@ def training_loop():
     model = AutoModelForCausalLM.from_pretrained(
         base_model_md.huggingface_model_name,
         quantization_config=BitsAndBytesConfig(**bnb_config_dict),
-        device_map={"": accelerator.process_index},
+        device_map={"": accelerator.local_process_index},
         token=args.hf_token,
     )
 
