@@ -8,6 +8,8 @@ import json
 
 from ft.utils import generate_templates
 
+from ft.consts import IconPaths, DIVIDER_COLOR
+
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
@@ -16,9 +18,9 @@ def display_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/chat_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.AIToolkit.CREATE_PROMPTS)
         with col2:
-            col2.subheader('Create Prompts')
+            col2.subheader('Create Prompts', divider=DIVIDER_COLOR)
             col2.caption(
                 'Generate tailored prompts for your fine-tuning tasks on the specified datasets and models to enhance performance.')
 
@@ -67,10 +69,10 @@ def display_create_prompt():
                     example_completion_prompt = completion_template.format(**dataset_idx)
 
                 # Display the example input prompt and completion prompt
-                subcol1.caption("Example Input Prompt")
+                subcol1.caption("Example Prompt")
                 subcol1.code(example_input_prompt)
 
-                subcol2.caption("Example Completion Prompt")
+                subcol2.caption("Example Completion")
                 subcol2.code(example_completion_prompt)
 
                 if st.button("Create Prompt", type="primary", use_container_width=True):
@@ -90,7 +92,7 @@ def display_create_prompt():
             """
         ### How to Create and Customize Training Prompts
 
-        1. **Input Prompt (Prompt Template)**
+        1. **Prompt Template**
             - **Default Template:** Auto-generated template based on dataset features.
 
                 ```
@@ -101,7 +103,7 @@ def display_create_prompt():
                 <Response>:
                 ```
 
-            - **Modifying the Input Prompt:** Adjust by removing fields or adding instructions.
+            - **Modifying Prompt:** Adjust by removing fields or adding instructions.
 
                 ```
                 You are a customer chatbot. Please respond politely with information to help the customer based on the intent retrieved.
@@ -111,7 +113,7 @@ def display_create_prompt():
                 <Assistant>:
                 ```
 
-        2. **Completion Prompt (Completion Template)**
+        2. **Completion Template**
             - **Default Template:** Defines expected output from the model.
 
                 ```

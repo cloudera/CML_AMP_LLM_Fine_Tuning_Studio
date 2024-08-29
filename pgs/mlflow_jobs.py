@@ -5,6 +5,7 @@ import requests
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.utils import format_status_with_icon
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -14,9 +15,9 @@ def display_page_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/monitoring_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.Experiments.VIEW_MLFLOW_RUNS)
         with col2:
-            col2.subheader('View MLflow Runs')
+            col2.subheader('View MLflow Runs', divider=DIVIDER_COLOR)
             st.caption("Examine the MLflow evaluation results for adapters trained on foundation models.")
 
 

@@ -1,6 +1,7 @@
 import streamlit as st
 from ft.api import *
 from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -10,9 +11,9 @@ def create_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/publish_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.AIToolkit.IMPORT_DATASETS)
         with col2:
-            col2.subheader('Import Datasets', divider='red')
+            col2.subheader('Import Datasets', divider=DIVIDER_COLOR)
             st.caption(
                 "Import the datasets from either available datasets on Hugging Face or upload your own preprocessed dataset from local.")
 

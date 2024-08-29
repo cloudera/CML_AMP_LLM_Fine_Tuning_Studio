@@ -1,5 +1,6 @@
 import streamlit as st
 from ft.utils import get_env_variable
+from ft.consts import IconPaths
 
 # Module for custom CSS
 
@@ -90,8 +91,8 @@ def setup_sidebar():
 
 # Main function to orchestrate the setup
 st.set_page_config(
-    page_title="LLM Finetuning Studio",
-    page_icon="./resources/images/architecture_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png",
+    page_title="Fine Tuning Studio",
+    page_icon=IconPaths.FineTuningStudio.FINE_TUNING_STUDIO,
     layout="wide"
 )
 apply_custom_css()

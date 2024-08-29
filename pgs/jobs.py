@@ -9,6 +9,7 @@ from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from cmlapi import models as cml_api_models
 from ft.utils import format_status_with_icon
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -19,9 +20,9 @@ def display_page_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+            col1.image(IconPaths.Experiments.MONITOR_TRAINING_JOBS)
         with col2:
-            col2.subheader('Monitor Training Jobs')
+            col2.subheader('Monitor Training Jobs', divider=DIVIDER_COLOR)
             st.caption(
                 "Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
 

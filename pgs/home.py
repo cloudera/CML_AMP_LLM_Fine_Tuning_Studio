@@ -8,6 +8,7 @@ from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.utils import format_status_with_icon
 import json
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -17,12 +18,11 @@ def create_homepage_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 16])
         with col1:
-            col1.image("./resources/images/architecture_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.FineTuningStudio.FINE_TUNING_STUDIO)
         with col2:
-            col2.subheader('LLM Finetuning Studio', divider='red')
+            col2.subheader('Fine Tuning Studio', divider=DIVIDER_COLOR)
             col2.caption(
-                'The LLM Fine Tuning Studio, updated in July 2024, features a new Streamlit-based UI and integrates with Cloudera Machine Learning (CML) components. '
-                'It supports custom datasets, BitsAndBytes, LoRA configurations, and distributed training.')
+                'One-stop shop for training, managing, and evaluating large language models.')
 
 
 def create_tile(container, image_path: str, button_text: str, page_path: str, description: str) -> None:
@@ -42,31 +42,28 @@ cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 
-
-# st.subheader(f"Welcome to LLM Finetuning Studio, {project_owner}", divider="red")
 create_homepage_header()
-# st.write("\n")
 
 col1, col2, col3, col4 = st.columns(4)
 create_tile(
     col1,
-    "./resources/images/publish_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png",
+    IconPaths.AIToolkit.IMPORT_DATASETS,
     "Import Datasets",
     "pgs/datasets.py",
     'Import datasets from Hugging Face or upload your own preprocessed dataset from local sources for fine-tuning.')
 
 create_tile(
     col2,
-    "./resources/images/neurology_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png",
+    IconPaths.AIToolkit.IMPORT_BASE_MODELS,
     "Import Base Models",
     "pgs/models.py",
     'Import foundational LLM models from Hugging Face or local sources for your fine-tuning job specific requirements.')
 
-create_tile(col3, "./resources/images/forward_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png",
+create_tile(col3, IconPaths.Experiments.TRAIN_NEW_ADAPTER,
             "Finetune your model", "pgs/train_adapter.py",
             'Finetune your model, leveraging advanced techniques to improve performance.')
 
-create_tile(col4, "./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png",
+create_tile(col4, IconPaths.CML.EXPORT_TO_CML_MODEL_REGISTRY,
             "Export to CML Model Registry", "pgs/export.py",
             'Export your fine-tuned models and adapters to the Cloudera Model Registry for easy access and deployment.')
 
