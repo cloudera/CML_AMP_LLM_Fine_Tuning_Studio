@@ -723,17 +723,21 @@ class AdapterMetadata(_message.Message):
 
 
 class PromptMetadata(_message.Message):
-    __slots__ = ("id", "type", "name", "dataset_id", "prompt_template")
+    __slots__ = ("id", "type", "name", "dataset_id", "prompt_template", "input_template", "completion_template")
     ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_TEMPLATE_FIELD_NUMBER: _ClassVar[int]
+    INPUT_TEMPLATE_FIELD_NUMBER: _ClassVar[int]
+    COMPLETION_TEMPLATE_FIELD_NUMBER: _ClassVar[int]
     id: str
     type: str
     name: str
     dataset_id: str
     prompt_template: str
+    input_template: str
+    completion_template: str
 
     def __init__(
         self,
@@ -741,7 +745,9 @@ class PromptMetadata(_message.Message):
         type: _Optional[str] = ...,
         name: _Optional[str] = ...,
         dataset_id: _Optional[str] = ...,
-        prompt_template: _Optional[str] = ...) -> None: ...
+        prompt_template: _Optional[str] = ...,
+        input_template: _Optional[str] = ...,
+        completion_template: _Optional[str] = ...) -> None: ...
 
 
 class FineTuningJobMetadata(_message.Message):

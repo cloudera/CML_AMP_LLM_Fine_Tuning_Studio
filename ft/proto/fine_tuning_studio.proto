@@ -656,6 +656,12 @@ message PromptMetadata {
 
   // Python formatted prompt string template.
   string prompt_template = 5;
+
+  // Python formatted input prompt string template.
+  string input_template = 6;
+
+  // Python formatted completion string template.
+  string completion_template = 7;
 }
 
 

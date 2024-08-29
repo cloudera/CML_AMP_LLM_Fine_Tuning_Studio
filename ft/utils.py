@@ -177,3 +177,54 @@ def get_axolotl_training_config_template_yaml_str():
     with open(AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH, 'r') as file:
         yaml_content = file.read()
     return yaml_content
+
+def generate_templates(columns):
+    output_column_names = [
+        "label", "response", "answer", "target", "output", "sentiment", "toxicity", "rating", 
+        "classification", "label_text", "summary", "translation", "emotion", "verdict", "decision", 
+        "output_text", "stance", "score", "rank", "opinion", "relevance", "truth", "gold_label", 
+        "sentiment_score", "category", "label_id", "target_text", "intent", "pred", "prediction", 
+        "logits", "is_hate_speech", "is_spam", "score1", "output1", "human_label", "is_humor", "fact", 
+        "is_sarcasm", "category_label", "true_label", "response_text", "alignment_score", 
+        "classification_label", "stance_label", "verdict_label", "truth_label", "final_score", 
+        "answer_text", "diagnosis", "rating_label", "output_label", "is_positive", "summary_text", 
+        "hate_speech_label", "sarcasm_label", "opinion_label", "emotion_label", "quality_label", 
+        "alignment_label", "category_text", "stance_score", "humor_label", "is_offensive", "spam_label", 
+        "fact_score", "final_label", "decision_label", "gold_standard", "prediction_text", 
+        "emotion_score", "intent_label", "opinion_text", "stance_text", "humor_score", "is_fake_news", 
+        "is_true", "sarcasm_score", "spam_score", "final_decision", "output_final", "is_correct", 
+        "label_final", "is_positive_sentiment", "output_summary", "toxicity_score", "rating_score", 
+        "truth_score", "is_toxic", "prediction_final", "gold_label_text", "category_final", 
+        "output_gold", "final_opinion", "stance_final", "sarcasm_final", "spam_final", "humor_final", 
+        "output_humor", "final_verdict"
+    ]
+
+    # Identify input and output columns based on predefined output column names
+    output_columns = [col for col in columns if col.lower() in output_column_names]
+    input_columns = [col for col in columns if col.lower() not in output_column_names]
+
+    # If no output columns found, split the dataset columns into input and output halves
+    if not output_columns:
+        half_idx = len(columns) // 2
+        input_columns = columns[:half_idx]
+        output_columns = columns[half_idx:]
+
+    # Generate default prompt template
+    prompt_template = "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
+    for feature in input_columns:
+        prompt_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
+
+    # Add the first output column placeholder to the prompt template
+    if output_columns:
+        prompt_template += f"<{output_columns[0].capitalize()}>: \n"
+
+    # Generate default completion template
+    completion_template = ""
+    if output_columns:
+        # Include the first output column directly
+        completion_template += f"{{{output_columns[0]}}}\n"
+        # Add the remaining output columns with their respective labels
+        for feature in output_columns[1:]:
+            completion_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
+
+    return prompt_template, completion_template

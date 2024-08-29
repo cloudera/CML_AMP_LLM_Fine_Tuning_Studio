@@ -6,6 +6,8 @@ from uuid import uuid4
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
 
+from ft.utils import generate_templates
+
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
@@ -40,21 +42,19 @@ def display_create_prompt():
                 dataset = datasets[dataset_idx]
                 st.code("Dataset Columns: \n * " + '\n * '.join(json.loads(dataset.features)))
 
-                default_template = "Add instructions to better suit you task. \n\n"
-                for feature in json.loads(dataset.features):
-                    default_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
+                columns = json.loads(dataset.features)
+                default_prompt_template, default_completion_template = generate_templates(columns)
+                subcol1, subcol2 = st.columns(2)
+                prompt_template = subcol1.text_area("Prompt Template", value=default_prompt_template, height=260)
+                completion_template = subcol2.text_area("Completion Template", value=default_completion_template, height=260)
+                
 
-                prompt_template = st.text_area("Prompt Template", value=default_template, height=200)
-
-                if "Add instructions to better suit you task." in prompt_template:
-                    prompt_template = prompt_template.replace("Add instructions to better suit you task.", "")
-
-                prompt_template = prompt_template.lstrip("\n")
 
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)
 
-                prompt_output = ""
+                subcol1, subcol2 = st.columns(2)
+                example_input_prompt, example_completion_prompt = "", ""
                 if generate_example_button:
                     with st.spinner("Generating Prompt..."):
                         loaded_dataset = load_dataset(dataset.huggingface_name)
@@ -62,17 +62,24 @@ def display_create_prompt():
                     dataset_size = len(loaded_dataset["train"])
                     idx_random = random.randint(0, dataset_size - 1)
                     dataset_idx = loaded_dataset["train"][idx_random]
-                    prompt_output = prompt_template.format(**dataset_idx)
+                    
+                    # Generate the example prompt and completion using the templates
+                    example_input_prompt = prompt_template.format(**dataset_idx)
+                    example_completion_prompt = completion_template.format(**dataset_idx)
 
-                st.caption("**Example Prompt**")
-                st.code(prompt_output)
+                # Display the example input prompt and completion prompt
+                subcol1.caption("Example Input Prompt")
+                subcol1.code(example_input_prompt)
+                
+                subcol2.caption("Example Completion Prompt")
+                subcol2.code(example_completion_prompt)
 
                 if st.button("Create Prompt", type="primary", use_container_width=True):
                     if not new_prompt_name:
                         st.error("Prompt Name cannot be empty!", icon=":material/error:")
                     else:
                         try:
-                            add_prompt(new_prompt_name, dataset.id, prompt_template)
+                            add_prompt(new_prompt_name, dataset.id, prompt_template, completion_template)
                             st.success("Prompt Created. Please go to **View Prompts** tab.", icon=":material/check:")
                             st.toast("Prompt has been created successfully.", icon=":material/check:")
                         except Exception as e:
@@ -80,46 +87,70 @@ def display_create_prompt():
                             st.toast(f"Failed to create prompt: **{str(e)}**", icon=":material/error:")
 
     with col2:
-        st.info("""
+        st.info(
+        """
         ### How to Create and Customize Training Prompts
 
-        Creating effective prompts is key to fine-tuning models. Follow these steps:
+        1. **Input Prompt (Prompt Template)**
+            - **Default Template:** Auto-generated template based on dataset features.
+            
+                ```
+                You are an LLM. Provide a response below.
 
-        ### 1. Customizing the Prompt Template
-        - **Default Template**: The text box will auto-generate a prompt template based on dataset features. For example:
+                <Instruction>: {instruction}
+                <Input>: {input}
+                <Response>: 
+                ```
+            
+            - **Modifying the Input Prompt:** Adjust by removing fields or adding instructions.
+            
+                ```
+                You are a customer chatbot. Please respond politely with information to help the customer based on the intent retrieved.
 
-            ```
-            <Instruction>: {instruction}
-            <Input>: {input}
-            <Response>: {response}
-            <Text>: {text}
-            ```
-        - **Modifying Prompt**: Remove irrelevant fields and add instructions to better suit your task. For example:
+                <Instruction>: {instruction}
+                <Input>: {input}
+                <Assistant>: 
+                ```
 
-            ```
-            You are a customer chatbot. Please respond politely with information to help the customer based on the intent retrieved.
+        2. **Completion Prompt (Completion Template)**
+            - **Default Template:** Defines expected output from the model.
+            
+                ```
+                {response}
+                ```
+            
+            - **Customizing Completion:** Add fields for more specific outputs.
+            
+                ```
+                {response}
+                <Source>: {source}
+                ```
 
-            <Instruction>: {instruction}
-            <Input>: {input}
-            <Response>: {response}
-            ```
-
-        ### 2. Generating and Saving Prompts
-        - Click **Generate Prompt Example** to see your template in action and adjust as needed and **Create** the prompt.
-        - Manage your prompts in the **View Prompts** tab.
-
-        Use these steps to effectively create and manage training prompts!
-        """)
+        3. **Generating and Saving Prompts**
+            - **Generate Example:** Preview Input and Completion Prompts with dataset data.
+            - **Create Prompt:** Save when satisfied with the templates.
+        """
+    )
 
 
-def add_prompt(name, dataset_id, template):
+
+def add_prompt(name, dataset_id, prompt_template, completion_template):
+    # Remove the newline from the end of the prompt template and concatenate with the response template
+    if prompt_template.endswith("\n"):
+        prompt_template = prompt_template.rstrip("\n")
+    
+    # Concatenate the response within the template properly
+    template = prompt_template + completion_template.strip()
+
     fts.AddPrompt(
         AddPromptRequest(
             prompt=PromptMetadata(
                 id=str(uuid4()),
                 name=name,
                 dataset_id=dataset_id,
-                prompt_template=template
+                prompt_template=template,
+                input_template=prompt_template,
+                completion_template=completion_template
             )
         )
     )

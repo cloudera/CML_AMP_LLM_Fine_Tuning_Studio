@@ -186,3 +186,5 @@ data
 outputs
 last_run_prepared
 .nfs*
+sqlite3
+.bashrc

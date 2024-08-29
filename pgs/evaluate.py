@@ -67,7 +67,7 @@ def update_text_area():
         prompt_idx = st.session_state.input_prompt_idx
 
         if prompt_idx is not None and prompt_idx < len(prompts):
-            st.session_state.input_prompt_template = prompts[prompt_idx].prompt_template
+            st.session_state.input_prompt_template = prompts[prompt_idx].input_template
             st.session_state.text_area_value = st.session_state.input_prompt_template
         else:
             st.session_state.input_prompt_template = None
