@@ -43,18 +43,18 @@ def display_datasets(
                 if dataset.description:
                     c12.text(dataset.description)
 
-                remove = c13.button("Remove", key=f"{dataset.id}_remove", type="primary", use_container_width=True)
+                # remove = c13.button("Remove", key=f"{dataset.id}_remove", type="primary", use_container_width=True)
 
                 c21 = st.columns(1)
                 c21[0].code("Features: \n * " + '\n * '.join(json.loads(dataset.features) if dataset.features else []))
 
-                if remove:
-                    fts.RemoveDataset(
-                        RemoveDatasetRequest(
-                            id=dataset.id
-                        )
-                    )
-                    st.rerun()
+                # if remove:
+                #     fts.RemoveDataset(
+                #         RemoveDatasetRequest(
+                #             id=dataset.id
+                #         )
+                #     )
+                #     st.rerun()
 
 
 display_header()

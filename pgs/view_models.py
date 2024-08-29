@@ -48,15 +48,15 @@ def display_models(models: List[ModelMetadata], adapters: List[AdapterMetadata])
             c1, c2 = st.columns([4, 1])
             c1.markdown(f"**{model.name}**")
 
-            remove = c2.button("Remove", type="primary", key=f"{model.id}_remove", use_container_width=True)
+            # remove = c2.button("Remove", type="primary", key=f"{model.id}_remove", use_container_width=True)
 
-            if remove:
-                fts.RemoveModel(
-                    RemoveModelRequest(
-                        id=model.id
-                    )
-                )
-                st.rerun()
+            # if remove:
+            #     fts.RemoveModel(
+            #         RemoveModelRequest(
+            #             id=model.id
+            #         )
+            #     )
+            #     st.rerun()
 
             model_adapters = [adapter for adapter in adapters if adapter.model_id == model.id]
             expander = ds_cont.expander("Adapters")
@@ -78,15 +78,15 @@ def display_adapter(adapter: AdapterMetadata, container):
         elif adapter.type == AdapterType.HUGGINGFACE:
             c1.caption(adapter.huggingface_name)
 
-        remove = c2.button("Remove", type="secondary", key=f"{adapter.id}_remove", use_container_width=True)
+        # remove = c2.button("Remove", type="secondary", key=f"{adapter.id}_remove", use_container_width=True)
 
-        if remove:
-            fts.RemoveAdapter(
-                RemoveAdapterRequest(
-                    id=adapter.id
-                )
-            )
-            st.rerun()
+        # if remove:
+        #     fts.RemoveAdapter(
+        #         RemoveAdapterRequest(
+        #             id=adapter.id
+        #         )
+        #     )
+        #     st.rerun()
 
 
 display_header()
