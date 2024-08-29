@@ -86,6 +86,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     arg_list.append("--adapter_id")
     arg_list.append(request.adapter_id)
 
+    arg_list.append("--prompt_id")
+    arg_list.append(request.prompt_id)
+
     # Set Evaluation Dir argument
     arg_list.append("--result_dir")
     arg_list.append(result_dir)

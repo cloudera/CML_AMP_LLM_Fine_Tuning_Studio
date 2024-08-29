@@ -68,6 +68,11 @@ with ccol1:
                 index=None
             )
 
+            if len(model_adapters) == 0:
+                st.error(
+                    "No adapters available. Please create a fine tuning job for the selected base model to create an adapter.",
+                    icon=":material/error:")
+
             if model_adapter_idx is not None:
                 model_adapter = model_adapters[model_adapter_idx]
 
@@ -82,8 +87,32 @@ with ccol1:
             index=None
         )
 
+        if dataset_idx is not None:
+            dataset = current_datasets[dataset_idx]
+            current_prompts = fts.get_prompts()
+            current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
+            prompt_idx = st.selectbox(
+                "Prompts",
+                range(len(current_prompts)),
+                format_func=lambda x: current_prompts[x].name,
+                index=None,
+                key="prompt_selectbox",
+                help="Select the prompt to use with the selected dataset. This field is required."
+            )
+
+            if len(current_prompts) == 0:
+                st.error(
+                    "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
+                    icon=":material/error:")
+
+            if prompt_idx is not None:
+                subcol1, subcol2 = st.columns(2)
+                subcol1.caption("Prompt Template")
+                subcol1.code(current_prompts[prompt_idx].input_template)
+                subcol2.caption("Completion Template")
+                subcol2.code(current_prompts[prompt_idx].completion_template)
+
         # Advanced options
-        st.markdown("---")
         st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
         with c1:
@@ -93,7 +122,7 @@ with ccol1:
 
         gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
 
-        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None
+        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None and prompt_idx is not None
 
         if button_enabled:
             with st.expander("Configs"):
@@ -139,51 +168,57 @@ with ccol1:
         start_job_button = st.button(
             "Start MLflow Evaluation Job",
             type="primary",
-            use_container_width=True,
-            disabled=not button_enabled)
+            use_container_width=True)
 
         if start_job_button:
-            try:
-                model = current_models[model_idx]
-                dataset = current_datasets[dataset_idx]
-                adapter = model_adapters[model_adapter_idx]
+            if not button_enabled:
+                st.warning(
+                        "Please complete the fields: Adapter, Dataset, Prompt, and Base Model before starting the job.",
+                        icon=":material/error:")
+            else:
+                try:
+                    model = current_models[model_idx]
+                    dataset = current_datasets[dataset_idx]
+                    adapter = model_adapters[model_adapter_idx]
+                    prompt = current_prompts[prompt_idx]
 
-                # If there were any changes made to the generation or bnb config,
-                # add these new configs to the config store.
-                bnb_config_md: ConfigMetadata = fts.AddConfig(
-                    AddConfigRequest(
-                        type=ConfigType.BITSANDBYTES_CONFIG,
-                        config=bnb_config_text,
-                        description=model.huggingface_model_name
-                    )
-                ).config
-                generation_config_md: ConfigMetadata = fts.AddConfig(
-                    AddConfigRequest(
-                        type=ConfigType.GENERATION_CONFIG,
-                        config=generation_config_text,
-                        description=model.huggingface_model_name
-                    )
-                ).config
+                    # If there were any changes made to the generation or bnb config,
+                    # add these new configs to the config store.
+                    bnb_config_md: ConfigMetadata = fts.AddConfig(
+                        AddConfigRequest(
+                            type=ConfigType.BITSANDBYTES_CONFIG,
+                            config=bnb_config_text,
+                            description=model.huggingface_model_name
+                        )
+                    ).config
+                    generation_config_md: ConfigMetadata = fts.AddConfig(
+                        AddConfigRequest(
+                            type=ConfigType.GENERATION_CONFIG,
+                            config=generation_config_text,
+                            description=model.huggingface_model_name
+                        )
+                    ).config
 
-                fts.StartEvaluationJob(
-                    StartEvaluationJobRequest(
-                        type=EvaluationJobType.MFLOW,
-                        adapter_id=adapter.id,
-                        base_model_id=model.id,
-                        dataset_id=dataset.id,
-                        cpu=int(cpu),
-                        gpu=gpu,
-                        memory=int(memory),
-                        model_bnb_config_id=bnb_config_md.id,
-                        adapter_bnb_config_id=bnb_config_md.id,
-                        generation_config_id=generation_config_md.id
+                    fts.StartEvaluationJob(
+                        StartEvaluationJobRequest(
+                            type=EvaluationJobType.MFLOW,
+                            adapter_id=adapter.id,
+                            base_model_id=model.id,
+                            dataset_id=dataset.id,
+                            prompt_id=prompt.id,
+                            cpu=int(cpu),
+                            gpu=gpu,
+                            memory=int(memory),
+                            model_bnb_config_id=bnb_config_md.id,
+                            adapter_bnb_config_id=bnb_config_md.id,
+                            generation_config_id=generation_config_md.id
+                        )
                     )
-                )
-                st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
-                st.toast("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
-            except Exception as e:
-                st.error(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
-                st.toast(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
+                    st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
+                    st.toast("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
+                except Exception as e:
+                    st.error(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
+                    st.toast(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
 
 with ccol2:
     st.info(
