@@ -9,6 +9,7 @@ from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from cmlapi import models as cml_api_models
 from ft.utils import format_status_with_icon
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -19,9 +20,9 @@ def display_page_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/subscriptions_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+            col1.image(IconPaths.Experiments.MONITOR_TRAINING_JOBS)
         with col2:
-            col2.subheader('Monitor Training Jobs')
+            col2.subheader('Monitor Training Jobs', divider=DIVIDER_COLOR)
             st.caption(
                 "Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
 
@@ -204,7 +205,8 @@ def display_jobs_list():
         'dataset_name',
         'prompt_name',
         'exp_id',
-        'created_at'
+        'created_at',
+        'adapter_name'
     ]
 
     for column in columns_we_care_about:
@@ -218,7 +220,8 @@ def display_jobs_list():
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
         'prompt_name': 'Prompt Name',
-        'latest': 'Status'
+        'latest': 'Status',
+        'adapter_name': 'Adapter Name'
     }, inplace=True)
 
     display_df['Status'] = display_df['Status'].apply(
@@ -233,14 +236,15 @@ def display_jobs_list():
 
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Job ID", "status_with_icon", "created_at", "html_url",
-                    "exp_id", "Model Name", "Dataset Name", "Prompt Name"]],
+        display_df[["Job ID", "status_with_icon", "Adapter Name", "html_url",
+                    "exp_id", "created_at", "Model Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
                 "Status",
                 help="Job status as text with icon",
             ),
+            "Adapter Name": st.column_config.TextColumn("Adapter Name"),
             "html_url": st.column_config.LinkColumn(
                 "CML Job Link", display_text="Open CML Job"
             ),

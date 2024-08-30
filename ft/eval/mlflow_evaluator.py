@@ -15,6 +15,8 @@ class ModelEvaluator():
                 evaluators="default",
                 model_type="text",    # parametrize this to support other types such as QnA, summarization etc.
                 targets=eval_target_column_name,
-                evaluator_config={"col_mapping": {"inputs": "model_input"}}
+                evaluator_config={"col_mapping": {"inputs": "model_input"}},
+                extra_metrics=[mlflow.metrics.latency(), mlflow.metrics.exact_match(), mlflow.metrics.rougeLsum(),
+                               mlflow.metrics.rougeL()]
             )
         return results

@@ -10,6 +10,7 @@ from ft.utils import get_device
 from ft.utils import attempt_hf_login
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate (or get the pre-existing) client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -246,9 +247,9 @@ def evaluate_fragment():
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
     with col1:
-        col1.image("./resources/images/difference_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+        col1.image(IconPaths.Experiments.LOCAL_ADAPTER_COMPARISON)
     with col2:
-        col2.subheader('Local Adapter Comparison', divider='red')
+        col2.subheader('Local Adapter Comparison', divider=DIVIDER_COLOR)
         st.caption("Compare your fine-tuned model performance with base model and gain valuable insights.")
 
 st.write("\n")

@@ -5,6 +5,7 @@ from ft.utils import get_env_variable, fetch_resource_usage_data, process_resour
 import traceback
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import yaml
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -22,9 +23,9 @@ def create_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            st.image("./resources/images/forward_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+            st.image(IconPaths.Experiments.TRAIN_NEW_ADAPTER)
         with col2:
-            st.subheader('Train a new Adapter', divider='red')
+            st.subheader('Train a new Adapter', divider=DIVIDER_COLOR)
             st.caption(
                 "Finetune your model using the imported datasets and models, leveraging advanced techniques to improve performance."
             )

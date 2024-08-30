@@ -4,6 +4,7 @@ from ft.consts import HF_LOGO
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
+from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -13,9 +14,9 @@ def display_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
         with col1:
-            col1.image("./resources/images/data_object_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.AIToolkit.VIEW_DATASETS)
         with col2:
-            col2.subheader('Available Datasets', divider='red')
+            col2.subheader('Available Datasets', divider=DIVIDER_COLOR)
             st.caption(
                 "Explore and organize imported datasets from Hugging Face or custom sources. Gain insights into the structure and content of each dataset.")
 
@@ -43,18 +44,18 @@ def display_datasets(
                 if dataset.description:
                     c12.text(dataset.description)
 
-                remove = c13.button("Remove", key=f"{dataset.id}_remove", type="primary", use_container_width=True)
+                # remove = c13.button("Remove", key=f"{dataset.id}_remove", type="primary", use_container_width=True)
 
                 c21 = st.columns(1)
                 c21[0].code("Features: \n * " + '\n * '.join(json.loads(dataset.features) if dataset.features else []))
 
-                if remove:
-                    fts.RemoveDataset(
-                        RemoveDatasetRequest(
-                            id=dataset.id
-                        )
-                    )
-                    st.rerun()
+                # if remove:
+                #     fts.RemoveDataset(
+                #         RemoveDatasetRequest(
+                #             id=dataset.id
+                #         )
+                #     )
+                #     st.rerun()
 
 
 display_header()
