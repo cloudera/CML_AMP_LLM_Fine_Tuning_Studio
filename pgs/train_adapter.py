@@ -2,7 +2,6 @@ import streamlit as st
 from ft.api import *
 import json
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str, fetch_cml_site_config
-import traceback
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import yaml
 from ft.consts import IconPaths, DIVIDER_COLOR
@@ -92,7 +91,7 @@ def create_train_adapter_page_with_proprietary():
                 )
                 if dataset_idx is not None:
                     if len(current_prompts) == 0:
-                        st.error(
+                        st.warning(
                             "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
                             icon=":material/error:")
 
@@ -184,9 +183,10 @@ def create_train_adapter_page_with_proprietary():
                 st.caption("Training Options")
                 c1, c2 = st.columns(2)
                 with c1:
-                    num_epochs = st.text_input(
+                    num_epochs = st.number_input(
                         "Number of Epochs",
-                        value="10",
+                        value=10,
+                        min_value=1,
                         key="num_epochs",
                         help="Specify the number of epochs for training."
                     )
@@ -348,8 +348,7 @@ def create_train_adapter_page_with_proprietary():
                                 training_arguments_config_id=training_args_config.id,
                                 output_dir=adapter_output_dir,
                                 dataset_fraction=dataset_fraction,
-                                train_test_split=dataset_train_test_split,
-                                framework_type=FineTuningFrameworkType.LEGACY
+                                train_test_split=dataset_train_test_split
                             )
                         )
                         st.success(
@@ -363,8 +362,6 @@ def create_train_adapter_page_with_proprietary():
                     except Exception as e:
                         st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
                         st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
-                        print(traceback.format_exc())
-                        st.error(traceback.format_exc())
 
     with ccol2:
         st.info("""
@@ -656,8 +653,6 @@ def create_train_adapter_page_with_axolotl():
                     except Exception as e:
                         st.error(f"Failed to create Finetuning Job: **{str(e)}**", icon=":material/error:")
                         st.toast(f"Failed to Finetuning Job: **{str(e)}**", icon=":material/error:")
-                        print(traceback.format_exc())
-                        st.error(traceback.format_exc())
 
     with ccol2:
         st.info("""

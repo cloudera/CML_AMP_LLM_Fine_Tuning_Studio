@@ -45,27 +45,44 @@ def get_model(request: GetModelRequest, cml: CMLServiceApi = None, dao: FineTuni
         )
 
 
+def _validate_add_model_request(request: AddModelRequest, dao: FineTuningStudioDao) -> None:
+    # Check for required fields in AddModelRequest
+    required_fields = ["type"]
+
+    for field in required_fields:
+        if not getattr(request, field):
+            raise ValueError(f"Field '{field}' is required in AddModelRequest.")
+
+    # Ensure the huggingface_name is not an empty string after stripping out spaces
+    huggingface_name = request.huggingface_name.strip()
+    if huggingface_name:
+        # Check if the model already exists
+        with dao.get_session() as session:
+            existing_models: List[Model] = session.query(Model).all()
+            if any(model.huggingface_model_name == huggingface_name for model in existing_models):
+                raise ValueError(f"Model with name '{huggingface_name}' already exists.")
+    else:
+        raise ValueError("Hugging Face model name cannot be an empty string or only spaces.")
+
+
 def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> AddModelResponse:
     response: AddModelResponse = AddModelResponse()
+
+    # Validate the AddModelRequest
+    _validate_add_model_request(request, dao)
 
     if request.type == ModelType.HUGGINGFACE:
         try:
             with dao.get_session() as session:
-
-                # Check if the model already exists
-                existing_models: List[Model] = session.query(Model).all()
-                if any(model.huggingface_model_name == request.huggingface_name for model in existing_models):
-                    raise ValueError(f"Model with name '{request.huggingface_name}' already exists.")
-
                 # Use HfApi to check if the model exists
                 api = HfApi()
-                model_info: ModelInfo = api.model_info(request.huggingface_name)
+                model_info: ModelInfo = api.model_info(request.huggingface_name.strip())
 
                 model: Model = Model(
                     id=str(uuid4()),
                     type=ModelType.HUGGINGFACE,
-                    name=request.huggingface_name,
-                    huggingface_model_name=request.huggingface_name
+                    name=request.huggingface_name.strip(),
+                    huggingface_model_name=request.huggingface_name.strip()
                 )
                 session.add(model)
 
@@ -74,6 +91,7 @@ def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuni
                 )
         except Exception as e:
             raise ValueError(f"ERROR: Failed to load Hugging Face model. {e}")
+
     elif request.type == ModelType.MODEL_REGISTRY:
 
         assert request.model_registry_id is not None

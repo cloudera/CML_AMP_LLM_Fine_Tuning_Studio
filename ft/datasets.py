@@ -52,39 +52,54 @@ def get_dataset(
     )
 
 
+def _validate_add_dataset_request(request: AddDatasetRequest, dao: FineTuningStudioDao) -> None:
+    # Check for required fields in AddDatasetRequest
+    required_fields = ["type", "huggingface_name"]
+
+    for field in required_fields:
+        if not getattr(request, field):
+            raise ValueError(f"Field '{field}' is required in AddDatasetRequest.")
+
+    # Ensure the huggingface_name is not an empty string after stripping out spaces
+    huggingface_name = request.huggingface_name.strip()
+    if not huggingface_name:
+        raise ValueError("Huggingface dataset name cannot be an empty string or only spaces.")
+
+    # Check if the dataset already exists
+    with dao.get_session() as session:
+        existing_datasets: List[Dataset] = session.query(Dataset).all()
+        if any(ds.huggingface_name == huggingface_name for ds in existing_datasets):
+            raise ValueError(f"Dataset with name '{huggingface_name}' already exists.")
+
+
 def add_dataset(request: AddDatasetRequest, cml: CMLServiceApi = None,
                 dao: FineTuningStudioDao = None) -> AddDatasetResponse:
     """
     Retrieve dataset information without fully loading it into memory.
     """
+    # Validate the AddDatasetRequest
+    _validate_add_dataset_request(request, dao)
+
     response = AddDatasetResponse()
 
     # Create a new dataset metadata for the imported dataset.
     if request.type == DatasetType.HUGGINGFACE:
         try:
-            # Check if the dataset already exists
-
-            with dao.get_session() as session:
-                existing_datasets: List[Dataset] = session.query(Dataset).all()
-
-                if any(ds.huggingface_name == request.huggingface_name for ds in existing_datasets):
-                    raise ValueError(f"Dataset with name '{request.huggingface_name}' already exists.")
-
             # Get dataset information without loading it into memory.
-            dataset_builder = load_dataset_builder(request.huggingface_name)
+            dataset_builder = load_dataset_builder(request.huggingface_name.strip())
             dataset_info = dataset_builder.info
 
             # Extract features from the dataset info.
             features = list(dataset_info.features.keys())
 
-            # Add the datasets.
+            # Add the dataset to the database.
             with dao.get_session() as session:
                 dataset = Dataset(
                     id=str(uuid4()),
                     type=request.type,
                     features=json.dumps(features),
-                    name=request.huggingface_name,
-                    huggingface_name=request.huggingface_name,
+                    name=request.huggingface_name.strip(),
+                    huggingface_name=request.huggingface_name.strip(),
                     description=dataset_info.description
                 )
                 session.add(dataset)
@@ -93,7 +108,7 @@ def add_dataset(request: AddDatasetRequest, cml: CMLServiceApi = None,
                 response = AddDatasetResponse(dataset=metadata)
 
         except Exception as e:
-            raise ValueError(f"Failed to load dataset. {e}")
+            raise ValueError(f"Failed to add dataset. {e}")
 
     else:
         raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
