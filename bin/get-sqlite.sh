@@ -9,4 +9,4 @@ tar -xzvf sqlite-autoconf-3460100.tar.gz
 cd sqlite-autoconf-3460100
 ./configure
 make -j
-echo "export PATH=~/sqlite3/sqlite-autoconf-3460100/:$PATH" >> ~/.bashrc
+echo "export PATH=~/sqlite3/sqlite-autoconf-3460100:$PATH" >> ~/.bashrc

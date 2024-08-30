@@ -173,8 +173,8 @@ with ccol1:
         if start_job_button:
             if not button_enabled:
                 st.warning(
-                        "Please complete the fields: Adapter, Dataset, Prompt, and Base Model before starting the job.",
-                        icon=":material/error:")
+                    "Please complete the fields: Adapter, Dataset, Prompt, and Base Model before starting the job.",
+                    icon=":material/error:")
             else:
                 try:
                     model = current_models[model_idx]
