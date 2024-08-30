@@ -1,8 +1,11 @@
 import pytest
+from unittest.mock import patch, MagicMock
+from sqlalchemy.exc import NoResultFound
 
 from ft.models import (
     list_models,
     get_model,
+    add_model,
     remove_model,
 )
 from ft.api import *
@@ -10,11 +13,8 @@ from ft.api import *
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import Model
 
-from sqlalchemy.exc import NoResultFound
-
 
 def test_list_models():
-
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
     with test_dao.get_session() as session:
@@ -38,7 +38,6 @@ def test_get_model_happy():
 
 
 def test_get_model_missing():
-
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
     with test_dao.get_session() as session:
@@ -46,7 +45,7 @@ def test_get_model_missing():
         session.add(Model(id="m2"))
 
     with pytest.raises(NoResultFound):
-        res = get_model(GetModelRequest(id="a3"), dao=test_dao)
+        get_model(GetModelRequest(id="a3"), dao=test_dao)
 
 
 def test_remove_model_happy():
@@ -56,6 +55,68 @@ def test_remove_model_happy():
         session.add(Model(id="m1"))
         session.add(Model(id="m2"))
 
-    res = remove_model(RemoveModelRequest(id="m1"), dao=test_dao)
+    remove_model(RemoveModelRequest(id="m1"), dao=test_dao)
     with test_dao.get_session() as session:
         assert len(session.query(Model).all()) == 1
+
+
+@patch("ft.models.HfApi.model_info")
+def test_add_model_huggingface_happy(mock_model_info):
+    mock_model_info.return_value = MagicMock()  # Mock the ModelInfo response
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    request = AddModelRequest(
+        type=ModelType.HUGGINGFACE,
+        huggingface_name="mock_model"
+    )
+
+    res = add_model(request, dao=test_dao)
+    assert res.model.name == "mock_model"
+
+    with test_dao.get_session() as session:
+        models = session.query(Model).all()
+        assert len(models) == 1
+        assert models[0].huggingface_model_name == "mock_model"
+
+
+def test_add_model_huggingface_missing_name():
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    request = AddModelRequest(
+        type=ModelType.HUGGINGFACE,
+        huggingface_name=""
+    )
+
+    with pytest.raises(ValueError, match="Hugging Face model name cannot be an empty string or only spaces."):
+        add_model(request, dao=test_dao)
+
+
+@patch("ft.models.HfApi.model_info")
+def test_add_model_huggingface_duplicate_name(mock_model_info):
+    mock_model_info.return_value = MagicMock()
+
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(Model(id="m1", huggingface_model_name="mock_model"))
+
+    request = AddModelRequest(
+        type=ModelType.HUGGINGFACE,
+        huggingface_name="mock_model"
+    )
+
+    with pytest.raises(ValueError, match="Model with name 'mock_model' already exists."):
+        add_model(request, dao=test_dao)
+
+
+def test_add_model_invalid_type():
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    request = AddModelRequest(
+        type="INVALID_TYPE",
+        huggingface_name="mock_model"
+    )
+
+    with pytest.raises(ValueError, match="ERROR: Cannot import model of this type."):
+        add_model(request, dao=test_dao)

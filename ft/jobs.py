@@ -14,7 +14,7 @@ from ft.db.model import FineTuningJob, Config
 from sqlalchemy import delete
 
 from typing import List
-from ft.db.model import Dataset, Prompt
+from ft.db.model import Dataset, Prompt, Model, Adapter
 
 import yaml
 
@@ -44,6 +44,105 @@ def get_fine_tuning_job(request: GetFineTuningJobRequest,
             .one()
             .to_protobuf(FineTuningJobMetadata)
         )
+
+
+def _validate_fine_tuning_request(request: StartFineTuningJobRequest, dao: FineTuningStudioDao) -> None:
+    """
+    Validate the parameters of the StartFineTuningJobRequest.
+
+    This function checks for necessary conditions and constraints in the request
+    parameters and raises exceptions if validation fails.
+    """
+
+    # Validate framework_type
+    if request.framework_type not in [FineTuningFrameworkType.LEGACY, FineTuningFrameworkType.AXOLOTL]:
+        raise ValueError("Invalid framework type provided.")
+
+    # Validate adapter_name
+    if request.adapter_name and not request.adapter_name.replace("-", "").isalnum():
+        raise ValueError("Adapter Name should only contain alphanumeric characters and hyphens, and no spaces.")
+
+    # Validate output directory
+    if request.output_dir and not os.path.isdir(request.output_dir):
+        raise ValueError("Output Location must be a valid folder directory.")
+
+    # Validate CPU, GPU, and memory allocations
+    if request.cpu <= 0:
+        raise ValueError("CPU allocation must be greater than 0.")
+    if request.gpu < 0:
+        raise ValueError("GPU allocation must be 0 or greater.")
+    if request.memory <= 0:
+        raise ValueError("Memory allocation must be greater than 0.")
+
+    # Validate number of workers
+    if request.num_workers <= 0:
+        raise ValueError("Number of workers must be greater than 0.")
+
+    # Validate number of epochs
+    if request.num_epochs <= 0:
+        raise ValueError("Number of epochs must be greater than 0.")
+
+    # Validate learning rate
+    if request.learning_rate <= 0:
+        raise ValueError("Learning rate must be greater than 0.")
+
+    # Validate dataset fraction (should be between 0 and 1)
+    if not (0 < request.dataset_fraction <= 1):
+        raise ValueError("Dataset fraction must be between 0 and 1.")
+
+    # Validate train_test_split (should be between 0 and 1)
+    if not (0 < request.train_test_split <= 1):
+        raise ValueError("Train-test split must be between 0 and 1.")
+
+    # Validate Axolotl config ID if using AXOLOTL framework
+    if request.framework_type == FineTuningFrameworkType.AXOLOTL and not request.axolotl_config_id:
+        raise ValueError("Axolotl Config ID is required for AXOLOTL framework type.")
+
+    # Database validation for IDs
+    with dao.get_session() as session:
+        # Check if an adapter with the same name already exists in the database
+        if request.adapter_name and session.query(Adapter).filter_by(name=request.adapter_name.strip()).first():
+            raise ValueError(f"An adapter with the name '{request.adapter_name}' already exists.")
+
+        # Check if the referenced base_model_id exists in the database
+        if not session.query(Model).filter_by(id=request.base_model_id.strip()).first():
+            raise ValueError(f"Model with ID '{request.base_model_id}' does not exist.")
+
+        # Check if the referenced dataset_id exists in the database
+        if not session.query(Dataset).filter_by(id=request.dataset_id.strip()).first():
+            raise ValueError(f"Dataset with ID '{request.dataset_id}' does not exist.")
+
+        if request.framework_type == FineTuningFrameworkType.LEGACY:
+            # Check if the referenced prompt_id exists in the database
+            if request.prompt_id and not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
+                raise ValueError(f"Prompt with ID '{request.prompt_id}' does not exist.")
+
+            # Check if the referenced training_arguments_config_id exists in the database
+            if request.training_arguments_config_id and not session.query(
+                    Config).filter_by(id=request.training_arguments_config_id.strip()).first():
+                raise ValueError(
+                    f"Training Arguments Config with ID '{request.training_arguments_config_id}' does not exist.")
+
+            # Check if the referenced model_bnb_config_id exists in the database
+            if request.model_bnb_config_id and not session.query(
+                    Config).filter_by(id=request.model_bnb_config_id.strip()).first():
+                raise ValueError(f"Model BnB Config with ID '{request.model_bnb_config_id}' does not exist.")
+
+            # Check if the referenced adapter_bnb_config_id exists in the database
+            if request.adapter_bnb_config_id and not session.query(
+                    Config).filter_by(id=request.adapter_bnb_config_id.strip()).first():
+                raise ValueError(f"Adapter BnB Config with ID '{request.adapter_bnb_config_id}' does not exist.")
+
+            # Check if the referenced lora_config_id exists in the database
+            if request.lora_config_id and not session.query(
+                    Config).filter_by(id=request.lora_config_id.strip()).first():
+                raise ValueError(f"Lora Config with ID '{request.lora_config_id}' does not exist.")
+
+        if request.framework_type == FineTuningFrameworkType.AXOLOTL:
+            # Check if the referenced axolotl_config_id exists in the database
+            if request.axolotl_config_id and not session.query(
+                    Config).filter_by(id=request.axolotl_config_id.strip()).first():
+                raise ValueError(f"Axolotl Config with ID '{request.axolotl_config_id}' does not exist.")
 
 
 def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> List[str]:
@@ -162,24 +261,27 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
     more flexibility of parameters like cpu,mem,gpu
     """
 
-    # TODO: pull this and others into app state
-    project_id = os.getenv("CDSW_PROJECT_ID")
-
-    job_id = str(uuid4())
-    job_dir = ".app/job_runs/%s" % job_id
-
     # Specify model framework type.
     if 'framework_type' not in [x[0].name for x in request.ListFields()]:
         framework_type = FineTuningFrameworkType.LEGACY
     else:
         framework_type: FineTuningFrameworkType = request.framework_type
 
+    request.framework_type = framework_type
+
+    # Validate the request parameters
+    _validate_fine_tuning_request(request, dao)
+
+    # TODO: pull this and others into app state
+    project_id = os.getenv("CDSW_PROJECT_ID")
+
+    job_id = str(uuid4())
+    job_dir = ".app/job_runs/%s" % job_id
+
     if framework_type == FineTuningFrameworkType.LEGACY:
         base_job_name = "Accel_Finetuning_Base_Job"
     else:
         base_job_name = "Finetuning_Base_Job"
-
-    request.framework_type = framework_type
 
     pathlib.Path(job_dir).mkdir(parents=True, exist_ok=True)
 
@@ -249,7 +351,7 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         cpu=cpu,
         memory=memory,
         nvidia_gpu=gpu,
-        arguments=" ".join([str(i) for i in arg_list])
+        arguments=" ".join([str(i).replace(" ", "") for i in arg_list])
     )
 
     # If provided, set accelerator label id for targeting gpu

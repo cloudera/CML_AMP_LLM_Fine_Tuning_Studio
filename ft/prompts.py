@@ -39,8 +39,35 @@ def get_prompt(request: GetPromptRequest, cml: CMLServiceApi = None,
         )
 
 
+def _validate_add_prompt_request(request: AddPromptRequest, dao: FineTuningStudioDao) -> None:
+    prompt_metadata = request.prompt
+
+    # Check for required fields in PromptMetadata
+    required_fields = [
+        "id", "name", "dataset_id",
+        "prompt_template", "input_template", "completion_template"
+    ]
+
+    for field in required_fields:
+        if not getattr(prompt_metadata, field):
+            raise ValueError(f"Field '{field}' is required in PromptMetadata.")
+
+    # Ensure the prompt name is not an empty string after stripping out spaces
+    prompt_name = prompt_metadata.name.strip()
+    if not prompt_name:
+        raise ValueError("Prompt name cannot be an empty string or only spaces.")
+
+    # Check if the prompt name is unique
+    with dao.get_session() as session:
+        existing_prompt = session.query(Prompt).filter_by(name=prompt_name).first()
+        if existing_prompt:
+            raise ValueError(f"Prompt name '{prompt_name}' already exists.")
+
+
 def add_prompt(request: AddPromptRequest, cml: CMLServiceApi = None,
                dao: FineTuningStudioDao = None) -> AddPromptResponse:
+    _validate_add_prompt_request(request, dao)
+
     with dao.get_session() as session:
         prompt: Prompt = Prompt.from_message(request.prompt)
         session.add(prompt)

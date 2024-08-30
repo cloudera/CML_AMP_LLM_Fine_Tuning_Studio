@@ -4,7 +4,6 @@ import pathlib
 import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
-
 import os
 
 from typing import List
@@ -12,7 +11,7 @@ from typing import List
 from sqlalchemy import delete
 
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import EvaluationJob
+from ft.db.model import EvaluationJob, Prompt, Config, Adapter, Model, Dataset
 
 
 def list_evaluation_jobs(request: ListEvaluationJobsRequest,
@@ -43,6 +42,61 @@ def get_evaluation_job(request: GetEvaluationJobRequest,
         )
 
 
+def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, dao: FineTuningStudioDao) -> None:
+    # Check for required fields in StartEvaluationJobRequest
+    required_fields = [
+        "base_model_id", "dataset_id", "adapter_id",
+        "prompt_id", "adapter_bnb_config_id",
+        "model_bnb_config_id", "generation_config_id",
+        "cpu", "gpu", "memory"
+    ]
+
+    for field in required_fields:
+        if not getattr(request, field):
+            raise ValueError(f"Field '{field}' is required in StartEvaluationJobRequest.")
+
+    # Ensure certain string fields are not empty after stripping out spaces
+    string_fields = [
+        "base_model_id", "dataset_id", "adapter_id",
+        "prompt_id", "adapter_bnb_config_id",
+        "model_bnb_config_id", "generation_config_id"
+    ]
+
+    for field in string_fields:
+        field_value = getattr(request, field).strip()
+        if not field_value:
+            raise ValueError(f"Field '{field}' cannot be an empty string or only spaces.")
+
+    # Check if the referenced base_model_id exists in the database
+    with dao.get_session() as session:
+        if not session.query(Model).filter_by(id=request.base_model_id.strip()).first():
+            raise ValueError(f"Model with ID '{request.base_model_id}' does not exist.")
+
+        # Check if the referenced dataset_id exists in the database
+        if not session.query(Dataset).filter_by(id=request.dataset_id.strip()).first():
+            raise ValueError(f"Dataset with ID '{request.dataset_id}' does not exist.")
+
+        # Check if the referenced adapter_id exists in the database
+        if not session.query(Adapter).filter_by(id=request.adapter_id.strip()).first():
+            raise ValueError(f"Adapter with ID '{request.adapter_id}' does not exist.")
+
+        # Check if the referenced prompt_id exists in the database
+        if not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
+            raise ValueError(f"Prompt with ID '{request.prompt_id}' does not exist.")
+
+        # Check if the referenced adapter_bnb_config_id exists in the database
+        if not session.query(Config).filter_by(id=request.adapter_bnb_config_id.strip()).first():
+            raise ValueError(f"Adapter BnB Config with ID '{request.adapter_bnb_config_id}' does not exist.")
+
+        # Check if the referenced model_bnb_config_id exists in the database
+        if not session.query(Config).filter_by(id=request.model_bnb_config_id.strip()).first():
+            raise ValueError(f"Model BnB Config with ID '{request.model_bnb_config_id}' does not exist.")
+
+        # Check if the referenced generation_config_id exists in the database
+        if not session.query(Config).filter_by(id=request.generation_config_id.strip()).first():
+            raise ValueError(f"Generation Config with ID '{request.generation_config_id}' does not exist.")
+
+
 def start_evaluation_job(request: StartEvaluationJobRequest,
                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> StartEvaluationJobResponse:
     """
@@ -50,6 +104,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     The CML Job itself does not run the finetuning work; it will launch a CML Worker(s) to allow
     more flexibility of parameters like CPU, memory, and GPU.
     """
+    _validate_start_evaluation_job_request(request, dao)
 
     response = StartEvaluationJobResponse()
 
@@ -116,7 +171,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
         cpu=cpu,
         memory=memory,
         nvidia_gpu=gpu,
-        arguments=" ".join(arg_list)
+        arguments=" ".join([str(i).replace(" ", "") for i in arg_list])
     )
 
     # Create job on CML

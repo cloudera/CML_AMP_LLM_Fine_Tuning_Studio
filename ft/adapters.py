@@ -9,9 +9,11 @@ from uuid import uuid4
 from typing import List
 
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import Adapter
+from ft.db.model import Adapter, FineTuningJob, Prompt, Model
 
 from sqlalchemy import delete
+
+import os
 
 
 def list_adapters(request: ListAdaptersRequest, cml: CMLServiceApi = None,
@@ -42,8 +44,57 @@ def get_adapter(request: GetAdapterRequest, cml: CMLServiceApi = None,
         )
 
 
+def _validate_add_adapter_request(request: AddAdapterRequest, dao: FineTuningStudioDao) -> None:
+    """
+    Validate the parameters of the AddAdapterRequest.
+
+    This function checks for necessary conditions and constraints in the request
+    parameters and raises exceptions if validation fails.
+    """
+
+    # Check for required fields in AddAdapterRequest
+    required_fields = ["name", "model_id", "location"]
+
+    for field in required_fields:
+        if not getattr(request, field):
+            raise ValueError(f"Field '{field}' is required in AddAdapterRequest.")
+
+    # Ensure certain string fields are not empty after stripping out spaces
+    string_fields = ["name", "model_id", "location"]
+
+    for field in string_fields:
+        field_value = getattr(request, field).strip()
+        if not field_value:
+            raise ValueError(f"Field '{field}' cannot be an empty string or only spaces.")
+
+    # Check if the location exists as a directory
+    if not os.path.isdir(request.location):
+        raise ValueError(f"Location '{request.location}' must be a valid directory.")
+
+    # Database validation for IDs
+    with dao.get_session() as session:
+        # Check if the referenced model_id exists in the database
+        if not session.query(Model).filter_by(id=request.model_id.strip()).first():
+            raise ValueError(f"Model with ID '{request.model_id}' does not exist.")
+
+        # Check if an adapter with the same name already exists in the database
+        if session.query(Adapter).filter_by(name=request.name.strip()).first():
+            raise ValueError(f"An adapter with the name '{request.name}' already exists.")
+
+        # Additional optional checks for fine_tuning_job_id and prompt_id
+        if request.fine_tuning_job_id and not session.query(
+                FineTuningJob).filter_by(id=request.fine_tuning_job_id.strip()).first():
+            raise ValueError(f"Fine Tuning Job with ID '{request.fine_tuning_job_id}' does not exist.")
+
+        if request.prompt_id and not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
+            raise ValueError(f"Prompt with ID '{request.prompt_id}' does not exist.")
+
+
 def add_adapter(request: AddAdapterRequest, cml: CMLServiceApi = None,
                 dao: FineTuningStudioDao = None) -> AddAdapterResponse:
+
+    # Validate the AddAdapterRequest
+    _validate_add_adapter_request(request, dao)
 
     response = AddAdapterResponse()
 
