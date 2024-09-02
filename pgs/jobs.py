@@ -10,6 +10,7 @@ from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from cmlapi import models as cml_api_models
 from ft.utils import format_status_with_icon
 from ft.consts import IconPaths, DIVIDER_COLOR
+import math
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -27,42 +28,6 @@ def display_page_header():
                 "Monitor your fine-tuning jobs, track progress, and ensure optimal performance throughout the training process.")
 
 
-def get_trainer_json_data(checkpoint_dir):
-    file_path = os.path.join(checkpoint_dir, 'trainer_state.json')
-    if os.path.exists(file_path):
-        try:
-            with open(file_path, 'r') as file:
-                data = json.load(file)
-                return data
-        except json.JSONDecodeError as e:
-            st.error(f"Failed to decode JSON: {e}")
-            return {}
-        except Exception as e:
-            st.error(f"Error reading trainer_state.json: {e}")
-            return {}
-    else:
-        st.warning(f"trainer_state.json not found in {checkpoint_dir}.")
-        return {}
-
-
-def list_checkpoints(finetuning_framework, out_dir, job_id):
-    try:
-        if finetuning_framework == FineTuningFrameworkType.AXOLOTL:
-            base_path = os.path.join(out_dir, job_id)
-        else:
-            base_path = os.path.join(os.getcwd(), 'outputs', job_id)
-
-        checkpoints = {}
-        if os.path.exists(base_path):
-            for d in os.listdir(base_path):
-                if d.startswith('checkpoint-'):
-                    checkpoint_path = os.path.join(base_path, d)
-                    checkpoints[d] = checkpoint_path
-        return checkpoints
-    except Exception as e:
-        return {}
-
-
 def fetch_current_jobs_and_mappings():
     try:
         current_jobs = fts.get_fine_tuning_jobs()
@@ -78,13 +43,17 @@ def fetch_current_jobs_and_mappings():
 
         return current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict
     except Exception as e:
-        st.error(f"Error fetching jobs and mappings: {e}")
+        st.error(f"Error fetching jobs and mappings: {e}", icon=":material/error:")
         return [], {}, {}, {}, {}
 
 
 def fetch_cml_experiments():
     try:
         cml_project = os.getenv("CDSW_PROJECT_ID")
+        if not cml_project:
+            st.error("CDSW_PROJECT_ID environment variable is missing.", icon=":material/error:")
+            return pd.DataFrame()
+
         all_experiments = []
         page_token = None
         page_size = 10
@@ -107,11 +76,15 @@ def fetch_cml_experiments():
             cml_experiments_df = pd.DataFrame(all_experiments)
 
         cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
-        proj_url = os.getenv('CDSW_PROJECT_URL').replace("/api/v1/projects", "")
+        proj_url = os.getenv('CDSW_PROJECT_URL', '').replace("/api/v1/projects", "")
+        if not proj_url:
+            st.error("CDSW_PROJECT_URL environment variable is missing or invalid.", icon=":material/error:")
+            return pd.DataFrame()
+
         cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
         return cml_experiments_df
     except Exception as e:
-        st.error(f"Error fetching CML experiments: {e}")
+        st.error(f"Error fetching CML experiments: {e}", icon=":material/error:")
         return pd.DataFrame()
 
 
@@ -120,7 +93,7 @@ def fetch_jobs_from_api():
     API_KEY = os.getenv('CDSW_API_KEY')
 
     if not HOST or not API_KEY:
-        st.error("Environment variables for CDSW_PROJECT_URL or CDSW_API_KEY are missing.")
+        st.error("Environment variables for CDSW_PROJECT_URL or CDSW_API_KEY are missing.", icon=":material/error:")
         return pd.DataFrame()
 
     url = "/".join([HOST, "jobs"])
@@ -128,15 +101,75 @@ def fetch_jobs_from_api():
         res = requests.get(url, headers={"Content-Type": "application/json"}, auth=(API_KEY, ""))
         res.raise_for_status()
     except requests.RequestException as e:
-        st.error(f"Failed to fetch jobs from API: {e}")
+        st.error(f"Failed to fetch jobs from API: {e}", icon=":material/error:")
         return pd.DataFrame()
 
     try:
         cml_jobs_list = res.json()
         return pd.DataFrame(cml_jobs_list)
     except (json.JSONDecodeError, ValueError) as e:
-        st.error(f"Error decoding API response: {e}")
+        st.error(f"Error decoding API response: {e}", icon=":material/error:")
         return pd.DataFrame()
+
+
+def fetch_experiment_metrics(exp_id):
+    cml_project = os.getenv("CDSW_PROJECT_ID")
+
+    if not cml_project:
+        st.error("CDSW_PROJECT_ID environment variable is missing.", icon=":material/error:")
+        return []
+
+    # Ensure exp_id (experiment_id) is of valid length
+    if len(exp_id) != 19:
+        st.error("Invalid experiment ID length.", icon=":material/error:")
+        return []
+
+    # Fetch the experiment details
+    try:
+        experiment_details = cml.get_experiment(project_id=cml_project, experiment_id=exp_id).to_dict()
+    except Exception as e:
+        st.error(f"Error fetching experiment details: {e}", icon=":material/error:")
+        return []
+
+    # Fetch and print experiment runs
+    try:
+        experiment_runs_response = cml.list_experiment_runs(project_id=cml_project, experiment_id=exp_id).to_dict()
+        experiment_runs = experiment_runs_response.get('experiment_runs', [])
+
+        if not experiment_runs:
+            return []
+
+        # Get the first experiment run
+        first_run = experiment_runs[0]
+        run_id = first_run.get('id')
+
+    except Exception as e:
+        st.error(f"Error fetching experiment runs: {e}", icon=":material/error:")
+        return []
+
+    # Fetch the detailed metrics for each metric key
+    metrics = first_run.get('data', {}).get('metrics', [])
+    if not metrics:
+        st.info("No metrics found for the experiment.", icon=":material/info:")
+        return []
+
+    metric_data_list = []
+    for metric in metrics:
+        metric_key = metric.get('key')
+        try:
+            # Fetch the detailed metric data
+            metric_data = cml.get_experiment_run_metrics(
+                project_id=cml_project,
+                experiment_id=exp_id,
+                run_id=run_id,
+                metric_key=metric_key
+            ).to_dict()
+
+            metric_data_list.append({'metric_key': metric_key, 'metric_data': metric_data['metrics']})
+        except Exception as e:
+            st.error(f"Failed to fetch metric {metric_key} for run {run_id}: {e}", icon=":material/error:")
+
+    return metric_data_list
 
 
 @st.fragment
@@ -149,7 +182,7 @@ def display_jobs_list():
 
     st.write("\n")
 
-    _, col1 = st.columns([14, 2])
+    _, col1 = st.columns([18, 2])
 
     with col1:
         if st.button("Refresh", use_container_width=True, type="primary"):
@@ -160,16 +193,16 @@ def display_jobs_list():
     try:
         jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
     except Exception as e:
-        st.error(f"Error converting jobs to DataFrame: {e}")
+        st.error(f"Error converting jobs to DataFrame: {e}", icon=":material/error:")
         jobs_df = pd.DataFrame()
 
     if 'cml_job_id' not in jobs_df.columns:
-        st.error("Column 'cml_job_id' not found in jobs_df")
+        st.error("Column 'cml_job_id' not found in jobs_df", icon=":material/error:")
         return
 
     cml_jobs_list_df = fetch_jobs_from_api()
     if cml_jobs_list_df.empty or 'public_identifier' not in cml_jobs_list_df.columns:
-        st.error("Column 'public_identifier' not found in cml_jobs_list_df")
+        st.error("Column 'public_identifier' not found in cml_jobs_list_df", icon=":material/error:")
         return
 
     display_df = pd.merge(
@@ -300,161 +333,207 @@ def display_jobs_list():
     )
 
 
+@st.fragment
 def display_training_metrics():
     current_jobs, model_dict, adapter_dict, dataset_dict, prompt_dict = fetch_current_jobs_and_mappings()
+
+    cml_experiments_df = fetch_cml_experiments()
 
     if not current_jobs:
         st.info("No fine-tuning jobs triggered.", icon=":material/info:")
         return
 
     col1, _, col2 = st.columns([70, 1, 30])
-    subcol1, subcol2 = col1.columns([6, 4])
-    job_ids = [job.id for job in current_jobs]
 
-    selected_job_id = subcol1.selectbox('Select Job ID', job_ids, index=0)
+    # Create a list of job details to display in the selectbox
+    job_details = [
+        f"{job.id} [ Adapter = {job.adapter_name} ]"
+        for job in current_jobs
+    ]
 
-    selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
-    if selected_job:
-        finetuning_framework = selected_job.framework_type
-        out_dir = selected_job.out_dir
+    # Display the job details in the selectbox
+    selected_job_detail = col1.selectbox('Select Job ID', job_details, index=None)
+
+    with col2:
+        _, subcol1 = st.columns([2, 1])
+        with subcol1:
+            st.write("\n")
+            if st.button("Refresh", use_container_width=True, type="primary", key="refresh_job_details"):
+                st.rerun(scope="fragment")
+
+    if selected_job_detail:
+        # Extract the Job ID from the selected detail using the first space before the first parenthesis
+        selected_job_id = selected_job_detail.split(" ")[0]
     else:
-        col1.error("Selected job not found.")
+        st.info("Please select a job.", icon=":material/info:")
         return
 
-    checkpoints = list_checkpoints(finetuning_framework, out_dir, selected_job_id)
-    if not checkpoints:
-        subcol2.selectbox('Select Checkpoint', [], index=0)
-        col1.info(
-            f"No checkpoints found for Job: **{selected_job_id}**. Please wait for job to save a checkpoint.",
-            icon=":material/info:")
+    selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
+    if not selected_job:
+        st.info("Selected job could not be found.", icon=":material/info:")
+        return
+
+    progress = 0
+
+    matching_experiments = cml_experiments_df[cml_experiments_df['exp_name'] == selected_job_id]
+
+    if not matching_experiments.empty:
+
+        experiment_id = matching_experiments.iloc[0]['exp_id'].split("/")[-1]
+
+        metric_data_list = fetch_experiment_metrics(experiment_id)
+
+        if metric_data_list:
+
+            loss_data = []
+            eval_loss_data = []
+            epochs_data = []
+
+            for metric in metric_data_list:
+                if metric['metric_key'] == 'loss':
+                    loss_data = metric['metric_data']
+                elif metric['metric_key'] == 'eval_loss':
+                    eval_loss_data = metric['metric_data']
+                elif metric['metric_key'] == 'epoch':
+                    epochs_data = metric['metric_data']
+
+            # Calculate progress based on epochs_data
+            if epochs_data:
+                progress = math.ceil((epochs_data[-1]['value'] / selected_job.num_epochs) * 100)
+
+            fig_loss = go.Figure()
+            fig_eval_loss = go.Figure()
+
+            if loss_data:
+                fig_loss.add_trace(go.Scatter(
+                    x=[data['timestamp'] for data in loss_data if 'timestamp' in data and 'value' in data],
+                    y=[data['value'] for data in loss_data if 'timestamp' in data and 'value' in data],
+                    mode='lines+markers',
+                    name='Loss',
+                    line=dict(color='blue'),
+                    hovertemplate='Timestamp: %{x}<br>Loss: %{y}<extra></extra>'
+                ))
+
+            if eval_loss_data:
+                fig_eval_loss.add_trace(go.Scatter(
+                    x=[data['timestamp'] for data in eval_loss_data if 'timestamp' in data and 'value' in data],
+                    y=[data['value'] for data in eval_loss_data if 'timestamp' in data and 'value' in data],
+                    mode='lines+markers',
+                    name='Evaluation Loss',
+                    line=dict(color='red'),
+                    hovertemplate='Timestamp: %{x}<br>Evaluation Loss: %{y}<extra></extra>'
+                ))
+
+            info_icon_text_loss = """
+            Training loss represents how well the model is performing on the training data.
+            """
+
+            info_icon_text_eval_loss = """
+            Evaluation loss measures how well the model is performing on unseen data.
+            """
+
+            fig_loss.update_layout(
+                title='Training Loss',
+                xaxis_title='Time',
+                yaxis_title='Loss',
+                yaxis_type='log',
+                height=600,
+                legend=dict(
+                    orientation='h',
+                    yanchor='bottom',
+                    y=1.02,
+                    xanchor='right',
+                    x=1
+                ),
+                annotations=[
+                    go.layout.Annotation(
+                        text="ℹ️",
+                        xref="paper", yref="paper",
+                        x=1, y=1.15,
+                        showarrow=False,
+                        font=dict(size=18),
+                        hovertext=info_icon_text_loss,
+                        hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
+                    )
+                ]
+            )
+
+            fig_eval_loss.update_layout(
+                title='Evaluation Loss',
+                xaxis_title='Time',
+                yaxis_title='Evaluation Loss',
+                yaxis_type='log',
+                height=600,
+                legend=dict(
+                    orientation='h',
+                    yanchor='bottom',
+                    y=1.02,
+                    xanchor='right',
+                    x=1
+                ),
+                annotations=[
+                    go.layout.Annotation(
+                        text="ℹ️",
+                        xref="paper", yref="paper",
+                        x=1, y=1.15,
+                        showarrow=False,
+                        font=dict(size=18),
+                        hovertext=info_icon_text_eval_loss,
+                        hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
+                    )
+                ]
+            )
+
+            chart_col1, chart_col2 = col1.columns([1, 1])
+            with chart_col1:
+                st.plotly_chart(fig_loss, use_container_width=True)
+            with chart_col2:
+                st.plotly_chart(fig_eval_loss, use_container_width=True)
+        else:
+            col1.info("No metrics data found to display.", icon=":material/info:")
 
     else:
-        checkpoint_names = list(checkpoints.keys())
-        selected_checkpoint_name = subcol2.selectbox('Select Checkpoint', checkpoint_names, index=0)
-        checkpoint_dir = checkpoints[selected_checkpoint_name]
-        trainer_json_path = os.path.join(checkpoint_dir, 'trainer_state.json')
+        col1.info(
+            f"No metrics found for Job ID: {selected_job_id}. Please wait for job to start training base model.",
+            icon=":material/info:")
 
-        try:
-            with open(trainer_json_path, 'r') as file:
-                training_data = json.load(file)
-        except FileNotFoundError:
-            col1.error("trainer_state.json not found.")
-            training_data = None
-        except json.JSONDecodeError as e:
-            col1.error(f"Failed to decode JSON: {e}")
-            training_data = None
-
-        if not training_data:
-            col1.info(f"Training metrics not found for Checkpoint: {selected_checkpoint_name}")
-            return
-
-        log_history = training_data.get("log_history", [])
-        df = pd.DataFrame(log_history)
-
-        if 'eval_loss' not in df.columns:
-            df['eval_loss'] = pd.NA
-
-        df = df.where(pd.notnull(df), None)
-
-        if df.empty:
-            st.info("No log history found in the trainer_state.json file.")
-            return
-
-        loss_df = df[['epoch', 'loss']].dropna()
-        eval_loss_df = df[['epoch', 'eval_loss']].dropna()
-
-        fig_loss = go.Figure()
-        fig_eval_loss = go.Figure()
-
-        fig_loss.add_trace(go.Scatter(
-            x=loss_df['epoch'],
-            y=loss_df['loss'],
-            mode='lines+markers',
-            name='Loss',
-            line=dict(color='blue'),
-            hovertemplate='Epoch: %{x}<br>Loss: %{y}<extra></extra>'
-        ))
-
-        fig_eval_loss.add_trace(go.Scatter(
-            x=eval_loss_df['epoch'],
-            y=eval_loss_df['eval_loss'],
-            mode='lines+markers',
-            name='Evaluation Loss',
-            line=dict(color='red'),
-            hovertemplate='Epoch: %{x}<br>Evaluation Loss: %{y}<extra></extra>'
-        ))
-
-        # Define the info icon text with HTML <br> for line breaks
-        info_icon_text_loss = """
-        Training loss represents how well the model is performing on the training data.
-        """
-
-        info_icon_text_eval_loss = """
-        Evaluation loss, measures how well the model is performing on unseen data.
-        """
-
-        # Add an annotation for the info icon in the training loss plot
-        fig_loss.update_layout(
-            title='Training Loss',
-            xaxis_title='Epoch',
-            yaxis_title='Loss',
-            yaxis_type='log',
-            height=600,
-            legend=dict(
-                orientation='h',
-                yanchor='bottom',
-                y=1.02,
-                xanchor='right',
-                x=1
-            ),
-            annotations=[
-                go.layout.Annotation(
-                    text="ℹ️",
-                    xref="paper", yref="paper",
-                    x=1, y=1.15,  # Adjusted position to be within the chart area
-                    showarrow=False,
-                    font=dict(size=18),
-                    hovertext=info_icon_text_loss,
-                    hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
-                )
-            ]
-        )
-
-        # Add an annotation for the info icon in the evaluation loss plot
-        fig_eval_loss.update_layout(
-            title='Evaluation Loss',
-            xaxis_title='Epoch',
-            yaxis_title='Evaluation Loss',
-            yaxis_type='log',
-            height=600,
-            legend=dict(
-                orientation='h',
-                yanchor='bottom',
-                y=1.02,
-                xanchor='right',
-                x=1
-            ),
-            annotations=[
-                go.layout.Annotation(
-                    text="ℹ️",
-                    xref="paper", yref="paper",
-                    x=1, y=1.15,  # Adjusted position to be within the chart area
-                    showarrow=False,
-                    font=dict(size=18),
-                    hovertext=info_icon_text_eval_loss,
-                    hoverlabel=dict(bgcolor="white", font_size=12, bordercolor="gray")
-                )
-            ]
-        )
-
-        chart_col1, chart_col2 = col1.columns([1, 1])
-        with chart_col1:
-            st.plotly_chart(fig_loss, use_container_width=True)
-        with chart_col2:
-            st.plotly_chart(fig_eval_loss, use_container_width=True)
-
-    col2.caption("**Job Metadata**")
     if selected_job:
+        col2.markdown("\n")
+        col2.caption("**Job Metadata**")
+
+        # Separate progress into its own table
+        progress_data = {
+            "Progress (%)": [progress]
+        }
+        progress_df = pd.DataFrame(progress_data)
+
+        # Configure the Progress column using st.column_config.ProgressColumn
+        progress_column_config = {
+            "Progress (%)": st.column_config.ProgressColumn(
+                label="Progress (%)",
+                help="Training progress as a percentage",
+                format="%f%%",
+                min_value=0,
+                max_value=100
+            )
+        }
+
+        # Display the progress in a separate table
+        col2.data_editor(progress_df, use_container_width=True, hide_index=True, column_config=progress_column_config)
+
+        # Combine the rest of the job metadata into another table
+        job_metadata = {
+            "Attribute": ["Adapter", "Prompt", "Base Model"],
+            "Value": [
+                selected_job.adapter_name,
+                prompt_dict.get(selected_job.prompt_id, "Unknown"),
+                model_dict.get(selected_job.base_model_id, "Unknown")
+            ]
+        }
+        job_metadata_df = pd.DataFrame(job_metadata)
+        # Display the rest of the metadata in another table
+        col2.data_editor(job_metadata_df, use_container_width=True, hide_index=True)
+
         job_data = {
             "CPU": [selected_job.num_cpu],
             "GPU": [selected_job.num_gpu],
@@ -465,42 +544,41 @@ def display_training_metrics():
         col2.data_editor(job_df, use_container_width=True, hide_index=True)
 
         if selected_job.framework_type == FineTuningFrameworkType.LEGACY:
-            try:
-                train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
-                col2.caption("Training Configurations")
-                col2.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
-            except Exception as e:
-                col2.error(f"Error fetching Training Config: {e}")
+            with col2.expander("Training Configurations", expanded=False):
+                try:
+                    train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
+                    st.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching Training Config: {e}", icon=":material/error:")
 
-            try:
-                lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
-                col2.caption("Lora Configurations")
-                col2.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
-            except Exception as e:
-                col2.error(f"Error fetching Lora Config: {e}")
+            with col2.expander("Lora Configurations", expanded=False):
+                try:
+                    lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
+                    st.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching Lora Config: {e}", icon=":material/error:")
 
-            try:
-                bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
-                col2.caption("BitsAndBytes Configurations")
-                col2.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
-            except Exception as e:
-                col2.error(f"Error fetching BnB Config: {e}")
+            with col2.expander("BitsAndBytes Configurations", expanded=False):
+                try:
+                    bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
+                    st.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
+                except Exception as e:
+                    st.error(f"Error fetching BnB Config: {e}", icon=":material/error:")
 
         elif selected_job.framework_type == FineTuningFrameworkType.AXOLOTL:
-            try:
-                axolotl_config = fts.GetConfig(GetConfigRequest(id=selected_job.axolotl_config_id))
-                col2.caption("Axolotl Train Configurations")
-                col2.code(axolotl_config.config.config, "yaml")
-            except Exception as e:
-                col2.error(f"Error fetching Axolotl Config: {e}")
+            with col2.expander("Axolotl Train Configurations", expanded=False):
+                try:
+                    axolotl_config = fts.GetConfig(GetConfigRequest(id=selected_job.axolotl_config_id))
+                    st.code(axolotl_config.config.config, "yaml")
+                except Exception as e:
+                    st.error(f"Error fetching Axolotl Config: {e}", icon=":material/error:")
         else:
-            col2.error(f"Unsupported Finetuning framework used for: **{selected_job_id}**.", icon=":material/info:")
+            col2.error(f"Unsupported Finetuning framework used for: **{selected_job_id}**.", icon=":material/error:")
     else:
-        col2.error("Selected job not found.")
+        col2.error("Selected job not found.", icon=":material/error:")
+
 
 # Main Application
-
-
 display_page_header()
 
 tab1, tab2 = st.tabs(["**View Jobs**", "**Job Details**"])

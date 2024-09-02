@@ -46,58 +46,64 @@ class TestFormatStatusWithIcon(unittest.TestCase):
 
 class TestGenerateTemplates(unittest.TestCase):
 
-    def test_single_output_column(self):
-        columns = ['instruction', 'input', 'response']
+    def test_generate_templates_with_matching_output_column(self):
+        columns = ["input", "context", "response", "label"]
+        prompt_template, completion_template = generate_templates(columns)
+
         expected_prompt_template = (
-            "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
-            "<Instruction>: {instruction}\n"
+            "You are an LLM responsible for generating a response. Please provide a response given the user input below.\n\n"
             "<Input>: {input}\n"
+            "<Context>: {context}\n"
+            "<Label>: {label}\n"
             "<Response>: \n")
         expected_completion_template = "{response}\n"
 
-        prompt_template, completion_template = generate_templates(columns)
         self.assertEqual(prompt_template, expected_prompt_template)
         self.assertEqual(completion_template, expected_completion_template)
 
-    def test_multiple_output_columns(self):
-        columns = ['instruction', 'input', 'response', 'output']
+    def test_generate_templates_with_no_matching_output_column(self):
+        columns = ["input", "context", "user_input", "unknown"]
+        prompt_template, completion_template = generate_templates(columns)
+
         expected_prompt_template = (
-            "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
-            "<Instruction>: {instruction}\n"
+            "You are an LLM responsible for generating a response. Please provide a response given the user input below.\n\n"
             "<Input>: {input}\n"
+            "<Context>: {context}\n"
+            "<User_input>: {user_input}\n"
+            "<Unknown>: \n")
+        expected_completion_template = "{unknown}\n"
+
+        self.assertEqual(prompt_template, expected_prompt_template)
+        self.assertEqual(completion_template, expected_completion_template)
+
+    def test_generate_templates_with_single_column(self):
+        columns = ["response"]
+        prompt_template, completion_template = generate_templates(columns)
+
+        expected_prompt_template = (
+            "You are an LLM responsible for generating a response. Please provide a response given the user input below.\n\n"
             "<Response>: \n")
-        expected_completion_template = (
-            "{response}\n"
+        expected_completion_template = "{response}\n"
+
+        self.assertEqual(prompt_template, expected_prompt_template)
+        self.assertEqual(completion_template, expected_completion_template)
+
+    def test_generate_templates_with_all_matching_columns(self):
+        columns = ["answer", "response", "output", "label"]
+        prompt_template, completion_template = generate_templates(columns)
+
+        expected_prompt_template = (
+            "You are an LLM responsible for generating a response. Please provide a response given the user input below.\n\n"
+            "<Response>: {response}\n"
             "<Output>: {output}\n"
-        )
+            "<Label>: {label}\n"
+            "<Answer>: \n")
+        expected_completion_template = "{answer}\n"
 
-        prompt_template, completion_template = generate_templates(columns)
         self.assertEqual(prompt_template, expected_prompt_template)
         self.assertEqual(completion_template, expected_completion_template)
 
-    def test_equal_input_output_columns(self):
-        columns = ['col1', 'col2', 'col3', 'col4']
-        expected_prompt_template = (
-            "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
-            "<Col1>: {col1}\n"
-            "<Col2>: {col2}\n"
-            "<Col3>: \n")
-        expected_completion_template = (
-            "{col3}\n"
-            "<Col4>: {col4}\n"
-        )
-
-        prompt_template, completion_template = generate_templates(columns)
-        self.assertEqual(prompt_template, expected_prompt_template)
-        self.assertEqual(completion_template, expected_completion_template)
-
-    def test_no_columns(self):
+    def test_generate_templates_with_empty_columns(self):
         columns = []
-        expected_prompt_template = (
-            "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
-        )
-        expected_completion_template = ""
-
-        prompt_template, completion_template = generate_templates(columns)
-        self.assertEqual(prompt_template, expected_prompt_template)
-        self.assertEqual(completion_template, expected_completion_template)
+        with self.assertRaises(IndexError):
+            generate_templates(columns)

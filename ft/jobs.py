@@ -14,7 +14,7 @@ from ft.db.model import FineTuningJob, Config
 from sqlalchemy import delete
 
 from typing import List
-from ft.db.model import Dataset, Prompt, Model, Adapter
+from ft.db.model import Dataset, Prompt, Model
 
 import yaml
 
@@ -101,7 +101,8 @@ def _validate_fine_tuning_request(request: StartFineTuningJobRequest, dao: FineT
     # Database validation for IDs
     with dao.get_session() as session:
         # Check if an adapter with the same name already exists in the database
-        if request.adapter_name and session.query(Adapter).filter_by(name=request.adapter_name.strip()).first():
+        if request.adapter_name and session.query(FineTuningJob).filter_by(
+                adapter_name=request.adapter_name.strip()).first():
             raise ValueError(f"An adapter with the name '{request.adapter_name}' already exists.")
 
         # Check if the referenced base_model_id exists in the database
