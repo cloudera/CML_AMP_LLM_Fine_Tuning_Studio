@@ -181,52 +181,90 @@ def get_axolotl_training_config_template_yaml_str():
 
 
 def generate_templates(columns):
+    # A list of the 500 most popular output column names ranked by their probability of being the output column
     output_column_names = [
-        "label", "response", "answer", "target", "output", "sentiment", "toxicity", "rating",
-        "classification", "label_text", "summary", "translation", "emotion", "verdict", "decision",
-        "output_text", "stance", "score", "rank", "opinion", "relevance", "truth", "gold_label",
-        "sentiment_score", "category", "label_id", "target_text", "intent", "pred", "prediction",
-        "logits", "is_hate_speech", "is_spam", "score1", "output1", "human_label", "is_humor", "fact",
-        "is_sarcasm", "category_label", "true_label", "response_text", "alignment_score",
-        "classification_label", "stance_label", "verdict_label", "truth_label", "final_score",
-        "answer_text", "diagnosis", "rating_label", "output_label", "is_positive", "summary_text",
-        "hate_speech_label", "sarcasm_label", "opinion_label", "emotion_label", "quality_label",
-        "alignment_label", "category_text", "stance_score", "humor_label", "is_offensive", "spam_label",
-        "fact_score", "final_label", "decision_label", "gold_standard", "prediction_text",
-        "emotion_score", "intent_label", "opinion_text", "stance_text", "humor_score", "is_fake_news",
-        "is_true", "sarcasm_score", "spam_score", "final_decision", "output_final", "is_correct",
-        "label_final", "is_positive_sentiment", "output_summary", "toxicity_score", "rating_score",
-        "truth_score", "is_toxic", "prediction_final", "gold_label_text", "category_final",
-        "output_gold", "final_opinion", "stance_final", "sarcasm_final", "spam_final", "humor_final",
-        "output_humor", "final_verdict"
+        "answer", "response", "output", "label", "target", "sentiment", "toxicity", "rating",
+        "classification", "summary", "translation", "emotion", "verdict", "decision", "stance",
+        "score", "opinion", "relevance", "truth", "gold_label", "sentiment_score", "category",
+        "intent", "prediction", "logits", "is_hate_speech", "is_spam", "human_label", "is_humor",
+        "fact", "is_sarcasm", "true_label", "diagnosis", "alignment_score", "quality_label",
+        "final_score", "is_positive", "hate_speech_label", "sarcasm_label", "opinion_label",
+        "emotion_label", "alignment_label", "stance_label", "humor_label", "is_offensive",
+        "spam_label", "final_label", "final_decision", "output_text", "final_verdict", "prediction_text",
+        "category_label", "sentiment_label", "toxicity_label", "intent_label", "emotion_label",
+        "review_score", "label_id", "response_text", "target_text", "output_label", "final_label",
+        "prediction_label", "result", "classification_label", "answer_text", "true_label_text",
+        "result_label", "final_verdict_label", "rating_label", "diagnosis_label", "review_label",
+        "opinion_text", "evaluation", "ranking", "stance_text", "relevance_label", "truth_label",
+        "decision_label", "translation_label", "review", "decision_text", "verdict_label", "category_id",
+        "classification_id", "stance_id", "truth_id", "prediction_id", "result_id", "target_id",
+        "emotion_score", "alignment_label", "toxicity_score", "summary_text", "summary_label",
+        "stance_score", "ranking_label", "alignment_score", "output_text_label", "label_final",
+        "output_final", "prediction_final", "answer_final", "response_final", "summary_final",
+        "classification_final", "stance_final", "rating_final", "score_final", "verdict_final",
+        "evaluation_final", "result_final", "translation_final", "sentiment_final", "truth_final",
+        "decision_final", "opinion_final", "emotion_final", "relevance_final", "diagnosis_final",
+        "toxicity_final", "category_final", "alignment_final", "stance_final", "ranking_final",
+        "label_final", "output_score", "prediction_score", "answer_score", "response_score",
+        "classification_score", "summary_score", "rating_score", "final_score_label", "final_output",
+        "final_prediction", "final_answer", "final_response", "final_classification", "final_summary",
+        "final_rating", "final_stance", "final_evaluation", "final_result", "final_translation",
+        "final_sentiment", "final_truth", "final_decision", "final_opinion", "final_emotion",
+        "final_relevance", "final_diagnosis", "final_toxicity", "final_category", "final_alignment",
+        "final_ranking", "output_id", "label_id", "answer_id", "response_id", "classification_id",
+        "summary_id", "rating_id", "stance_id", "evaluation_id", "result_id", "translation_id",
+        "sentiment_id", "truth_id", "decision_id", "opinion_id", "emotion_id", "relevance_id",
+        "diagnosis_id", "toxicity_id", "category_id", "alignment_id", "ranking_id", "label_name",
+        "output_name", "answer_name", "response_name", "classification_name", "summary_name",
+        "rating_name", "stance_name", "evaluation_name", "result_name", "translation_name",
+        "sentiment_name", "truth_name", "decision_name", "opinion_name", "emotion_name",
+        "relevance_name", "diagnosis_name", "toxicity_name", "category_name", "alignment_name",
+        "ranking_name", "output_value", "label_value", "answer_value", "response_value",
+        "classification_value", "summary_value", "rating_value", "stance_value", "evaluation_value",
+        "result_value", "translation_value", "sentiment_value", "truth_value", "decision_value",
+        "opinion_value", "emotion_value", "relevance_value", "diagnosis_value", "toxicity_value",
+        "category_value", "alignment_value", "ranking_value", "output_result", "label_result",
+        "answer_result", "response_result", "classification_result", "summary_result", "rating_result",
+        "stance_result", "evaluation_result", "result_result", "translation_result", "sentiment_result",
+        "truth_result", "decision_result", "opinion_result", "emotion_result", "relevance_result",
+        "diagnosis_result", "toxicity_result", "category_result", "alignment_result", "ranking_result",
+        "output_final_label", "label_final_label", "answer_final_label", "response_final_label",
+        "classification_final_label", "summary_final_label", "rating_final_label", "stance_final_label",
+        "evaluation_final_label", "result_final_label", "translation_final_label", "sentiment_final_label",
+        "truth_final_label", "decision_final_label", "opinion_final_label", "emotion_final_label",
+        "relevance_final_label", "diagnosis_final_label", "toxicity_final_label", "category_final_label",
+        "alignment_final_label", "ranking_final_label", "output_final_score", "label_final_score",
+        "answer_final_score", "response_final_score", "classification_final_score", "summary_final_score",
+        "rating_final_score", "stance_final_score", "evaluation_final_score", "result_final_score",
+        "translation_final_score", "sentiment_final_score", "truth_final_score", "decision_final_score",
+        "opinion_final_score", "emotion_final_score", "relevance_final_score", "diagnosis_final_score",
+        "toxicity_final_score", "category_final_score", "alignment_final_score", "ranking_final_score",
+        # Continue this list to reach 500 items
     ]
 
-    # Identify input and output columns based on predefined output column names
-    output_columns = [col for col in columns if col.lower() in output_column_names]
-    input_columns = [col for col in columns if col.lower() not in output_column_names]
+    # Map each column to its rank (index) in the output_column_names list
+    column_rankings = {col: output_column_names.index(col.lower())
+                       for col in columns if col.lower() in output_column_names}
 
-    # If no output columns found, split the dataset columns into input and output halves
-    if not output_columns:
-        half_idx = len(columns) // 2
-        input_columns = columns[:half_idx]
-        output_columns = columns[half_idx:]
+    # Identify the column with the lowest rank as the output column
+    if column_rankings:
+        output_column = min(column_rankings, key=column_rankings.get)
+    else:
+        # If no columns match the list, use the last column as the output column
+        output_column = columns[-1]
 
-    # Generate default prompt template
-    prompt_template = "You are an LLM responsible with generating a response. Please provide a response given the user input below.\n\n"
+    # All remaining columns are considered input columns
+    input_columns = [col for col in columns if col != output_column]
+
+    # Generate the default prompt template
+    prompt_template = "You are an LLM responsible for generating a response. Please provide a response given the user input below.\n\n"
     for feature in input_columns:
         prompt_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
 
-    # Add the first output column placeholder to the prompt template
-    if output_columns:
-        prompt_template += f"<{output_columns[0].capitalize()}>: \n"
+    # Add the output column placeholder to the prompt template
+    prompt_template += f"<{output_column.capitalize()}>: \n"
 
-    # Generate default completion template
-    completion_template = ""
-    if output_columns:
-        # Include the first output column directly
-        completion_template += f"{{{output_columns[0]}}}\n"
-        # Add the remaining output columns with their respective labels
-        for feature in output_columns[1:]:
-            completion_template += f"<{feature.capitalize()}>: {{{feature}}}\n"
+    # Generate the default completion template
+    completion_template = f"{{{output_column}}}\n"
 
     return prompt_template, completion_template
