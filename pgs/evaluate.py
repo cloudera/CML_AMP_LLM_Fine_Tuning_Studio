@@ -189,7 +189,7 @@ def prompt_fragment():
                 on_change=on_text_area_change
             )
 
-            cont.button("Generate Random Prompt from Dataset and Template",
+            cont.button("Generate Prompt Example",
                         on_click=generate_random, use_container_width=True)
 
             cont.text_area(
