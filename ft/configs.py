@@ -77,7 +77,6 @@ def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> Ge
 # Need more discussion about this
 
 
-
 def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> AddConfigResponse:
     """
     Add a new configuration to the datastore. Returns a configuration metadata object
@@ -94,7 +93,9 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
         if 'description' in [x[0].name for x in request.ListFields()]:
             model_family = transform_name_to_family(request.description)
             configs: List[Config] = session.query(Config).where(
-                Config.type == request.type, Config.model_family == model_family, Config.is_default == USER_CONFIGS).all()
+                Config.type == request.type,
+                Config.model_family == model_family,
+                Config.is_default == USER_CONFIGS).all()
         else:
             model_family = None
             configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
