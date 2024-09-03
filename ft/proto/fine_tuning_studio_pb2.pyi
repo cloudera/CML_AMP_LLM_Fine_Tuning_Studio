@@ -862,17 +862,28 @@ class FineTuningJobMetadata(_message.Message):
 
 
 class ConfigMetadata(_message.Message):
-    __slots__ = ("id", "description", "type", "config")
+    __slots__ = ("id", "description", "type", "config", "model_family", "is_default")
     ID_FIELD_NUMBER: _ClassVar[int]
     DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
+    MODEL_FAMILY_FIELD_NUMBER: _ClassVar[int]
+    IS_DEFAULT_FIELD_NUMBER: _ClassVar[int]
     id: str
     description: str
     type: str
     config: str
-    def __init__(self, id: _Optional[str] = ..., description: _Optional[str] = ...,
-                 type: _Optional[str] = ..., config: _Optional[str] = ...) -> None: ...
+    model_family: str
+    is_default: int
+
+    def __init__(
+        self,
+        id: _Optional[str] = ...,
+        description: _Optional[str] = ...,
+        type: _Optional[str] = ...,
+        config: _Optional[str] = ...,
+        model_family: _Optional[str] = ...,
+        is_default: _Optional[int] = ...) -> None: ...
 
 
 class EvaluationJobMetadata(_message.Message):

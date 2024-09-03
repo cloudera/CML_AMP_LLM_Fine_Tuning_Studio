@@ -172,3 +172,5 @@ class Config(Base, MappedProtobuf):
     type = Column(String, nullable=True)
     description = Column(String, nullable=True)
     config = Column(Text, nullable=True)  # Store JSON as TEXT
+    model_family = Column(String, nullable=True)
+    is_default = Column(Integer, nullable=True, default=1)

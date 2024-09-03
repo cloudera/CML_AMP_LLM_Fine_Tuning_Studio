@@ -227,14 +227,13 @@ def create_train_adapter_page_with_proprietary():
                             json.dumps(
                                 json.loads(
                                     fts.ListConfigs(
-                                        ListConfigsRequest(type=ConfigType.LORA_CONFIG)
-                                    ).configs[0].config
-                                ),
-                                indent=2
-                            ),
+                                        ListConfigsRequest(
+                                            type=ConfigType.LORA_CONFIG,
+                                            model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
+                                            type=ConfigType.LORA_CONFIG)).configs[0].config),
+                                indent=2),
                             height=200,
-                            help="LoRA configuration for fine-tuning the model."
-                        )
+                            help="LoRA configuration for fine-tuning the model.")
                 with c2:
                     with st.expander("BitsAndBytes Config"):
                         bnb_config_text = st.text_area(
@@ -242,14 +241,13 @@ def create_train_adapter_page_with_proprietary():
                             json.dumps(
                                 json.loads(
                                     fts.ListConfigs(
-                                        ListConfigsRequest(type=ConfigType.BITSANDBYTES_CONFIG)
-                                    ).configs[0].config
-                                ),
-                                indent=2
-                            ),
+                                        ListConfigsRequest(
+                                            type=ConfigType.BITSANDBYTES_CONFIG,
+                                            model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
+                                            type=ConfigType.BITSANDBYTES_CONFIG)).configs[0].config),
+                                indent=2),
                             height=200,
-                            help="BitsAndBytes configuration for optimizing model training."
-                        )
+                            help="BitsAndBytes configuration for optimizing model training.")
 
                 with st.expander("Advanced Training Options"):
                     st.info("""
@@ -263,14 +261,13 @@ def create_train_adapter_page_with_proprietary():
                         json.dumps(
                             json.loads(
                                 fts.ListConfigs(
-                                    ListConfigsRequest(type=ConfigType.TRAINING_ARGUMENTS)
-                                ).configs[0].config
-                            ),
-                            indent=2
-                        ),
+                                    ListConfigsRequest(
+                                        type=ConfigType.TRAINING_ARGUMENTS,
+                                        model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
+                                        type=ConfigType.TRAINING_ARGUMENTS)).configs[0].config),
+                            indent=2),
                         height=400,
-                        help="Advanced training arguments in JSON format."
-                    )
+                        help="Advanced training arguments in JSON format.")
 
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
@@ -301,13 +298,15 @@ def create_train_adapter_page_with_proprietary():
                         lora_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.LORA_CONFIG,
-                                config=lora_config_text
+                                config=lora_config_text,
+                                description=model.huggingface_model_name
                             )
                         ).config
                         bnb_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.BITSANDBYTES_CONFIG,
-                                config=bnb_config_text
+                                config=bnb_config_text,
+                                description=model.huggingface_model_name
                             )
                         ).config
 
@@ -324,7 +323,8 @@ def create_train_adapter_page_with_proprietary():
                         training_args_config: ConfigMetadata = fts.AddConfig(
                             AddConfigRequest(
                                 type=ConfigType.TRAINING_ARGUMENTS,
-                                config=json.dumps(training_args_config_dict)
+                                config=json.dumps(training_args_config_dict),
+                                description=model.huggingface_model_name
                             )
                         ).config
 

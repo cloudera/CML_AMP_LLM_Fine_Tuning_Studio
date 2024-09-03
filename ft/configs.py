@@ -24,8 +24,7 @@ def get_configs_for_model_id(session: Session, configs: List[Config], model_id: 
     model_metadata_finder = ModelMetadataFinder(model_hf_name)
     model_family = model_metadata_finder.fetch_model_family_from_config()
     # Filter configs for default configs
-    model_family = model_family + DEFAULT_CONFIG_DESCRIPTION
-    filtered_configs = [c for c in configs if c.description == model_family]
+    filtered_configs = [c for c in configs if (c.model_family == model_family and c.is_default == DEFAULT_CONFIGS)]
     # if filtered_configs == 0, show default config
     if len(filtered_configs) == 0:
         return configs
@@ -35,7 +34,7 @@ def get_configs_for_model_id(session: Session, configs: List[Config], model_id: 
 def transform_name_to_family(model_name: str) -> str:
     model_metadata_finder = ModelMetadataFinder(model_name)
     model_family = model_metadata_finder.fetch_model_family_from_config()
-    return model_family + USER_CONFIG_DESCRIPTION
+    return model_family
 
 
 def list_configs(request: ListConfigsRequest, dao: FineTuningStudioDao = None) -> ListConfigsResponse:
@@ -76,33 +75,6 @@ def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> Ge
 
 
 # Need more discussion about this
-'''
-def get_config(request: GetConfigRequest, dao: FineTuningStudioDao = None) -> GetConfigResponse:
-    response = GetConfigResponse()
-    try:
-        if request.type == None:
-            with dao.get_session() as session:
-                config: Config = session.query(Config).where(Config.id == request.id).one()
-                response = GetConfigResponse(
-                    config=config.to_protobuf(ConfigMetadata) if config is not None else None
-                )
-        else:
-            with dao.get_session() as session:
-                try:
-                    config: Config = session.query(Config).where(Config.type == request.type, Config.description == request.description).one()
-                    response = GetConfigResponse(
-                        config=config.to_protobuf(ConfigMetadata) if config is not None else None
-                    )
-                # get default configs if the config for the model family is not present
-                except sqlalchemy.orm.exc.NoResultFound:
-                    config: Config = session.query(Config).where(Config.type == request.type, Config.description == consts.DEFAULT_CONFIG_DESCRIPTION).one()
-                    response = GetConfigResponse(
-                        config=config.to_protobuf(ConfigMetadata) if config is not None else None
-                    )
-        return response
-    except Exception as e:
-        raise ValueError(f"ERROR: Failed to get config. {e}")
-'''
 
 
 def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> AddConfigResponse:
@@ -119,11 +91,13 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
 
     with dao.get_session() as session:
         if 'description' in [x[0].name for x in request.ListFields()]:
-            description = transform_name_to_family(request.description)
+            model_family = transform_name_to_family(request.description)
             configs: List[Config] = session.query(Config).where(
-                Config.type == request.type, Config.description == description).all()
+                Config.type == request.type,
+                Config.model_family == model_family,
+                Config.is_default == USER_CONFIGS).all()
         else:
-            description = None
+            model_family = None
             configs: List[Config] = session.query(Config).where(Config.type == request.type).all()
 
         # Handle AXOLOTL type by parsing the config as YAML
@@ -159,8 +133,9 @@ def add_config(request: AddConfigRequest, dao: FineTuningStudioDao = None) -> Ad
             config: Config = Config(
                 id=str(uuid4()),
                 type=request.type,
-                description=description,
-                config=config_content
+                model_family=model_family,
+                config=config_content,
+                is_default=USER_CONFIGS
             )
             session.add(config)
             response = AddConfigResponse(

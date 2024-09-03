@@ -773,6 +773,10 @@ message ConfigMetadata {
   // at runtime, such as transformers.TrainingArguments(),
   // peft.LoraConfig(), and so on.
   string config = 4;
+
+  string model_family = 5;
+
+  int32 is_default = 6;
 }
 
 
