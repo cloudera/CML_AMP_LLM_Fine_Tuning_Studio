@@ -2,6 +2,7 @@ import mlflow
 from transformers import GenerationConfig
 from mlflow.models import infer_signature
 from uuid import uuid4
+from ft.config.model_configs.config_loader import ModelMetadataFinder
 
 
 class ModelLogger():
@@ -39,10 +40,12 @@ class ModelLogger():
                 "return_full_text": False})
         return signature
 
-    def log_model_pipeline(self, pipeline, gen_config=None):
+    def log_model_pipeline(self, pipeline, base_model_name, gen_config=None):
         if gen_config is None:
             gen_config = self.default_config
         else:
+            if "bos_token_id" not in gen_config:
+                gen_config["bos_token_id"] = ModelMetadataFinder.fetch_bos_token_id_from_config(base_model_name)
             gen_config = GenerationConfig(**gen_config)
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
