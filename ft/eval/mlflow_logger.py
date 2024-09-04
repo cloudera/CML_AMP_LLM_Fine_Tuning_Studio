@@ -1,6 +1,7 @@
 import mlflow
 from transformers import GenerationConfig
 from mlflow.models import infer_signature
+from uuid import uuid4
 
 
 class ModelLogger():
@@ -10,9 +11,10 @@ class ModelLogger():
         # this doesn't works somehow. Hence we need to start local mlflow server by running "mlflow server"
         MLFLOW_TRACKING_URI = "cml://localhost"
         mlflow.set_tracking_uri("http://localhost:5000")  # when running local mlflow server
-        mlflow.set_experiment("Evaluate MLFLOW")   # Name of MLFLOW experiment, this should be parameterized
+        # Name of MLFLOW experiment, this should be parameterized
+        mlflow.set_experiment(f"Evaluate MLFLOW {str(uuid4())}")
         # Paramterize them
-        self.config = GenerationConfig(
+        self.default_config = GenerationConfig(
             do_sample=True,
             temperature=0.8,
             max_new_tokens=60,
@@ -37,7 +39,11 @@ class ModelLogger():
                 "return_full_text": False})
         return signature
 
-    def log_model_pipeline(self, pipeline):
+    def log_model_pipeline(self, pipeline, gen_config=None):
+        if gen_config is None:
+            gen_config = self.default_config
+        else:
+            gen_config = GenerationConfig(**gen_config)
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
                 transformers_model=pipeline,
@@ -45,7 +51,7 @@ class ModelLogger():
                 artifact_path="custom-pipe",        # artifact_path can be dynamic
                 signature=self.signature,
                 registered_model_name="custom-pipe-chat",  # model_name can be dynamic
-                model_config=self.config.to_dict()
+                model_config=gen_config.to_dict()
             )
         return model_info
 
@@ -69,3 +75,7 @@ class ModelLogger():
             )
 
         return model_info
+
+
+if __name__ == "__main__":
+    c = ModelLogger()

@@ -59,7 +59,7 @@ def driver(
         )
 
         # Log model to MLFlow
-        model_info = logger.log_model_pipeline(pipeline)
+        model_info = logger.log_model_pipeline(pipeline, generation_config_dict)
     elif num_gpu_devices > 1:
         mlt = MLFlowTransformers()
         try:
