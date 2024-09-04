@@ -1,7 +1,6 @@
 from datasets import load_dataset
 import pandas as pd
 # from eval.configs import DATASETS, PROMPTS
-from ft.fine_tune import get_unique_cache_dir
 from ft.eval.utils.template_utils import format_template, extract_eval_column_name, guess_eval_column
 from ft.client import FineTuningStudioClient
 from ft.api import *
@@ -21,7 +20,7 @@ class Dataloader:
             raise ValueError(f"Dataset with id of {dataset_id} not found in the available datasets.")
         # TODO: remove hardcoded dependency on HF name (allow for project-relative dataset loading)
         dataset_hf_name = dataset.huggingface_name
-        loaded_dataset = load_dataset(dataset_hf_name, cache_dir=get_unique_cache_dir())
+        loaded_dataset = load_dataset(dataset_hf_name)
         try:
             eval_df = pd.DataFrame(loaded_dataset["test"])
         except BaseException:
