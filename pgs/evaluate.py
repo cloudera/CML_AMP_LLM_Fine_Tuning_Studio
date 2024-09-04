@@ -298,7 +298,7 @@ def evaluate_fragment():
                     with torch.amp.autocast('cuda'):
                         model_out = st.session_state.current_model.generate(**input_tokens, **generation_config_dict)
 
-                    tok_out = tokenizer.decode(model_out[0], skip_special_tokens=False)[
+                    tok_out = tokenizer.decode(model_out[0], skip_special_tokens=True)[
                         len(st.session_state.input_prompt):]
                     st.session_state.base_output = tok_out
 
@@ -312,7 +312,7 @@ def evaluate_fragment():
                             with torch.amp.autocast('cuda'):
                                 model_out = st.session_state.current_model.generate(
                                     **input_tokens, **generation_config_dict)
-                            tok_out_adapter = tokenizer.decode(model_out[0], skip_special_tokens=False)[
+                            tok_out_adapter = tokenizer.decode(model_out[0], skip_special_tokens=True)[
                                 len(st.session_state.input_prompt):]
                             st.session_state.adapter_outputs[adapter.name] = tok_out_adapter
                     else:
@@ -394,7 +394,7 @@ with col1:
         except Exception as e:
             st.error(f"Error loading models: {str(e)}", icon=":material/error:")
 
-        if model_idx and st.session_state.current_model_metadata and st.session_state.selected_adapters:
+        if model_idx is not None and st.session_state.current_model_metadata and st.session_state.selected_adapters:
             prompt_fragment()
             evaluate_fragment()
 
