@@ -24,6 +24,15 @@ class ModelMetadataFinder:
             print("Bos token Id can't be found out returning default alpaca ID")
             return 1
 
+    @staticmethod
+    def fetch_eos_token_id_from_config(model_name_or_path):
+        config = AutoConfig.from_pretrained(model_name_or_path)
+        try:
+            return config.eos_token_id
+        except BaseException:
+            print("EOS token Id can't be found out returning default alpaca ID")
+            return 2
+
 
 if __name__ == "__main__":
     model_family_finder = ModelMetadataFinder("nvidia/Mistral-NeMo-Minitron-8B-Base")

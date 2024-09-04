@@ -1,9 +1,10 @@
 from datasets import load_dataset
 import pandas as pd
 # from eval.configs import DATASETS, PROMPTS
-from ft.eval.utils.template_utils import format_template, extract_eval_column_name, guess_eval_column
 from ft.client import FineTuningStudioClient
 from ft.api import *
+from ft.training.utils import map_dataset_with_prompt_template
+from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
 
 
 class Dataloader:
@@ -21,22 +22,30 @@ class Dataloader:
         # TODO: remove hardcoded dependency on HF name (allow for project-relative dataset loading)
         dataset_hf_name = dataset.huggingface_name
         loaded_dataset = load_dataset(dataset_hf_name)
+
+        # Map both the input and output prompt templates.
+        loaded_dataset = map_dataset_with_prompt_template(
+            dataset=loaded_dataset,
+            prompt_template=prompt_metadata.input_template,
+            data_text_field=EVAL_INPUT_COLUMN,
+            add_eos_token=False
+        )
+        loaded_dataset = map_dataset_with_prompt_template(
+            dataset=loaded_dataset,
+            prompt_template=prompt_metadata.completion_template,
+            data_text_field=EVAL_OUTPUT_COLUM,
+            add_eos_token=False
+        )
+        eval_column_name = EVAL_OUTPUT_COLUM
+
         try:
             eval_df = pd.DataFrame(loaded_dataset["test"])
         except BaseException:
             print("There is no test data split present. Hence loading the train split.")
             eval_df = pd.DataFrame(loaded_dataset["train"])
-        try:  # if prompt_metadata.input_template:
-            eval_prompt_string = prompt_metadata.input_template
-            eval_column_name = extract_eval_column_name(prompt_metadata.completion_template)
-            eval_df = eval_df.sample(n=total_examples)
-            eval_df['model_input'] = eval_df.apply(lambda x: format_template(eval_prompt_string, x), axis=1)
-        except BaseException:
-            eval_prompt_string = prompt_metadata.prompt_template
-            eval_column_name = guess_eval_column(eval_prompt_string)
-            eval_df = eval_df.sample(n=total_examples)
-            eval_df['model_input'] = eval_df.apply(lambda x: format_template(eval_prompt_string, x), axis=1)
 
+        eval_df = eval_df.sample(n=total_examples)
+        eval_df = eval_df.loc[:, [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
         print(eval_df)
         return eval_df, eval_column_name
 
