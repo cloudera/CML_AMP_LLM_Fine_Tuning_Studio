@@ -1,21 +1,40 @@
 # Development
 
-## Testing AMP Locally
+This covers some development prerequisites for contributers to the Fine Tuning Studio. This document is for users who want to actively contribute changes to the Fine Tuning Studio's source code.
 
-Most UI features can be tested locally. To start the Streamlit UI server from your
-local machine, just run:
+Developing on the Fine Tuning Studio requires some prerequisite knowledge, depending on the area of work of the development. If you're unfamiliar with any of these topics completely, it's encouraged that developers build a general sense of what all of these technologies are.
+* Python
+* [SQLite](https://www.sqlite.org/cli.html)
+* [Streamlit](https://streamlit.io/)
+* [gRPC](https://grpc.io/docs/what-is-grpc/introduction/)
+* [Protobuf](https://protobuf.dev/)
+* [Huggingface Transformers](https://huggingface.co/docs/transformers/en/index)
+* [Huggingface TRL](https://huggingface.co/docs/trl/en/index)
+* [Huggingface Accelerate](https://huggingface.co/docs/accelerate/en/index)
+* [MLFlow](https://mlflow.org/docs/latest/index.html)
+* [pytest](https://docs.pytest.org/en/stable/)
 
-```
-streamlit run main.py
-```
+Some other prerequisites for working with the Fine Tuning Studio
+* Download and configure [Visual Studio Code](https://code.visualstudio.com/)
+* Read through the [Technical Overview](docs/techinical_overview.md) of the Fine Tuning Studio
+* [Configure VS Code as a Local IDE for Cloudera ML](https://docs.cloudera.com/cdsw/1.10.5/editors/topics/ml-editors-vs-code.html)
 
+## Development Workflow
 
-## Testing AMP in CML Workspace
+For development, it's typical to deploy the AMP to a Cloudera ML project, and do all work remotely.
 
-The team is currently using the [CML Team GenAI GPU Cluster](https://docs.google.com/document/d/1wsxWV3P6dtBacxOZgE5YVPQaps6ZSkL6HsaaI5JXMF0/) for testing. If you're ready to test your AMP in a CML workspace environment:
-* Push changes to a branch (optional, if you have local changes)
-* Log in to the GenAI cluster
-* Open a Workspace, and import the AMP by using the `github.infra.com` URL (optionally specifying the branch with your feature updates)
+Do once and never do again for a Project:
+* Set up all project prerequisites
+* Import the AMP into a Cloudera ML project, and wait for the AMP to complete loading
+* Run the `./bin/get-dev-tools.sh` from within a session to enhance remote developer experience
+
+Do once per development session:
+* Start up an ssh session using `cdswctl`. An example looks like `cdswctl ssh-endpoint -p "<user>/<project>" -c 2 -m 24 -g 0 -r 108`
+* Connect to the remote session following the [Setting up VS Code](https://docs.cloudera.com/cdsw/1.10.5/editors/topics/ml-setting-up-vs-code.html) guide
+* Pull down any recent changes into your development branch if necessary, i.e., `git pull origin dev`
+
+Do every time you'd like to test out your changes:
+* Restart the Application from the Cloudera ML **Applications** page.
 
 
 ## Testing
@@ -25,6 +44,22 @@ This package uses a combination of `pytest` and `unittest` features to test the 
 Running tests and seeing coverage reports locally:
 
 ```
-pytest --cov=ft --cov-report=html tests/
-python -m http.server --directory htmlcov/
+./bin/run-tests
 ```
+
+## Making Pull Requests
+
+The typical procedure for making a new pull request is as follows:
+* Make your code changes.
+* Restart the Fine Tuning Studio Application and test your changes.
+* **Write unit tests for any applicable piece of your code changes.**
+* Run `./bin/run-tests.sh` to run the tests and make sure your tests are passing.
+* **Run `./bin/format.sh` to format your code following PEP formatting guidelines.**
+* Create a new branch.
+* Add the relevant changed files to the staging area.
+* Commit your changes to the new branch.
+* Push a new upstream branch to the origin.
+* Open a pull request from `github.com` for your new branch into the `dev` branch (which is the active development branch).
+* Wait for approvals, incorporate any feedback if necessary.
+* Merge the change into dev once you have approvals.
+* Checkout `dev` branch again and `git pull` your changes which are now in `dev`.
