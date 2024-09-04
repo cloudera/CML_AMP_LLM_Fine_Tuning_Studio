@@ -32,7 +32,7 @@ class FineTuningStudioDao():
     simplicity and not build the base class yet.
     """
 
-    def __init__(self, engine_url: str = None, echo: bool = True, engine_args: dict = {}):
+    def __init__(self, engine_url: str = None, echo: bool = False, engine_args: dict = {}):
         if engine_url is None:
             engine_url = f"sqlite+pysqlite:///{get_sqlite_db_location()}"
 

@@ -51,7 +51,7 @@ def display_create_prompt():
                 completion_template = subcol2.text_area(
                     "Completion Template", value=default_completion_template, height=260)
 
-                training_prompt_template = ""
+                training_prompt_template = prompt_template
                 # Remove the newline from the end of the prompt template and concatenate with the response template
                 if prompt_template.endswith("\n"):
                     training_prompt_template = prompt_template.rstrip("\n")

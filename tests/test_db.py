@@ -28,7 +28,7 @@ def test_db_dao_init_no_url(get_sqlite_db_location, create_engine):
     get_sqlite_db_location.return_value = "test/app/state.db"
     dao: FineTuningStudioDao = FineTuningStudioDao()
     get_sqlite_db_location.assert_called_once()
-    assert create_engine.call_args.kwargs['echo']
+    assert create_engine.call_args.kwargs['echo'] == False
     assert create_engine.call_args[0] == "sqlite+pysqlite:///test/app/state.db"
 
 
@@ -38,4 +38,4 @@ def test_db_dao_init_no_url(get_sqlite_db_location, create_engine):
     dao: FineTuningStudioDao = FineTuningStudioDao("sqlite+pysqlite:///test/other/state.db")
     get_sqlite_db_location.assert_not_called()
     assert create_engine.call_args[0][0] == "sqlite+pysqlite:///test/other/state.db"
-    assert create_engine.call_args.kwargs['echo']
+    assert create_engine.call_args.kwargs['echo'] == False
