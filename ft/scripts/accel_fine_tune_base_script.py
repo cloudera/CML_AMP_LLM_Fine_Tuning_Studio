@@ -137,6 +137,7 @@ training_args_dict = json.loads(
     ).config.config
 )
 
+
 # Call the FTS server
 # to extract metadata information about the dataset. Right now,
 # only huggingface datasets are supported for fine tuning jobs.
@@ -350,6 +351,15 @@ notebook_launcher = notebook_launcher_single_gpu_dist
 
 # Script launching logic do handle all training loop launching and workers spinup
 if IS_MASTER:
+    # Print out configs
+    print("LoRA Config")
+    print(lora_config_dict)
+    print("BnB Config")
+    print(bnb_config_dict)
+    print("Trainer Arguments")
+    print(training_args_dict)
+
+
     # Parent workload needs to handle launching additional workers and then launch a finetuning loop itself
     for i in reversed(range(args.dist_num)):
         print("Handling rank number %d" % i)
