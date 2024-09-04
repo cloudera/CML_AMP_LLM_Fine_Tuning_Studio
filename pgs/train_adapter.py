@@ -15,9 +15,37 @@ cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 
+# Set up state trackers for this page
+if 'ft_adapter_name' not in st.session_state:
+    st.session_state['ft_adapter_name'] = ""
+if 'ft_output_dir' not in st.session_state:
+    st.session_state['ft_output_dir'] = "data/adapters/"
+if 'ft_base_model' not in st.session_state:
+    st.session_state['ft_base_model'] = None
+if 'ft_prompt' not in st.session_state:
+    st.session_state['ft_prompt'] = None
+if 'ft_dataset' not in st.session_state:
+    st.session_state['ft_dataset'] = None
+if 'ft_resource_cpu' not in st.session_state:
+    st.session_state['ft_resource_cpu'] = 2
+if 'ft_resource_mem' not in st.session_state:
+    st.session_state['ft_resource_mem'] = 8
+if 'ft_resource_gpu' not in st.session_state:
+    st.session_state['ft_resource_gpu'] = 1
+if 'ft_resource_gpu_label' not in st.session_state:
+    st.session_state['ft_resource_gpu_label'] = 1
+if 'ft_resource_num_workers' not in st.session_state:
+    st.session_state['ft_resource_num_workers'] = 1
+if 'ft_dataset_fraction' not in st.session_state:
+    st.session_state['ft_dataset_fraction'] = 1.0
+if 'ft_dataset_split' not in st.session_state:
+    st.session_state['ft_dataset_split'] = 0.9
+if 'ft_num_epochs' not in st.session_state:
+    st.session_state['ft_num_epochs'] = 10
+if 'ft_learning_rate' not in st.session_state:
+    st.session_state['ft_learning_rate'] = "2e-4"
+
 # Container for header
-
-
 def create_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
@@ -41,17 +69,20 @@ def create_train_adapter_page_with_proprietary():
                 adapter_name = st.text_input(
                     "Adapter Name",
                     placeholder="Adapter name",
+                    value = st.session_state['ft_adapter_name'],
                     key="adapter_name",
                     help="Enter the name of the adapter to be created. This field is required."
                 )
+                st.session_state['ft_adapter_name'] = adapter_name
 
             with col2:
                 adapter_output_dir = st.text_input(
                     "Output Location",
-                    value="data/adapters/",
+                    value= st.session_state['ft_output_dir'],
                     key="output_location",
                     help="Specify the directory where the adapter will be saved."
                 )
+                st.session_state['ft_output_dir'] = adapter_output_dir
 
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
@@ -62,10 +93,11 @@ def create_train_adapter_page_with_proprietary():
                     "Dataset",
                     range(len(current_datasets)),
                     format_func=lambda x: current_datasets[x].name,
-                    index=None,
+                    index=st.session_state['ft_dataset'],
                     key="proprietary_dataset_selectbox",
                     help="Select the dataset to use for training. This field is required."
                 )
+                st.session_state['ft_dataset'] = dataset_idx
                 if dataset_idx is not None:
                     dataset = current_datasets[dataset_idx]
                     current_prompts = fts.get_prompts()
@@ -74,10 +106,11 @@ def create_train_adapter_page_with_proprietary():
                         "Prompts",
                         range(len(current_prompts)),
                         format_func=lambda x: current_prompts[x].name,
-                        index=None,
+                        index=st.session_state['ft_prompt'],
                         key="proprietary_prompt_selectbox",
                         help="Select the prompt to use with the selected dataset. This field is required."
                     )
+                    st.session_state['ft_prompt'] = prompt_idx
 
             with col2:
                 current_models = fts.get_models()
@@ -85,10 +118,11 @@ def create_train_adapter_page_with_proprietary():
                     "Base Models",
                     range(len(current_models)),
                     format_func=lambda x: current_models[x].name,
-                    index=None,
+                    index=st.session_state['ft_base_model'],
                     key="proprietary_model_selectbox",
                     help="Select the base model for training. This field is required."
                 )
+                st.session_state['ft_base_model'] = model_idx
                 if dataset_idx is not None:
                     if len(current_prompts) == 0:
                         st.warning(
@@ -114,7 +148,7 @@ def create_train_adapter_page_with_proprietary():
             with c2:
                 st.empty()
             with st.container(border=True):
-                num_workers = 1
+                num_workers = st.session_state['ft_resource_num_workers']
                 if st.session_state['ft_multi_node']:
                     c1, c2 = st.columns([1, 1])
                     with c1:
@@ -123,7 +157,9 @@ def create_train_adapter_page_with_proprietary():
                             "Number of Distribution Units",
                             min_value=1,
                             max_value=100,
+                            value=st.session_state['ft_resource_num_workers'],
                             help="Specify the number of machines that will launched in CML to perform training.")
+                        st.session_state['num_workers'] = num_workers
                     with c2:
                         tc_arch = "Distribution - Multi Node"
                         tc_descrip = "**Distributed Finetuning Units** may be provisioned across multiple physical nodes in the CML Workspace."
@@ -135,11 +171,12 @@ def create_train_adapter_page_with_proprietary():
                         resource_label_suffix = " per Distribution Unit"
                     cpu = st.number_input(
                         "CPU" + resource_label_suffix,
-                        value=2,
+                        value=st.session_state['ft_resource_cpu'],
                         min_value=1,
                         key="cpu",
                         help="Specify the number of virtual CPUs to allocate for training."
                     )
+                    st.session_state['ft_resource_cpu'] = cpu
                     # Handling the potential for heterogeneous GPU clusters, need to load gpu max num limits and label namess
                     # This is all very heavy, probably want to do this on page load and cache
                     # it once in a more reasonable data struct
@@ -158,25 +195,29 @@ def create_train_adapter_page_with_proprietary():
                                                                '_max_gpu_per_workload': site_max_gpu,
                                                                }}
                     gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
-                    gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list, index=0)
+                    gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list, index=st.session_state['ft_resource_gpu_label'])
+                    st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
                     gpu_num_max = int(accelerator_labels_dict[gpu_label]['_max_gpu_per_workload'])
                     gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
                 with c2:
                     placeholder = st.empty()
                     memory = st.number_input(
                         "Memory (GiB)" + resource_label_suffix,
-                        value=8,
+                        value=st.session_state['ft_resource_mem'],
                         min_value=1,
                         key="memory",
                         help="Specify the amount of memory (in GiB) to allocate for training."
                     )
+                    st.session_state['ft_resource_mem']=memory
                     gpu = st.number_input(
                         "GPU" + resource_label_suffix,
                         min_value=1,
+                        value=st.session_state['ft_resource_gpu'],
                         max_value=gpu_num_max,
                         key="gpu",
                         help="Select the number of GPUs to allocate for training. This is limited to the maximum number of GPUs available per node on this CML Workspace Cluster."
                     )
+                    st.session_state['ft_resource_gpu']=gpu
 
             # Training Options
             with st.container(border=True):
@@ -185,33 +226,37 @@ def create_train_adapter_page_with_proprietary():
                 with c1:
                     num_epochs = st.number_input(
                         "Number of Epochs",
-                        value=10,
+                        value=st.session_state['ft_num_epochs'],
                         min_value=1,
                         key="num_epochs",
                         help="Specify the number of epochs for training."
                     )
+                    st.session_state['ft_num_epochs'] = num_epochs
                 with c2:
                     learning_rate = st.text_input(
                         "Learning Rate",
-                        value="2e-4",
+                        value=st.session_state['ft_learning_rate'],
                         key="learning_rate",
                         help="Set the learning rate for the training process."
                     )
+                    st.session_state['ft_learning_rate'] = learning_rate
                 c1, c2 = st.columns([1, 1])
                 dataset_fraction = c1.slider(
                     "Dataset Fraction",
                     min_value=0.0,
                     max_value=1.0,
-                    value=1.0,
+                    value=st.session_state['ft_dataset_fraction'],
                     help="Specify the fraction of the dataset to use for training."
                 )
+                st.session_state['ft_dataset_fraction'] = dataset_fraction
                 dataset_train_test_split = c2.slider(
                     "Dataset Train/Test Split",
                     min_value=0.0,
                     max_value=1.0,
-                    value=0.9,
+                    value=st.session_state['ft_dataset_split'],
                     help="Set the ratio for splitting the dataset into training and test sets."
                 )
+                st.session_state['ft_dataset_split']=dataset_train_test_split
 
                 c1, c2 = st.columns([1, 1])
 
@@ -222,30 +267,37 @@ def create_train_adapter_page_with_proprietary():
                 # showing that to the user.
                 with c1:
                     with st.expander("LoRA Config"):
-                        lora_config_text = st.text_area(
-                            "",
-                            json.dumps(
+                        if 'ft_config_lora' not in st.session_state:
+                            st.session_state['ft_config_lora'] = json.dumps(
                                 json.loads(
                                     fts.ListConfigs(
                                         ListConfigsRequest(
                                             type=ConfigType.LORA_CONFIG,
                                             model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
                                             type=ConfigType.LORA_CONFIG)).configs[0].config),
-                                indent=2),
+                                indent=2)
+
+                        lora_config_text = st.text_area(
+                            "",
+                            value=st.session_state['ft_config_lora'],
                             height=200,
                             help="LoRA configuration for fine-tuning the model.")
+                        st.session_state['ft_config_lora'] = lora_config_text
                 with c2:
                     with st.expander("BitsAndBytes Config"):
-                        bnb_config_text = st.text_area(
-                            "",
-                            json.dumps(
+                        if 'ft_config_bnb' not in st.session_state:
+                            st.session_state['ft_config_bnb'] = json.dumps(
                                 json.loads(
                                     fts.ListConfigs(
                                         ListConfigsRequest(
                                             type=ConfigType.BITSANDBYTES_CONFIG,
                                             model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
                                             type=ConfigType.BITSANDBYTES_CONFIG)).configs[0].config),
-                                indent=2),
+                                indent=2)
+
+                        bnb_config_text = st.text_area(
+                            "",
+                            value=st.session_state['ft_config_bnb'],
                             height=200,
                             help="BitsAndBytes configuration for optimizing model training.")
 
@@ -256,16 +308,18 @@ def create_train_adapter_page_with_proprietary():
                             * Number of Epochs (TrainingArguments.num_train_epochs)
                             * Learning Rate (TrainingArguments.learning_rate)
                             """)
-                    training_args_text = st.text_area(
-                        "Training Arguments",
-                        json.dumps(
+                    if 'ft_config_trainer' not in st.session_state:
+                        st.session_state['ft_config_trainer'] = json.dumps(
                             json.loads(
                                 fts.ListConfigs(
                                     ListConfigsRequest(
                                         type=ConfigType.TRAINING_ARGUMENTS,
                                         model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
                                         type=ConfigType.TRAINING_ARGUMENTS)).configs[0].config),
-                            indent=2),
+                            indent=2)
+                    training_args_text = st.text_area(
+                        "Training Arguments",
+                        value=st.session_state['ft_config_trainer'],
                         height=400,
                         help="Advanced training arguments in JSON format.")
 
