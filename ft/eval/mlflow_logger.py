@@ -43,6 +43,8 @@ class ModelLogger():
         if gen_config is None:
             gen_config = self.default_config
         else:
+            if "bos_token_id" not in gen_config:
+                gen_config["bos_token_id"] = 1
             gen_config = GenerationConfig(**gen_config)
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
