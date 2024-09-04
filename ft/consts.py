@@ -14,6 +14,10 @@ TRAINING_DEFAULT_TRAIN_TEST_SPLIT = 0.9
 TRAINING_DEFAULT_DATASET_FRACTION = 1.0
 TRAINING_DATASET_SEED = 42
 
+# Evaluation constants
+EVAL_INPUT_COLUMN = "model_input"
+EVAL_OUTPUT_COLUM = "expected_output"
+
 
 class IconPaths:
     class FineTuningStudio:

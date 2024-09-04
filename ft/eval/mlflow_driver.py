@@ -66,7 +66,11 @@ def driver(
             # Inside try cache to avoid failures with wrong adapters
             peft_model, tokenizer = mlt.get_peft_model_and_tokenizer(
                 base_model.huggingface_model_name, adapter.location, bnb_config_dict)
-            model_info = logger.log_model_multi_gpu(peft_model, tokenizer)
+            model_info = logger.log_model_multi_gpu(
+                peft_model,
+                tokenizer,
+                generation_config_dict,
+                base_model.huggingface_model_name)
         except BaseException:
             # need to improve logic for this. Not sure if this is desired behavior
             raise ValueError("Failed to load peft model. Can run eval on only base model.")
