@@ -1,6 +1,6 @@
 # Fine Tuning
 
-[User Guide Home](index.md)
+[User Guide Home](../user_guide.md)
 
 ----
 
