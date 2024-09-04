@@ -5,18 +5,29 @@ from accelerate.utils import (
     is_torch_version,
     patch_environment,
 )
+from peft import prepare_model_for_kbit_training
 import torch
 import argparse
 import sys
-import datasets
 import json
 import os
 
 from accelerate import Accelerator, notebook_launcher
-from typing import Tuple
 from ft.utils import attempt_hf_login
 from ft.client import FineTuningStudioClient
 from ft.api import *
+from ft.consts import (
+    TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
+    TRAINING_DEFAULT_DATASET_FRACTION,
+    TRAINING_DATA_TEXT_FIELD
+)
+from ft.training.utils import (
+    load_dataset,
+    map_dataset_with_prompt_template,
+    split_dataset,
+    get_model_parameters,
+    configure_tokenizer_padding
+)
 
 # TODO: Make all FTS configs/settings loading come from an imported module
 #       so scripts like this focus on fine-tuning loop only
@@ -26,13 +37,6 @@ try:
 except ImportError:
     # Launch workers when using CDSW
     from cdsw import launch_workers
-
-
-# Constants
-DATA_TEXT_FIELD = "prediction"
-DEFAULT_TRAIN_TEST_SPLIT = 0.9
-DEFAULT_DATASET_FRACTION = 1.0
-SEED = 42
 
 # Parse arguments from environment variable
 arg_string = os.environ.get('JOB_ARGUMENTS', '')
@@ -46,9 +50,9 @@ parser.add_argument("--dataset_id", help="Dataset ID from the Fine Tuning Studio
 parser.add_argument("--experimentid", help="UUID to use for experiment tracking", required=True)
 parser.add_argument("--out_dir", help="Output directory for the fine-tuned model", required=True)
 parser.add_argument("--train_out_dir", help="Output directory for the training runs", required=True)
-parser.add_argument("--train_test_split", type=float, default=DEFAULT_TRAIN_TEST_SPLIT,
+parser.add_argument("--train_test_split", type=float, default=TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
                     help="Split of the existing dataset between training and testing.")
-parser.add_argument("--dataset_fraction", type=float, default=DEFAULT_DATASET_FRACTION,
+parser.add_argument("--dataset_fraction", type=float, default=TRAINING_DEFAULT_DATASET_FRACTION,
                     help="Fraction of the dataset to downsample to.")
 parser.add_argument("--bnb_config_id", default=None, help="ID of the BnB config in FT Studio's config store.")
 parser.add_argument("--lora_config_id", default=None, help="ID of the Lora config in FT Studio's config store.")
@@ -159,61 +163,6 @@ prompt_md: PromptMetadata = fts.GetPrompt(
 ).prompt
 
 
-# Data mapping functions for this style of finetuning
-def load_dataset(dataset_name, dataset_fraction=100):
-    """
-    Loads a dataset from Huggingface, optionally sampling a fraction of it.
-
-    Parameters:
-        dataset_name (str): The name of the Huggingface dataset to load.
-        dataset_fraction (int): The percentage of the dataset to load. Defaults to 100.
-
-    Returns:
-        datasets.Dataset: The loaded dataset.
-    """
-    try:
-        return datasets.load_dataset(dataset_name, split=f'train[:{dataset_fraction}%]')
-    except Exception as e:
-        raise RuntimeError(f"Error loading dataset: {e}")
-
-
-def split_dataset(ds: datasets.Dataset, split_fraction: float = DEFAULT_TRAIN_TEST_SPLIT,
-                  seed: int = SEED) -> Tuple[datasets.Dataset, datasets.Dataset]:
-    """
-    Split a dataset into two datasets given a split size and a random seed. This is
-    primarily used to create a train dataset and an evaluation dataset.
-
-    Parameters:
-        split_fraction (float): the dataset split. The first dataset returned will be of size S*split_fraction.
-        seed (int): randomized seed for dataset splitting.
-
-    Returns:
-        Tuple[Dataset, Dataset], the two split datasets.
-    """
-    dataset_split = ds.train_test_split(test_size=(1.0 - split_fraction), shuffle=True, seed=SEED)
-    return dataset_split['train'], dataset_split['test']
-
-
-def map_dataset_with_prompt_template(dataset, prompt_template, eos_token):
-    """
-    Maps a dataset with a given prompt template.
-
-    Parameters:
-        dataset (datasets.Dataset): The dataset to map.
-        prompt_template (str): The prompt template to apply to the dataset.
-
-    Returns:
-        datasets.Dataset: The mapped dataset.
-    """
-    def ds_map(data):
-        try:
-            data[DATA_TEXT_FIELD] = prompt_template.format(**data) + eos_token
-        except KeyError as e:
-            raise KeyError(f"Error formatting data with prompt template: {e}")
-        return data
-
-    return dataset.map(ds_map)
-
 # Single Training loop function to use with accelerate launchers
 
 
@@ -223,7 +172,6 @@ def training_loop():
         AutoModelForCausalLM,
         DataCollatorForLanguageModeling,
     )
-    import torch
     import mlflow
 
     from transformers import BitsAndBytesConfig, TrainingArguments
@@ -244,9 +192,6 @@ def training_loop():
 
     print("Load the base model and tokenizer...\n")
     tokenizer = AutoTokenizer.from_pretrained(base_model_md.huggingface_model_name, use_auth_token=args.hf_token)
-    tokenizer.pad_token = tokenizer.eos_token
-    compute_dtype = getattr(torch, "float16")
-
     model = AutoModelForCausalLM.from_pretrained(
         base_model_md.huggingface_model_name,
         quantization_config=BitsAndBytesConfig(**bnb_config_dict),
@@ -254,20 +199,22 @@ def training_loop():
         token=args.hf_token,
     )
 
-    # Set LORA Config
-    trainable_params = 0
-    all_param = 0
-    for _, param in model.named_parameters():
-        all_param += param.numel()
-        if param.requires_grad:
-            trainable_params += param.numel()
-    print(
-        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
-    )
+    # Due to TRL restrictions in training classes, we need to make sure a
+    # dedicated padding token is available in the tokenizer.
+    tokenizer = configure_tokenizer_padding(tokenizer)
 
+    # Set LORA Config
+    all_param, trainable_params = get_model_parameters(model)
+    print(f"Trainable % of parameters before PEFT: {100 * trainable_params / all_param}%")
+
+    model = prepare_model_for_kbit_training(model)
     model = get_peft_model(model, LoraConfig(**lora_config_dict))
 
+    all_param, trainable_params = get_model_parameters(model)
+    print(f"Trainable % of parameters after PEFT: {100 * trainable_params / all_param}%")
+
     # Load and map dataset
+    print(f"Dataset fraction: {args.dataset_fraction}\nInt fraction %: {int(100 * args.dataset_fraction)}")
     try:
         prompt_text = prompt_md.prompt_template
         with accelerator.main_process_first():
@@ -277,19 +224,24 @@ def training_loop():
         ds_train, ds_eval = split_dataset(dataset, args.train_test_split)
 
         # Map both datasets with prompt templates
-        ds_train = map_dataset_with_prompt_template(ds_train, prompt_text, tokenizer.eos_token)
-        ds_eval = map_dataset_with_prompt_template(ds_eval, prompt_text, tokenizer.eos_token)
+        ds_train = map_dataset_with_prompt_template(
+            ds_train, prompt_text, add_eos_token=True, eos_token=tokenizer.eos_token)
+        ds_eval = map_dataset_with_prompt_template(
+            ds_eval, prompt_text, add_eos_token=True, eos_token=tokenizer.eos_token)
     except FileNotFoundError as e:
         raise RuntimeError(f"Error loading prompt template: {e}")
 
     accelerator.print("Total rows to be trained on: %d" % len(ds_train))
+    accelerator.print("Total rows to be evaluated on: %d" % len(ds_eval))
+    print(ds_train)
+    print(ds_eval)
     trainer = accelerator.prepare(SFTTrainer(
         model=model,
         train_dataset=ds_train,
-        eval_dataset=ds_eval,
+        eval_dataset=ds_eval if len(ds_eval) > 0 else None,
         peft_config=LoraConfig(**lora_config_dict),
         tokenizer=tokenizer,
-        dataset_text_field=DATA_TEXT_FIELD,
+        dataset_text_field=TRAINING_DATA_TEXT_FIELD,
         packing=True,
         max_seq_length=512,
         args=TrainingArguments(**training_args_dict),

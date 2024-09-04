@@ -8,6 +8,12 @@ USER_CONFIGS = 0
 BASE_DIR = "./resources/images/icons"
 DIVIDER_COLOR = 'green'
 
+# Training Constants
+TRAINING_DATA_TEXT_FIELD = "prediction"
+TRAINING_DEFAULT_TRAIN_TEST_SPLIT = 0.9
+TRAINING_DEFAULT_DATASET_FRACTION = 1.0
+TRAINING_DATASET_SEED = 42
+
 
 class IconPaths:
     class FineTuningStudio:
