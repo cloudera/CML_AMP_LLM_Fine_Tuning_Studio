@@ -10,7 +10,7 @@ from typing import List
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import Adapter, FineTuningJob, Prompt, Model
-
+from ft.consts import TRAINING_DEFAULT_DATASET_FRACTION, TRAINING_DEFAULT_TRAIN_TEST_SPLIT
 from sqlalchemy import delete
 
 import os
@@ -129,8 +129,12 @@ def get_dataset_split_by_adapter(request: GetDatasetSplitByAdapterRequest, cml: 
                                  dao: FineTuningStudioDao = None) -> GetDatasetSplitByAdapterResponse:
 
     with dao.get_session() as session:
-        return GetDatasetSplitByAdapterResponse(
-            response=session.query(
+        rows = session.query(
                 FineTuningJob.dataset_fraction, FineTuningJob.train_test_split).join(
                 Adapter, FineTuningJob.adapter_name == Adapter.name).filter(
-                Adapter.id == request.adapter_id).one().to_protobuf(GetDatasetSplitByAdapterMetadata))
+                Adapter.id == request.adapter_id).all()
+        if len(rows) > 0:
+            return GetDatasetSplitByAdapterResponse(
+                response=rows[0].to_protobuf(GetDatasetSplitByAdapterMetadata))
+        else:
+            return GetDatasetSplitByAdapterResponse(response=GetDatasetSplitByAdapterMetadata(dataset_fraction=TRAINING_DEFAULT_DATASET_FRACTION, train_test_split=TRAINING_DEFAULT_TRAIN_TEST_SPLIT))
