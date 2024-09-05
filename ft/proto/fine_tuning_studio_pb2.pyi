@@ -69,6 +69,29 @@ class RemoveDatasetResponse(_message.Message):
     def __init__(self) -> None: ...
 
 
+class GetDatasetSplitByAdapterRequest(_message.Message):
+    __slots__ = ("adapter_id",)
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    adapter_id: str
+    def __init__(self, adapter_id: _Optional[str] = ...) -> None: ...
+
+
+class GetDatasetSplitByAdapterResponse(_message.Message):
+    __slots__ = ("response",)
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    response: GetDatasetSplitByAdapterMetadata
+    def __init__(self, response: _Optional[_Union[GetDatasetSplitByAdapterMetadata, _Mapping]] = ...) -> None: ...
+
+
+class GetDatasetSplitByAdapterMetadata(_message.Message):
+    __slots__ = ("dataset_fraction", "train_test_split")
+    DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
+    TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
+    dataset_fraction: float
+    train_test_split: float
+    def __init__(self, dataset_fraction: _Optional[float] = ..., train_test_split: _Optional[float] = ...) -> None: ...
+
+
 class ListModelsRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...

@@ -359,7 +359,6 @@ if IS_MASTER:
     print("Trainer Arguments")
     print(training_args_dict)
 
-
     # Parent workload needs to handle launching additional workers and then launch a finetuning loop itself
     for i in reversed(range(args.dist_num)):
         print("Handling rank number %d" % i)

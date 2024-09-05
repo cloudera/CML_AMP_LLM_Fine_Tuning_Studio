@@ -3,8 +3,8 @@ import pandas as pd
 # from eval.configs import DATASETS, PROMPTS
 from ft.client import FineTuningStudioClient
 from ft.api import *
-from ft.training.utils import map_dataset_with_prompt_template
-from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
+from ft.training.utils import map_dataset_with_prompt_template, split_dataset
+from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, DATASET_FRACTION_THRESHOLD_FOR_EVALUATION
 
 
 class Dataloader:
@@ -14,15 +14,27 @@ class Dataloader:
             dataset_id: str,
             total_examples: int = 100,
             client: FineTuningStudioClient = None,
-            prompt_metadata=None):
+            prompt_metadata=None,
+            dataset_split: GetDatasetSplitByAdapterMetadata = None):
         dataset: DatasetMetadata = client.GetDataset(GetDatasetRequest(id=dataset_id)).dataset
         if not dataset or dataset == DatasetMetadata():
             # return this as error in UI
             raise ValueError(f"Dataset with id of {dataset_id} not found in the available datasets.")
         # TODO: remove hardcoded dependency on HF name (allow for project-relative dataset loading)
+        dataset_fraction = dataset_split.dataset_fraction
+        train_test_split = dataset_split.train_test_split
         dataset_hf_name = dataset.huggingface_name
         loaded_dataset = load_dataset(dataset_hf_name)
-
+        if "test" in loaded_dataset:
+            loaded_dataset = load_dataset(dataset_hf_name, split="test")
+        elif "eval" in loaded_dataset:
+            loaded_dataset = load_dataset(dataset_hf_name, split="eval")
+        else:
+            if int(100 * dataset_fraction) <= DATASET_FRACTION_THRESHOLD_FOR_EVALUATION:
+                loaded_dataset = load_dataset(dataset_hf_name, split=f"train[{int(100 * dataset_fraction)}%:]")
+            else:
+                loaded_dataset = load_dataset(dataset_hf_name, split=f"train[:{int(100 * dataset_fraction)}%]")
+                _, loaded_dataset = split_dataset(loaded_dataset, train_test_split)
         # Map both the input and output prompt templates.
         loaded_dataset = map_dataset_with_prompt_template(
             dataset=loaded_dataset,
@@ -38,11 +50,7 @@ class Dataloader:
         )
         eval_column_name = EVAL_OUTPUT_COLUM
 
-        try:
-            eval_df = pd.DataFrame(loaded_dataset["test"])
-        except BaseException:
-            print("There is no test data split present. Hence loading the train split.")
-            eval_df = pd.DataFrame(loaded_dataset["train"])
+        eval_df = pd.DataFrame(loaded_dataset)
 
         eval_df = eval_df.sample(n=total_examples)
         eval_df = eval_df.loc[:, [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]

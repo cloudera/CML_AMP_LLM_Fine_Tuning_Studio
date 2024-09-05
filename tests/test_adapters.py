@@ -5,13 +5,14 @@ from ft.adapters import (
     get_adapter,
     add_adapter,
     remove_adapter,
-    _validate_add_adapter_request
+    _validate_add_adapter_request,
+    get_dataset_split_by_adapter
 )
 from ft.api import *
 
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import Adapter, Model
-
+from ft.db.model import Adapter, Model, FineTuningJob
+from ft.consts import TRAINING_DEFAULT_DATASET_FRACTION, TRAINING_DEFAULT_TRAIN_TEST_SPLIT
 from sqlalchemy.exc import NoResultFound
 
 
@@ -221,3 +222,39 @@ def test_remove_adapter_happy():
     res = remove_adapter(RemoveAdapterRequest(id="a1"), dao=test_dao)
     with test_dao.get_session() as session:
         assert len(session.query(Adapter).all()) == 1
+
+from unittest.mock import MagicMock, patch
+
+
+def test_get_dataset_split_by_adapter_with_row():
+    # Setup mock
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(FineTuningJob(id = "abcd",train_test_split=0.8, dataset_fraction = 0.7, adapter_name="adapter"))
+        session.add(Adapter(id="ada", name="adapter"))
+        session.commit()
+
+    req = GetDatasetSplitByAdapterRequest(adapter_id="ada")
+    res = get_dataset_split_by_adapter(req, dao=test_dao)
+    assert int(100 *res.response.dataset_fraction) == int(100* 0.7)
+    assert int(100*res.response.train_test_split) == int(100*0.8)
+
+
+# Test when no rows are returned
+def test_get_dataset_split_by_adapter_no_rows():
+    # Setup mock
+    # Setup mock
+    test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
+
+    with test_dao.get_session() as session:
+        session.add(FineTuningJob(id = "abcd",train_test_split=0.1, dataset_fraction = 0.2, adapter_name="adapter"))
+        session.add(Adapter(id="ada2", name="adapter2"))
+        session.commit()
+
+    req = GetDatasetSplitByAdapterRequest(adapter_id="ada2")
+    res = get_dataset_split_by_adapter(req, dao=test_dao)
+    assert res.response.dataset_fraction != 0.1
+    assert res.response.train_test_split != 0.2
+    assert res.response.dataset_fraction == TRAINING_DEFAULT_DATASET_FRACTION
+    assert res.response.train_test_split == TRAINING_DEFAULT_TRAIN_TEST_SPLIT

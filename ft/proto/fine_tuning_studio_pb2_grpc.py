@@ -66,6 +66,11 @@ class FineTuningStudioStub(object):
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetRequest.SerializeToString,
             response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetResponse.FromString,
             _registered_method=True)
+        self.GetDatasetSplitByAdapter = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/GetDatasetSplitByAdapter',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetSplitByAdapterRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetSplitByAdapterResponse.FromString,
+            _registered_method=True)
         self.ListModels = channel.unary_unary(
             '/fine_tuning_studio.FineTuningStudio/ListModels',
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListModelsRequest.SerializeToString,
@@ -223,6 +228,12 @@ class FineTuningStudioServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def RemoveDataset(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetDatasetSplitByAdapter(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -406,6 +417,11 @@ def add_FineTuningStudioServicer_to_server(servicer, server):
             servicer.RemoveDataset,
             request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetRequest.FromString,
             response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetResponse.SerializeToString,
+        ),
+        'GetDatasetSplitByAdapter': grpc.unary_unary_rpc_method_handler(
+            servicer.GetDatasetSplitByAdapter,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetSplitByAdapterRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetSplitByAdapterResponse.SerializeToString,
         ),
         'ListModels': grpc.unary_unary_rpc_method_handler(
             servicer.ListModels,
@@ -649,6 +665,33 @@ class FineTuningStudio(object):
             '/fine_tuning_studio.FineTuningStudio/RemoveDataset',
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetRequest.SerializeToString,
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveDatasetResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetDatasetSplitByAdapter(request,
+                                 target,
+                                 options=(),
+                                 channel_credentials=None,
+                                 call_credentials=None,
+                                 insecure=False,
+                                 compression=None,
+                                 wait_for_ready=None,
+                                 timeout=None,
+                                 metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/GetDatasetSplitByAdapter',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetSplitByAdapterRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.GetDatasetSplitByAdapterResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -1,5 +1,3 @@
-
-
 from ft.api import *
 
 from cmlapi import CMLServiceApi
@@ -10,9 +8,9 @@ from typing import List
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import Adapter, FineTuningJob, Prompt, Model
-
+from ft.consts import TRAINING_DEFAULT_DATASET_FRACTION, TRAINING_DEFAULT_TRAIN_TEST_SPLIT
 from sqlalchemy import delete
-
+from sqlalchemy.exc import NoResultFound
 import os
 
 
@@ -123,3 +121,21 @@ def remove_adapter(request: RemoveAdapterRequest, cml: CMLServiceApi = None,
     with dao.get_session() as session:
         session.execute(delete(Adapter).where(Adapter.id == request.id))
     return RemoveAdapterResponse()
+
+
+def get_dataset_split_by_adapter(request: GetDatasetSplitByAdapterRequest, cml: CMLServiceApi = None,
+                                 dao: FineTuningStudioDao = None) -> GetDatasetSplitByAdapterResponse:
+
+    with dao.get_session() as session:
+        try:
+            row: FineTuningJob = session.query(
+                FineTuningJob).join(
+                Adapter, FineTuningJob.adapter_name == Adapter.name).filter(
+                Adapter.id == request.adapter_id).first()
+            return GetDatasetSplitByAdapterResponse(
+                response=row.to_protobuf(GetDatasetSplitByAdapterMetadata))
+        except NoResultFound:
+            return GetDatasetSplitByAdapterResponse(
+                response=GetDatasetSplitByAdapterMetadata(
+                    dataset_fraction=TRAINING_DEFAULT_DATASET_FRACTION,
+                    train_test_split=TRAINING_DEFAULT_TRAIN_TEST_SPLIT))
