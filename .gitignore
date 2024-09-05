@@ -196,6 +196,7 @@ sqlite3
 .sdirs 
 .pip/
 .config/
+.conda/
 
 # Right now we are pulling down axolotl's git repository to src/,
 # but we don't want to ship this in the repo. (maybe go back
