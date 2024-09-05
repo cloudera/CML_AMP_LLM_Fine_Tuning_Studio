@@ -494,7 +494,8 @@ class StartEvaluationJobRequest(_message.Message):
         "model_bnb_config_id",
         "adapter_bnb_config_id",
         "generation_config_id",
-        "prompt_id")
+        "prompt_id",
+        "gpu_label_id")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -506,6 +507,7 @@ class StartEvaluationJobRequest(_message.Message):
     ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
+    GPU_LABEL_ID_FIELD_NUMBER: _ClassVar[int]
     type: str
     base_model_id: str
     dataset_id: str
@@ -517,6 +519,7 @@ class StartEvaluationJobRequest(_message.Message):
     adapter_bnb_config_id: str
     generation_config_id: str
     prompt_id: str
+    gpu_label_id: int
 
     def __init__(
         self,
@@ -530,7 +533,8 @@ class StartEvaluationJobRequest(_message.Message):
         model_bnb_config_id: _Optional[str] = ...,
         adapter_bnb_config_id: _Optional[str] = ...,
         generation_config_id: _Optional[str] = ...,
-        prompt_id: _Optional[str] = ...) -> None: ...
+        prompt_id: _Optional[str] = ...,
+        gpu_label_id: _Optional[int] = ...) -> None: ...
 
 
 class StartEvaluationJobResponse(_message.Message):

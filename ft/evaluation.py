@@ -161,6 +161,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory
+    gpu_label_id = request.gpu_label_id
 
     print(arg_list)
     job_instance = cmlapi.models.create_job_request.CreateJobRequest(
@@ -174,6 +175,10 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
         arguments=" ".join([str(i).replace(" ", "") for i in arg_list])
     )
 
+    # If provided, set accelerator label id for targeting gpu
+    if gpu_label_id != -1:
+        job_instance.accelerator_label_id = gpu_label_id
+        
     # Create job on CML
     created_job = cml.create_job(
         body=job_instance,

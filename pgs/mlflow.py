@@ -1,14 +1,15 @@
 import streamlit as st
 import os
-from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
+from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, fetch_cml_site_config
 from typing import List
 from ft.api import *
-from pgs.streamlit_utils import get_fine_tuning_studio_client
+from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import json
 from ft.consts import IconPaths, DIVIDER_COLOR
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
+cml = get_cml_client()
 
 
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
@@ -16,7 +17,9 @@ cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 
-
+if 'ft_resource_gpu_label' not in st.session_state:
+    st.session_state['ft_resource_gpu_label'] = 1
+    
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
@@ -122,6 +125,25 @@ with ccol1:
             memory = st.text_input("Memory(GiB)", value="8", key="memory")
 
         gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
+        accelerator_labels = []
+        try:
+            accelerator_labels = cml.list_all_accelerator_node_labels().accelerator_node_label
+            accelerator_labels_dict = {x.label_value: vars(x) for x in accelerator_labels}
+        except Exception as e:
+            site_conf = fetch_cml_site_config(cdsw_api_url, project_owner, cdsw_api_key)
+            site_max_gpu = site_conf.get("max_gpu_per_engine")
+            # Dummy accelerator label that will get ignored in older clusters without
+            # heterogeneous gpu support
+            accelerator_labels_dict = {'Default': {'_availability': True,
+                                                    '_id': '-1',
+                                                    '_label_value': 'Default',
+                                                    '_max_gpu_per_workload': site_max_gpu,
+                                                               }}
+        gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
+        gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list,
+                                    index=st.session_state['ft_resource_gpu_label'])
+        st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
+        gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
 
         button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None and prompt_idx is not None
 
@@ -209,6 +231,7 @@ with ccol1:
                             prompt_id=prompt.id,
                             cpu=int(cpu),
                             gpu=gpu,
+                            gpu_label_id=int(gpu_label_id),
                             memory=int(memory),
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,

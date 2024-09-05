@@ -455,6 +455,11 @@ message StartEvaluationJobRequest {
 
   // ID of the prompt to use for evals
   string prompt_id = 17;
+
+  // The GPU label to use for this job
+  int32 gpu_label_id = 18;
+
+
 }
 message StartEvaluationJobResponse {
   EvaluationJobMetadata evaluation_job = 1;
