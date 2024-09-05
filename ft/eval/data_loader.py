@@ -30,7 +30,7 @@ class Dataloader:
         elif "eval" in loaded_dataset:
             loaded_dataset = load_dataset(dataset_hf_name, split="eval")
         else:
-            if int(100 * dataset_fraction) < DATASET_FRACTION_THRESHOLD_FOR_EVALUATION:
+            if int(100 * dataset_fraction) <= DATASET_FRACTION_THRESHOLD_FOR_EVALUATION:
                 loaded_dataset = load_dataset(dataset_hf_name, split=f"train[{int(100 * dataset_fraction)}%:]")
             else:
                 loaded_dataset = load_dataset(dataset_hf_name, split=f"train[:{int(100 * dataset_fraction)}%]")
