@@ -54,20 +54,6 @@ tasks:
   #   gpu: 1
 
   - type: create_job
-    name: Finetuning_Base_Job
-    short_summary: Create Template Job for creating finetuning tasks
-    entity_label: fine_tune_job_template
-    script: ft/scripts/fine_tune_base_script.py
-    arguments: None
-    long_summary: Create Template Job for creating finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
-    cpu: 2
-    memory: 8
-    gpu: 1
-    environment:
-      TASK_TYPE: CREATE/RUN_JOB
-      MLFLOW_FLATTEN_PARAMS: true
-
-  - type: create_job
     name: Accel_Finetuning_Base_Job
     short_summary: Create Template Job for creating finetuning tasks
     entity_label: accel_fine_tune_job_template
