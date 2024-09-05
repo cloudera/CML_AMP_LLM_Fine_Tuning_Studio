@@ -17,7 +17,9 @@ cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 
-
+if 'ft_resource_gpu_label' not in st.session_state:
+    st.session_state['ft_resource_gpu_label'] = 1
+    
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
