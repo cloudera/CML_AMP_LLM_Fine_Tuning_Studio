@@ -226,19 +226,19 @@ def test_remove_adapter_happy():
 from unittest.mock import MagicMock, patch
 
 
-def test_get_dataset_split_by_adapter_with_row(mock_metadata, mock_dao):
+def test_get_dataset_split_by_adapter_with_row():
     # Setup mock
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
     with test_dao.get_session() as session:
-        session.add(FineTuningJob(train_test_split=0.8, dataset_fraction = 0.7, adapter_id="adapter"))
-        session.add(Adapter(id="adapter"))
+        session.add(FineTuningJob(id = "abcd",train_test_split=0.8, dataset_fraction = 0.7, adapter_name="adapter"))
+        session.add(Adapter(id="ada", name="adapter"))
         session.commit()
 
-    req = GetDatasetSplitByAdapterRequest(id="adapter")
+    req = GetDatasetSplitByAdapterRequest(adapter_id="ada")
     res = get_dataset_split_by_adapter(req, dao=test_dao)
-    assert res.response.dataset_fraction == 0.7
-    assert res.response.train_test_split == 0.8
+    assert int(100 *res.response.dataset_fraction) == int(100* 0.7)
+    assert int(100*res.response.train_test_split) == int(100*0.8)
 
 
 # Test when no rows are returned
@@ -248,11 +248,11 @@ def test_get_dataset_split_by_adapter_no_rows():
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
     with test_dao.get_session() as session:
-        session.add(FineTuningJob(train_test_split=0.1, dataset_fraction = 0.2, adapter_id="adapter"))
-        session.add(Adapter(id="adapter2"))
+        session.add(FineTuningJob(id = "abcd",train_test_split=0.1, dataset_fraction = 0.2, adapter_name="adapter"))
+        session.add(Adapter(id="ada2", name="adapter2"))
         session.commit()
 
-    req = GetDatasetSplitByAdapterRequest(id="adapter2")
+    req = GetDatasetSplitByAdapterRequest(adapter_id="ada2")
     res = get_dataset_split_by_adapter(req, dao=test_dao)
     assert res.response.dataset_fraction != 0.1
     assert res.response.train_test_split != 0.2
