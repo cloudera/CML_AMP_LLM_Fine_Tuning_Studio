@@ -16,9 +16,9 @@ class ModelEvaluator():
                 eval_df,
                 evaluators="default",
                 model_type="text",    # parametrize this to support other types such as QnA, summarization etc.
-                targets=None,  # we do not set a target for a text-generation pipeline
+                targets=eval_target_column_name,  # we do not set a target for a text-generation pipeline
                 evaluator_config={"col_mapping": {"inputs": EVAL_INPUT_COLUMN}},
-                extra_metrics=[mlflow.metrics.latency(), mlflow.metrics.exact_match(), mlflow.metrics.rougeLsum(),
+                extra_metrics=[mlflow.metrics.latency(), mlflow.metrics.exact_match(), mlflow.metrics.rouge1(), mlflow.metrics.rougeLsum(),
                                mlflow.metrics.rougeL()]
             )
         return results

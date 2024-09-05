@@ -29,6 +29,7 @@ from ft.adapters import (
     get_adapter,
     add_adapter,
     remove_adapter,
+    get_dataset_split_by_adapter
 )
 
 from ft.prompts import (
@@ -105,6 +106,9 @@ class FineTuningStudioApp(FineTuningStudioServicer):
 
     def RemoveDataset(self, request, context):
         return remove_dataset(request, self.cml, self.dao)
+
+    def GetDatasetSplitByAdapter(self, request, context):
+        return get_dataset_split_by_adapter(request, self.cml, self.dao)
 
     def ListModels(self, request, context):
         return list_models(request, self.cml, dao=self.dao)

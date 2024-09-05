@@ -38,10 +38,11 @@ def driver(
         id=bnb_config_id)).config.config) if bnb_config_id else None
     generation_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=generation_config_id)).config.config) if generation_config_id else None
-
+    dataset_split: GetDatasetSplitByAdapterMetadata = client.GetDatasetSplitByAdapter(
+        GetDatasetSplitByAdapterRequest(adapter_id=adapter_id)).response
     # Load dataset
     eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(
-        dataset_id, client=client, prompt_metadata=prompt)
+        dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split)
     # Load Model Pipeline
     # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
     # is available in the project files location, and that the base model is available

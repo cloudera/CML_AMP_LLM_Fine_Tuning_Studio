@@ -30,6 +30,7 @@ service FineTuningStudio {
   rpc GetDataset (GetDatasetRequest) returns (GetDatasetResponse) {}
   rpc AddDataset (AddDatasetRequest) returns (AddDatasetResponse) {}
   rpc RemoveDataset (RemoveDatasetRequest) returns (RemoveDatasetResponse) {}
+  rpc GetDatasetSplitByAdapter (GetDatasetSplitByAdapterRequest) returns (GetDatasetSplitByAdapterResponse) {}
   
   // Model operations
   rpc ListModels (ListModelsRequest) returns (ListModelsResponse) {}
@@ -111,6 +112,19 @@ message RemoveDatasetRequest {
 }
 message RemoveDatasetResponse {
 
+}
+
+message GetDatasetSplitByAdapterRequest{
+  string adapter_id = 1;
+}
+
+message GetDatasetSplitByAdapterResponse{
+  GetDatasetSplitByAdapterMetadata response = 1;
+}
+
+message GetDatasetSplitByAdapterMetadata{
+  float dataset_fraction = 1;
+  float train_test_split = 2;
 }
 
 

@@ -123,3 +123,14 @@ def remove_adapter(request: RemoveAdapterRequest, cml: CMLServiceApi = None,
     with dao.get_session() as session:
         session.execute(delete(Adapter).where(Adapter.id == request.id))
     return RemoveAdapterResponse()
+
+
+def get_dataset_split_by_adapter(request: GetDatasetSplitByAdapterRequest, cml: CMLServiceApi = None,
+                                 dao: FineTuningStudioDao = None) -> GetDatasetSplitByAdapterResponse:
+
+    with dao.get_session() as session:
+        return GetDatasetSplitByAdapterResponse(
+            response=session.query(
+                FineTuningJob.dataset_fraction, FineTuningJob.train_test_split).join(
+                Adapter, FineTuningJob.adapter_name == Adapter.name).filter(
+                Adapter.id == request.adapter_id).one().to_protobuf(GetDatasetSplitByAdapterMetadata))

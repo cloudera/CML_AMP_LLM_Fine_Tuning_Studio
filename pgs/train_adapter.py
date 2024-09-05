@@ -46,6 +46,8 @@ if 'ft_learning_rate' not in st.session_state:
     st.session_state['ft_learning_rate'] = "2e-4"
 
 # Container for header
+
+
 def create_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 17])
@@ -69,7 +71,7 @@ def create_train_adapter_page_with_proprietary():
                 adapter_name = st.text_input(
                     "Adapter Name",
                     placeholder="Adapter name",
-                    value = st.session_state['ft_adapter_name'],
+                    value=st.session_state['ft_adapter_name'],
                     key="adapter_name",
                     help="Enter the name of the adapter to be created. This field is required."
                 )
@@ -78,7 +80,7 @@ def create_train_adapter_page_with_proprietary():
             with col2:
                 adapter_output_dir = st.text_input(
                     "Output Location",
-                    value= st.session_state['ft_output_dir'],
+                    value=st.session_state['ft_output_dir'],
                     key="output_location",
                     help="Specify the directory where the adapter will be saved."
                 )
@@ -195,7 +197,8 @@ def create_train_adapter_page_with_proprietary():
                                                                '_max_gpu_per_workload': site_max_gpu,
                                                                }}
                     gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
-                    gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list, index=st.session_state['ft_resource_gpu_label'])
+                    gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list,
+                                             index=st.session_state['ft_resource_gpu_label'])
                     st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
                     gpu_num_max = int(accelerator_labels_dict[gpu_label]['_max_gpu_per_workload'])
                     gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
@@ -208,7 +211,7 @@ def create_train_adapter_page_with_proprietary():
                         key="memory",
                         help="Specify the amount of memory (in GiB) to allocate for training."
                     )
-                    st.session_state['ft_resource_mem']=memory
+                    st.session_state['ft_resource_mem'] = memory
                     gpu = st.number_input(
                         "GPU" + resource_label_suffix,
                         min_value=1,
@@ -217,7 +220,7 @@ def create_train_adapter_page_with_proprietary():
                         key="gpu",
                         help="Select the number of GPUs to allocate for training. This is limited to the maximum number of GPUs available per node on this CML Workspace Cluster."
                     )
-                    st.session_state['ft_resource_gpu']=gpu
+                    st.session_state['ft_resource_gpu'] = gpu
 
             # Training Options
             with st.container(border=True):
@@ -256,7 +259,7 @@ def create_train_adapter_page_with_proprietary():
                     value=st.session_state['ft_dataset_split'],
                     help="Set the ratio for splitting the dataset into training and test sets."
                 )
-                st.session_state['ft_dataset_split']=dataset_train_test_split
+                st.session_state['ft_dataset_split'] = dataset_train_test_split
 
                 c1, c2 = st.columns([1, 1])
 

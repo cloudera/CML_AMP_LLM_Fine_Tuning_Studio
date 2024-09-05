@@ -4,6 +4,7 @@ AXOLOTL_DATASET_FORMAT_CONFIGS_FOLDER_PATH = "ft/config/axolotl/dataset_formats"
 AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH = "ft/config/axolotl/training_config/template.yaml"
 DEFAULT_CONFIGS = 1
 USER_CONFIGS = 0
+DATASET_FRACTION_THRESHOLD_FOR_EVALUATION = 90
 
 BASE_DIR = "./resources/images/icons"
 DIVIDER_COLOR = 'green'
