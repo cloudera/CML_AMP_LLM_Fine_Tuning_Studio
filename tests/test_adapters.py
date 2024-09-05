@@ -240,12 +240,9 @@ def test_get_dataset_split_by_adapter_with_row(mock_metadata, mock_dao):
     assert res.response.dataset_fraction == 0.7
     assert res.response.train_test_split == 0.8
 
-    request = GetDatasetSplitByAdapterRequest(adapter_id='some_id')
-
-    response = get_dataset_split_by_adapter(request, dao=mock_dao)
 
 # Test when no rows are returned
-def test_get_dataset_split_by_adapter_no_rows(mock_metadata, mock_dao):
+def test_get_dataset_split_by_adapter_no_rows():
     # Setup mock
     # Setup mock
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
