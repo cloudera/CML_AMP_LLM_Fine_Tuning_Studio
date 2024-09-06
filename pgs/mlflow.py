@@ -139,6 +139,8 @@ with ccol1:
                                                     '_label_value': 'Default',
                                                     '_max_gpu_per_workload': site_max_gpu,
                                                                }}
+            # By default this is 1 to handle the heterogeneous support in CML, but needs to be 0 for older CML
+            st.session_state['ft_resource_gpu_label'] = 0
         gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
         gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list,
                                     index=st.session_state['ft_resource_gpu_label'])
