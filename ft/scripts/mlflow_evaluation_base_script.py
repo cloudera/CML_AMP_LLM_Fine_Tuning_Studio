@@ -4,6 +4,8 @@ from ft.eval.mlflow_driver import driver
 import argparse
 import os
 from ft.client import FineTuningStudioClient
+import pandas as pd
+from copy import deepcopy
 
 # Function to install required packages
 
@@ -51,9 +53,27 @@ try:
     result_dir = args.result_dir
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
+    mod_metrics = deepcopy(response.metrics)
+
+    # uncomment the below code to keep only mean
+
+    for k, v in response.metrics.items():
+        if "mean" not in k:
+            del mod_metrics[k]
+    
+    if "exact_match/v1" in response.metrics:
+        mod_metrics["exact_match/v1"] = response.metrics["exact_match/v1"]
+
+
+   
+    aggregated_results = pd.DataFrame(mod_metrics.items(), columns=["metric", "score"])
 
     file_name = os.path.join(result_dir, "result_evaluation.csv")
-    response.csv.to_csv(file_name, encoding='utf-8')
+    response.csv.to_csv(file_name, encoding='utf-8', index=False)
+
+    aggregated_file_name = os.path.join(result_dir, "aggregregated_results.csv")
+    aggregated_results.to_csv(aggregated_file_name, encoding='utf-8', index=False)
+
 
 finally:
     # Stop the MLflow server
