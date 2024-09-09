@@ -53,12 +53,15 @@ class Dataloader:
         eval_column_name = EVAL_OUTPUT_COLUM
 
         eval_df = pd.DataFrame(loaded_dataset)
-
+        print(selected_features)
+        if type(selected_features) != list:
+            selected_features = []
         eval_df = eval_df.sample(n=total_examples)
         all_columns_to_be_displayed = selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
         eval_df = eval_df.loc[:, all_columns_to_be_displayed]
         print(eval_df)
         return eval_df, eval_column_name
+    
 
 
 if __name__ == "__main__":

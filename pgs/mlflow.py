@@ -20,8 +20,8 @@ cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 if 'ft_resource_gpu_label' not in st.session_state:
     st.session_state['ft_resource_gpu_label'] = 1
 
-if 'selected_adapters' not in st.session_state:
-    st.session_state['selected_adapters'] = []
+if 'selected_features' not in st.session_state:
+    st.session_state['selected_features'] = []
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
@@ -126,9 +126,9 @@ with ccol1:
             selected_features = st.multiselect(
                 "Choose Extra Columns That You Need In The Evaluation CSV",
                 dataset_features,
-                help="These extra columns will be included in the evaluation CSV along with the model input, expected output and the model output columns.",
+                help="These extra columns will be included in the evaluation CSV along with the model input, expected output and the model output columns. Leave it blank for default behaviour.",
                 key="selected_dataset_features",
-                default=st.session_state.selected_adapters,
+                default=st.session_state.selected_features,
             )
 
             st.session_state.selected_features = selected_features or []
@@ -255,7 +255,7 @@ with ccol1:
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,
                             generation_config_id=generation_config_md.id,
-                            selected_features=selected_features
+                            selected_features=st.session_state.selected_features
                         )
                     )
                     st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
