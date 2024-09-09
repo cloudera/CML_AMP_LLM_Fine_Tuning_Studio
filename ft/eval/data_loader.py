@@ -63,8 +63,8 @@ class Dataloader:
             print(f"Error parsing selected_features: {e}")
             selected_features = []
         eval_df = eval_df.sample(n=total_examples)
-        all_columns_to_be_displayed = selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
-        eval_df = eval_df.loc[:, all_columns_to_be_displayed]
+        selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
+        eval_df = eval_df.loc[:, selected_features]
         print(eval_df)
         return eval_df, eval_column_name
     
