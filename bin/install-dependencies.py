@@ -1,1 +1,1 @@
-!pip3 install -r requirements.txt && pip install -e .
+!pip3 install --no-cache-dir -r requirements.txt && pip install -e .
