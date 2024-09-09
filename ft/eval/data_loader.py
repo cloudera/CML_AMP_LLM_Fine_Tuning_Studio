@@ -6,6 +6,7 @@ from ft.api import *
 from ft.training.utils import map_dataset_with_prompt_template, split_dataset
 from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, DATASET_FRACTION_THRESHOLD_FOR_EVALUATION
 from typing import List
+import ast
 
 
 class Dataloader:
@@ -53,8 +54,13 @@ class Dataloader:
         eval_column_name = EVAL_OUTPUT_COLUM
 
         eval_df = pd.DataFrame(loaded_dataset)
-        print(selected_features)
-        if type(selected_features) != list:
+        try:
+            print(selected_features)
+            selected_features = ast.literal_eval(selected_features)
+            if type(selected_features) != list:
+                selected_features = []
+        except Exception as e:
+            print(f"Error parsing selected_features: {e}")
             selected_features = []
         eval_df = eval_df.sample(n=total_examples)
         all_columns_to_be_displayed = selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
