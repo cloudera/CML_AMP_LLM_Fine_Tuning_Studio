@@ -71,7 +71,8 @@ def fetch_cml_experiments():
                 break
 
         if not all_experiments or len(all_experiments) == 0:
-            return pd.DataFrame(columns=cml_api_models.Experiment().to_dict().keys())[['id', 'name', 'artifact_location']].add_prefix('exp_')
+            return pd.DataFrame(columns=cml_api_models.Experiment().to_dict().keys())[
+                ['id', 'name', 'artifact_location']].add_prefix('exp_')
 
         cml_experiments_df = pd.DataFrame(all_experiments)
 

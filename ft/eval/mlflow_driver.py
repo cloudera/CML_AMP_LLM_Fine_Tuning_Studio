@@ -9,6 +9,7 @@ from ft.client import FineTuningStudioClient
 from ft.api import *
 import json
 import torch
+from typing import List
 
 
 def driver(
@@ -18,6 +19,7 @@ def driver(
         bnb_config_id: str = None,
         generation_config_id: str = None,
         prompt_id: str = None,
+        selected_features: List[str] = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
@@ -42,7 +44,7 @@ def driver(
         GetDatasetSplitByAdapterRequest(adapter_id=adapter_id)).response
     # Load dataset
     eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(
-        dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split)
+        dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split, selected_features=selected_features)
     # Load Model Pipeline
     # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
     # is available in the project files location, and that the base model is available

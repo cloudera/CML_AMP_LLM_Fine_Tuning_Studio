@@ -19,7 +19,9 @@ cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 
 if 'ft_resource_gpu_label' not in st.session_state:
     st.session_state['ft_resource_gpu_label'] = 1
-    
+
+if 'selected_adapters' not in st.session_state:
+    st.session_state['selected_adapters'] = []
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
@@ -116,6 +118,21 @@ with ccol1:
                 subcol2.caption("Completion Template")
                 subcol2.code(current_prompts[prompt_idx].completion_template)
 
+            dataset_features = json.loads(fts.GetDataset(
+                GetDatasetRequest(
+                    id=dataset.id
+                )
+            ).dataset.features)
+            selected_features = st.multiselect(
+                "Choose Extra Columns That You Need In The Evaluation CSV",
+                dataset_features,
+                help="These extra columns will be included in the evaluation CSV along with the model input, expected output and the model output columns.",
+                key="selected_dataset_features",
+                default=st.session_state.selected_adapters,
+            )
+
+            st.session_state.selected_features = selected_features or []
+
         # Advanced options
         st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
@@ -135,15 +152,15 @@ with ccol1:
             # Dummy accelerator label that will get ignored in older clusters without
             # heterogeneous gpu support
             accelerator_labels_dict = {'Default': {'_availability': True,
-                                                    '_id': '-1',
-                                                    '_label_value': 'Default',
-                                                    '_max_gpu_per_workload': site_max_gpu,
-                                                               }}
+                                                   '_id': '-1',
+                                                   '_label_value': 'Default',
+                                                   '_max_gpu_per_workload': site_max_gpu,
+                                                   }}
             # By default this is 1 to handle the heterogeneous support in CML, but needs to be 0 for older CML
             st.session_state['ft_resource_gpu_label'] = 0
         gpu_label_text_list = [d['_label_value'] for d in accelerator_labels_dict.values()]
         gpu_label = st.selectbox("GPU Type", options=gpu_label_text_list,
-                                    index=st.session_state['ft_resource_gpu_label'])
+                                 index=st.session_state['ft_resource_gpu_label'])
         st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
         gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
 
@@ -237,7 +254,8 @@ with ccol1:
                             memory=int(memory),
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,
-                            generation_config_id=generation_config_md.id
+                            generation_config_id=generation_config_md.id,
+                            selected_features=selected_features
                         )
                     )
                     st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")

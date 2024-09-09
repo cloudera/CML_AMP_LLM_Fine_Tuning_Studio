@@ -134,9 +134,9 @@ def get_dataset_split_by_adapter(request: GetDatasetSplitByAdapterRequest, cml: 
                 Adapter.id == request.adapter_id).first()
             if row is None:
                 return GetDatasetSplitByAdapterResponse(
-                  response=GetDatasetSplitByAdapterMetadata(
-                      dataset_fraction=TRAINING_DEFAULT_DATASET_FRACTION,
-                      train_test_split=TRAINING_DEFAULT_TRAIN_TEST_SPLIT))
+                    response=GetDatasetSplitByAdapterMetadata(
+                        dataset_fraction=TRAINING_DEFAULT_DATASET_FRACTION,
+                        train_test_split=TRAINING_DEFAULT_TRAIN_TEST_SPLIT))
             return GetDatasetSplitByAdapterResponse(
                 response=row.to_protobuf(GetDatasetSplitByAdapterMetadata))
         except NoResultFound:

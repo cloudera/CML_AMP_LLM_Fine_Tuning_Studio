@@ -459,6 +459,9 @@ message StartEvaluationJobRequest {
   // The GPU label to use for this job
   int32 gpu_label_id = 18;
 
+  // Features to be displayed in the eval CSV
+  repeated string selected_features = 19;
+
 
 }
 message StartEvaluationJobResponse {

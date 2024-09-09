@@ -28,6 +28,7 @@ parser.add_argument("--result_dir", help="Path of result dir", required=True)
 parser.add_argument("--adapter_bnb_config_id", help="ID of the adapter quantization config", default=None)
 parser.add_argument("--model_bnb_config_id", help="ID of the model quantization config", default=None)
 parser.add_argument("--generation_config_id", help="ID of the generation config", default=None)
+parser.add_argument("--selected_features", help="Names of the columns to be shown in the evaluation csv", default=None)
 
 
 args = parser.parse_args(arg_string.split())
@@ -44,6 +45,7 @@ try:
         prompt_id=args.prompt_id,
         bnb_config_id=args.adapter_bnb_config_id,  # only use bnb config of the adapter for all model layers, for now
         generation_config_id=args.generation_config_id,
+        selected_features=args.selected_features,
         client=client
     )
     print(response.metrics)
@@ -60,12 +62,10 @@ try:
     for k, v in response.metrics.items():
         if "mean" not in k:
             del mod_metrics[k]
-    
+
     if "exact_match/v1" in response.metrics:
         mod_metrics["exact_match/v1"] = response.metrics["exact_match/v1"]
 
-
-   
     aggregated_results = pd.DataFrame(mod_metrics.items(), columns=["metric", "score"])
 
     file_name = os.path.join(result_dir, "result_evaluation.csv")

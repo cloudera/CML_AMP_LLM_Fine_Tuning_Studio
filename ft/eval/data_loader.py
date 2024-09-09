@@ -5,6 +5,7 @@ from ft.client import FineTuningStudioClient
 from ft.api import *
 from ft.training.utils import map_dataset_with_prompt_template, split_dataset
 from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, DATASET_FRACTION_THRESHOLD_FOR_EVALUATION
+from typing import List
 
 
 class Dataloader:
@@ -15,7 +16,8 @@ class Dataloader:
             total_examples: int = 100,
             client: FineTuningStudioClient = None,
             prompt_metadata=None,
-            dataset_split: GetDatasetSplitByAdapterMetadata = None):
+            dataset_split: GetDatasetSplitByAdapterMetadata = None,
+            selected_features: List[str] = []):
         dataset: DatasetMetadata = client.GetDataset(GetDatasetRequest(id=dataset_id)).dataset
         if not dataset or dataset == DatasetMetadata():
             # return this as error in UI
@@ -53,7 +55,8 @@ class Dataloader:
         eval_df = pd.DataFrame(loaded_dataset)
 
         eval_df = eval_df.sample(n=total_examples)
-        eval_df = eval_df.loc[:, [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
+        all_columns_to_be_displayed = selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
+        eval_df = eval_df.loc[:, all_columns_to_be_displayed]
         print(eval_df)
         return eval_df, eval_column_name
 

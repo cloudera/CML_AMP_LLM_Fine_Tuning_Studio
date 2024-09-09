@@ -495,7 +495,8 @@ class StartEvaluationJobRequest(_message.Message):
         "adapter_bnb_config_id",
         "generation_config_id",
         "prompt_id",
-        "gpu_label_id")
+        "gpu_label_id",
+        "selected_features")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -508,6 +509,7 @@ class StartEvaluationJobRequest(_message.Message):
     GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     GPU_LABEL_ID_FIELD_NUMBER: _ClassVar[int]
+    SELECTED_FEATURES_FIELD_NUMBER: _ClassVar[int]
     type: str
     base_model_id: str
     dataset_id: str
@@ -520,21 +522,22 @@ class StartEvaluationJobRequest(_message.Message):
     generation_config_id: str
     prompt_id: str
     gpu_label_id: int
+    selected_features: _containers.RepeatedScalarFieldContainer[str]
 
-    def __init__(
-        self,
-        type: _Optional[str] = ...,
-        base_model_id: _Optional[str] = ...,
-        dataset_id: _Optional[str] = ...,
-        adapter_id: _Optional[str] = ...,
-        cpu: _Optional[int] = ...,
-        gpu: _Optional[int] = ...,
-        memory: _Optional[int] = ...,
-        model_bnb_config_id: _Optional[str] = ...,
-        adapter_bnb_config_id: _Optional[str] = ...,
-        generation_config_id: _Optional[str] = ...,
-        prompt_id: _Optional[str] = ...,
-        gpu_label_id: _Optional[int] = ...) -> None: ...
+    def __init__(self,
+                 type: _Optional[str] = ...,
+                 base_model_id: _Optional[str] = ...,
+                 dataset_id: _Optional[str] = ...,
+                 adapter_id: _Optional[str] = ...,
+                 cpu: _Optional[int] = ...,
+                 gpu: _Optional[int] = ...,
+                 memory: _Optional[int] = ...,
+                 model_bnb_config_id: _Optional[str] = ...,
+                 adapter_bnb_config_id: _Optional[str] = ...,
+                 generation_config_id: _Optional[str] = ...,
+                 prompt_id: _Optional[str] = ...,
+                 gpu_label_id: _Optional[int] = ...,
+                 selected_features: _Optional[_Iterable[str]] = ...) -> None: ...
 
 
 class StartEvaluationJobResponse(_message.Message):
