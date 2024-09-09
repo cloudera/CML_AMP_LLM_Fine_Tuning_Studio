@@ -211,9 +211,17 @@ def display_mlflow_runs():
     selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
 
     if selected_job:
-        csv_file_path = os.path.join(selected_job.evaluation_dir, 'result_evaluation.csv')
+        aggregated_file_path = os.path.join(selected_job.evaluation_dir, "aggregregated_results.csv")
+        if os.path.exists(aggregated_file_path):
+            st.write("\n")
+            st.caption("**Aggregated Results**")
+            df_ar = pd.read_csv(aggregated_file_path)
+            st.data_editor(df_ar)
 
+        csv_file_path = os.path.join(selected_job.evaluation_dir, 'result_evaluation.csv')
         if os.path.exists(csv_file_path):
+            st.write("\n")
+            st.caption("**Row Wise Results**")
             df = pd.read_csv(csv_file_path)
             st.data_editor(df, hide_index=True)
         else:
