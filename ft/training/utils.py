@@ -1,6 +1,7 @@
 from torch.nn import Module
 
 from ft.consts import (
+    TRAINING_DEFAULT_DATASET_FRACTION,
     TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
     TRAINING_DATA_TEXT_FIELD,
     TRAINING_DATASET_SEED
@@ -32,46 +33,8 @@ def get_model_parameters(model: Module) -> Tuple[int, int]:
     return all_param, trainable_params
 
 
-# Data mapping functions for this style of finetuning
-def load_dataset(dataset_name, dataset_fraction=100):
-    """
-    Loads a dataset from Huggingface, optionally sampling a fraction of it.
-
-    Parameters:
-        dataset_name (str): The name of the Huggingface dataset to load.
-        dataset_fraction (int): The percentage of the dataset to load. Defaults to 100.
-
-    Returns:
-        datasets.Dataset: The loaded dataset.
-    """
-    try:
-        return datasets.load_dataset(dataset_name, split=f'train[:{dataset_fraction}%]')
-    except Exception as e:
-        raise RuntimeError(f"Error loading dataset: {e}")
-
-
-def split_dataset(
-    ds: datasets.Dataset,
-    split_fraction: float = TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
-    seed: int = TRAINING_DATASET_SEED
-) -> Tuple[datasets.Dataset, datasets.Dataset]:
-    """
-    Split a dataset into two datasets given a split size and a random seed. This is
-    primarily used to create a train dataset and an evaluation dataset.
-
-    Parameters:
-        split_fraction (float): the dataset split. The first dataset returned will be of size S*split_fraction.
-        seed (int): randomized seed for dataset splitting.
-
-    Returns:
-        Tuple[Dataset, Dataset], the two split datasets.
-    """
-    dataset_split = ds.train_test_split(test_size=(1.0 - split_fraction), shuffle=True, seed=seed)
-    return dataset_split['train'], dataset_split['test']
-
-
 def map_dataset_with_prompt_template(
-    dataset,
+    dataset: datasets.Dataset,
     prompt_template,
     data_text_field: str = TRAINING_DATA_TEXT_FIELD,
     add_eos_token: bool = True,
@@ -184,3 +147,50 @@ def configure_tokenizer_padding(tokenizer: PreTrainedTokenizerBase, pad_token: s
     # point, we will raise an exception in the training process.
     # https://github.com/huggingface/trl/blob/main/trl/trainer/utils.py#L1149
     raise ValueError("Cannot find a suitable padding token to use, which is mandatory for TRL training.")
+
+
+def sample_and_split_dataset(
+    ds: datasets.DatasetDict,
+    train_fraction: float = TRAINING_DEFAULT_DATASET_FRACTION,
+    train_test_split: float = TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
+) -> Tuple[datasets.Dataset, datasets.Dataset]:
+    """
+    Optionally downsamples a training dataset, and separates out a train/test split dataset, from a datset dict.
+    All sampling will occur WITH shuffling by default and using a constant seed, so that shuffling and downsampling
+    can be deterministic across calls to the method. At minimum, the input dataset dict must contain a 'train'
+    split.
+
+    If a downsampling of the 'train' dataset is requested through the train_fraction parameter being anything
+    other than 1.0, then the 'train' dataset will be downsampled WITH shuffling by default, using a constant seed. If
+    there is a 'test' or an 'eval' dataset, then downsampling will NOT occur on this split.
+
+    If a dataset only contains a 'train' split, then the dataset will be split between a 'train' and a 'test' dataset
+    by the train_test_split parameter. If a dataset contains a 'test' or an 'eval' split, then the train/test split
+    logic does not apply. This logic will run only after the 'train' dataset is downsampled.
+    """
+
+    assert isinstance(ds, datasets.DatasetDict)
+    assert 'train' in ds
+
+    # If downsampling is requested, then run downsampling on the train dataset.
+    ds_train: datasets.Dataset = ds['train']
+    if train_fraction < 1.0:
+        ds_train = ds_train.train_test_split(
+            test_size=1.0 - train_fraction,
+            shuffle=True,
+            seed=TRAINING_DATASET_SEED)['train']
+
+    # If there is an eval or test split already available in the dataset, then use this as the provided test/eval
+    # dataset. If not, perform another dataset split on the 'train' dataset
+    # that will split the datset between train and test.
+    if 'eval' in ds or 'test' in ds:
+        ds_test = ds['eval'] if 'eval' in ds else ds['test']
+    else:
+        ds_split = ds_train.train_test_split(
+            test_size=1.0 - train_test_split,
+            shuffle=True,
+            seed=TRAINING_DATASET_SEED)
+        ds_train, ds_test = ds_split['train'], ds_split['test']
+
+    # Return the final train and test datasets
+    return ds_train, ds_test

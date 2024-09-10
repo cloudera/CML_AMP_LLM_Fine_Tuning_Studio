@@ -1,6 +1,5 @@
 import streamlit as st
 from ft.api import *
-from ft.consts import HF_LOGO
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
@@ -60,7 +59,7 @@ def display_datasets(
 
 display_header()
 datasets: List[DatasetMetadata] = fts.get_datasets()
-tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**Custom Datasets**"])
+tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**CSV Datasets**"])
 with tab1:
     display_datasets(
         datasets,
@@ -69,4 +68,8 @@ with tab1:
         "No Huggingface datasets available.")
 
 with tab2:
-    display_datasets(datasets, DatasetType.PROJECT, HF_LOGO, "No custom datasets available.")
+    display_datasets(
+        datasets,
+        DatasetType.PROJECT_CSV,
+        IconPaths.AIToolkit.VIEW_DATASETS,
+        "No custom datasets available.")

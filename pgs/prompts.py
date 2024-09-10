@@ -1,6 +1,6 @@
 import streamlit as st
 from ft.api import *
-from datasets import load_dataset
+from ft.datasets import load_dataset_into_memory
 import random
 from uuid import uuid4
 from pgs.streamlit_utils import get_fine_tuning_studio_client
@@ -66,7 +66,7 @@ def display_create_prompt():
                 example_training_prompt, example_input_prompt, example_completion_prompt = "", "", ""
                 if generate_example_button:
                     with st.spinner("Generating Prompt..."):
-                        loaded_dataset = load_dataset(dataset.huggingface_name)
+                        loaded_dataset = load_dataset_into_memory(dataset)
 
                     dataset_size = len(loaded_dataset["train"])
                     idx_random = random.randint(0, dataset_size - 1)

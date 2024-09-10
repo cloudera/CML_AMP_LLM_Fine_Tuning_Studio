@@ -12,6 +12,7 @@ import sys
 import json
 import os
 
+import datasets
 from accelerate import Accelerator, notebook_launcher
 from ft.utils import attempt_hf_login
 from ft.client import FineTuningStudioClient
@@ -21,10 +22,10 @@ from ft.consts import (
     TRAINING_DEFAULT_DATASET_FRACTION,
     TRAINING_DATA_TEXT_FIELD
 )
+from ft.datasets import load_dataset_into_memory
 from ft.training.utils import (
-    load_dataset,
     map_dataset_with_prompt_template,
-    split_dataset,
+    sample_and_split_dataset,
     get_model_parameters,
     configure_tokenizer_padding
 )
@@ -147,7 +148,6 @@ dataset_metadata: DatasetMetadata = fts.GetDataset(
         id=dataset_id
     )
 ).dataset
-assert dataset_metadata.type == DatasetType.HUGGINGFACE
 
 # Extract other fields like base model and prompt.
 base_model_md: ModelMetadata = fts.GetModel(
@@ -216,21 +216,20 @@ def training_loop():
 
     # Load and map dataset
     print(f"Dataset fraction: {args.dataset_fraction}\nInt fraction %: {int(100 * args.dataset_fraction)}")
-    try:
-        prompt_text = prompt_md.prompt_template
-        with accelerator.main_process_first():
-            dataset = load_dataset(dataset_metadata.huggingface_name, dataset_fraction=int(100 * args.dataset_fraction))
 
-        # Split the above dataset into a training dataset and a testing dataset.
-        ds_train, ds_eval = split_dataset(dataset, args.train_test_split)
+    prompt_text = prompt_md.prompt_template
+    with accelerator.main_process_first():
+        dataset: datasets.DatasetDict = load_dataset_into_memory(dataset_metadata)
+        ds_train, ds_eval = sample_and_split_dataset(
+            dataset,
+            train_fraction=args.dataset_fraction,
+            train_test_split=args.train_test_split)
 
-        # Map both datasets with prompt templates
-        ds_train = map_dataset_with_prompt_template(
-            ds_train, prompt_text, add_eos_token=True, eos_token=tokenizer.eos_token)
-        ds_eval = map_dataset_with_prompt_template(
-            ds_eval, prompt_text, add_eos_token=True, eos_token=tokenizer.eos_token)
-    except FileNotFoundError as e:
-        raise RuntimeError(f"Error loading prompt template: {e}")
+    # Map both datasets with prompt templates
+    ds_train = map_dataset_with_prompt_template(
+        ds_train, prompt_text, add_eos_token=True, eos_token=tokenizer.eos_token)
+    ds_eval = map_dataset_with_prompt_template(
+        ds_eval, prompt_text, add_eos_token=True, eos_token=tokenizer.eos_token)
 
     accelerator.print("Total rows to be trained on: %d" % len(ds_train))
     accelerator.print("Total rows to be evaluated on: %d" % len(ds_eval))

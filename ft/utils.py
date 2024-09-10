@@ -180,6 +180,15 @@ def get_axolotl_training_config_template_yaml_str():
     return yaml_content
 
 
+def require_proto_field(message, field: str) -> None:
+    """Raise a value error if a field is missing from
+    a protobufmessage.
+    """
+    if not getattr(message, field):
+        raise ValueError(f"Field '{field}' is required in AddDatasetRequest.")
+    return
+
+
 def generate_templates(columns):
     # A list of the 500 most popular output column names ranked by their probability of being the output column
     output_column_names = [

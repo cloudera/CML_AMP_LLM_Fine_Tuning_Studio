@@ -252,7 +252,10 @@ def create_train_adapter_page_with_proprietary():
                     min_value=0.0,
                     max_value=1.0,
                     value=st.session_state['ft_dataset_fraction'],
-                    help="Specify the fraction of the dataset to use for training."
+                    help="Specify the fraction of the dataset to use for training. If this is set to anything other"
+                    " than 1.0, the 'train' dataset split will be downsampled with random sampling by this factor."
+                    " note that this does not affect the size of the 'test' or 'eval' split if those splits are"
+                    " in a dataset."
                 )
                 st.session_state['ft_dataset_fraction'] = dataset_fraction
                 dataset_train_test_split = c2.slider(
@@ -260,8 +263,11 @@ def create_train_adapter_page_with_proprietary():
                     min_value=0.0,
                     max_value=1.0,
                     value=st.session_state['ft_dataset_split'],
-                    help="Set the ratio for splitting the dataset into training and test sets."
-                )
+                    help="Set the ratio for splitting the dataset into training and test splits. NOTE: this setting"
+                    " only applies to datasets that ONLY have a 'train' split. If there is a 'test' or an 'eval' split, then"
+                    " that split will be used if the training run requires evaluation at epoch boundaries. If there"
+                    " is only a 'train' split in the dataset, then the dataset will be split between a training"
+                    " and a test dataset, AFTER the dataset has been optionally sampled by the dataset fraction.")
                 st.session_state['ft_dataset_split'] = dataset_train_test_split
 
                 c1, c2 = st.columns([1, 1])

@@ -1,6 +1,7 @@
 import unittest
 from ft.utils import dict_to_yaml_string, format_status_with_icon
-from ft.utils import generate_templates
+from ft.utils import generate_templates, require_proto_field
+from ft.api import *
 
 
 class TestYamlFunctions(unittest.TestCase):
@@ -42,6 +43,17 @@ class TestFormatStatusWithIcon(unittest.TestCase):
         self.assertEqual(format_status_with_icon(123), "⚪ Unknown")
         self.assertEqual(format_status_with_icon(["running"]), "⚪ Unknown")
         self.assertEqual(format_status_with_icon({"status": "running"}), "⚪ Unknown")
+
+
+class TestProtobufUtils(unittest.TestCase):
+    def test_require_proto_field_present_field(self):
+        dsmd: DatasetMetadata = DatasetMetadata(id='ds1', type=DatasetType.HUGGINGFACE)
+        require_proto_field(dsmd, 'type')
+
+    def test_require_proto_field_present_field(self):
+        dsmd: DatasetMetadata = DatasetMetadata(id='ds1')
+        with self.assertRaises(ValueError):
+            require_proto_field(dsmd, 'type')
 
 
 class TestGenerateTemplates(unittest.TestCase):

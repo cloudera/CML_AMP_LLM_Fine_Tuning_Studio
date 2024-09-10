@@ -8,7 +8,18 @@ class DatasetType(str, Enum):
     Type of dataset that runs.
     """
     HUGGINGFACE = 'huggingface'
+    """Datasets that are explicitly imported from huggingface hub.
+    """
+
     PROJECT = 'project'
+    """Datasets in a huggingface dataset-compatabile format, but
+    identified as a path
+    """
+
+    PROJECT_CSV = 'project_csv'
+    """Singular CSV file representing a dataset where the header
+    row in the csv represents the dataset features
+    """
 
 
 class ConfigType(str, Enum):
