@@ -24,7 +24,7 @@ if 'selected_features' not in st.session_state:
     st.session_state['selected_features'] = []
 
 if 'eval_dataset_fraction' not in st.session_state:
-    st.session_state['eval_dataset_fraction'] = 1
+    st.session_state['eval_dataset_fraction'] = 1.0
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
@@ -125,6 +125,7 @@ with ccol1:
                 "Evaluation Dataset Fraction",
                 min_value=0.0,
                 max_value=1.0,
+                step=0.05,
                 value=st.session_state['eval_dataset_fraction'],
                 help="Specify the fraction of the dataset to use for evaluation. If you want to do a quick evaluation"
                 " select a smaller fraction such as 0.1 which will take only 10 percent of the evaluation dataset."
