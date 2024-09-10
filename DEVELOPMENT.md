@@ -36,6 +36,16 @@ Do once per development session:
 Do every time you'd like to test out your changes:
 * Restart the Application from the Cloudera ML **Applications** page.
 
+### Changing the Protobuf (API Surface)
+
+Sometimes changes are required to the protobuf (for example, adding a new request type or API call to the gRPC server,
+or creating a new return type, etc.). We store these definitions in `ft/proto/fine-tuning-studio.proto`. You can regenerate protobuf helper files and python definitions with:
+
+```
+./bin/generate-proto-python.sh
+```
+
+Make sure to commit all of the protobuf-relevant files in your PR.
 
 ## Testing
 

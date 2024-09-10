@@ -235,8 +235,8 @@ def test_get_dataset_split_by_adapter_with_row():
 
     req = GetDatasetSplitByAdapterRequest(adapter_id="ada")
     res = get_dataset_split_by_adapter(req, dao=test_dao)
-    assert int(100 * res.response.dataset_fraction) == int(100 * 0.7)
-    assert int(100 * res.response.train_test_split) == int(100 * 0.8)
+    assert abs(res.response.dataset_fraction - 0.7) < 1e-5
+    assert abs(res.response.train_test_split - 0.8) < 1e-5
 
 
 # Test when no rows are returned
@@ -252,7 +252,7 @@ def test_get_dataset_split_by_adapter_no_rows():
 
     req = GetDatasetSplitByAdapterRequest(adapter_id="ada2")
     res = get_dataset_split_by_adapter(req, dao=test_dao)
-    assert res.response.dataset_fraction != 0.1
-    assert res.response.train_test_split != 0.2
-    assert res.response.dataset_fraction == TRAINING_DEFAULT_DATASET_FRACTION
-    assert res.response.train_test_split == TRAINING_DEFAULT_TRAIN_TEST_SPLIT
+    assert abs(res.response.dataset_fraction - 0.1) > 1e-5
+    assert abs(res.response.train_test_split - 0.2) > 1e-5
+    assert abs(res.response.dataset_fraction - TRAINING_DEFAULT_DATASET_FRACTION) < 1e-5
+    assert abs(res.response.train_test_split - TRAINING_DEFAULT_TRAIN_TEST_SPLIT) < 1e-5

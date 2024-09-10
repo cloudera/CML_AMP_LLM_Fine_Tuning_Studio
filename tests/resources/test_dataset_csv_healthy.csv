@@ -1,0 +1,3 @@
+input,output,score
+"What is the meaning of life?","To live it, of course!",1.0
+"What is the best way to fine tune a PEFT adapter on a 7b model?","Fine Tuning Studio, of course!",25.0

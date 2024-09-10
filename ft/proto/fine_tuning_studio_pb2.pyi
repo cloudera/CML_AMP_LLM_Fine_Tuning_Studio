@@ -33,19 +33,22 @@ class GetDatasetResponse(_message.Message):
 
 
 class AddDatasetRequest(_message.Message):
-    __slots__ = ("type", "huggingface_name", "location")
+    __slots__ = ("type", "huggingface_name", "location", "name")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
     LOCATION_FIELD_NUMBER: _ClassVar[int]
+    NAME_FIELD_NUMBER: _ClassVar[int]
     type: str
     huggingface_name: str
     location: str
+    name: str
 
     def __init__(
         self,
         type: _Optional[str] = ...,
         huggingface_name: _Optional[str] = ...,
-        location: _Optional[str] = ...) -> None: ...
+        location: _Optional[str] = ...,
+        name: _Optional[str] = ...) -> None: ...
 
 
 class AddDatasetResponse(_message.Message):

@@ -102,6 +102,10 @@ message AddDatasetRequest {
   // If this is a project-relative dataset, then add project
   // location
   string location = 3;
+
+  // Name of the dataset (optional). Right now, HF datasets are
+  // automatically set to be named by their HF id.
+  string name = 4;
 }
 message AddDatasetResponse {
   DatasetMetadata dataset = 1;
