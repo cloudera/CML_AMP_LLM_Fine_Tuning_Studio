@@ -10,6 +10,7 @@ from ft.api import *
 import json
 import torch
 from typing import List
+from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
 
 
 def driver(
@@ -84,10 +85,12 @@ def driver(
         raise ValueError("The driver script is currently set up to handle only GPU evaluation.")
 
     # Evaluate model
-    results = evaluator.evaluate_model(model_info, eval_dataset, eval_column_name)
+    necessary_eval_dataset = eval_dataset.loc[:,[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
+    results = evaluator.evaluate_model(model_info, necessary_eval_dataset, eval_column_name)
 
     results_df = pd.DataFrame(results.tables['eval_results_table'])
-    response = EvaluationResponse(metrics=results.metrics, csv=results_df)
+    merged_results_df = eval_dataset.merge(results_df, on= [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM], how='inner')
+    response = EvaluationResponse(metrics=results.metrics, csv=merged_results_df)
     return response
 
 
