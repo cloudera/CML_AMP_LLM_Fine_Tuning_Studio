@@ -22,6 +22,9 @@ if 'ft_resource_gpu_label' not in st.session_state:
 
 if 'selected_features' not in st.session_state:
     st.session_state['selected_features'] = []
+
+if 'eval_dataset_fraction' not in st.session_state:
+    st.session_state['eval_dataset_fraction'] = 1.0
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
@@ -117,6 +120,18 @@ with ccol1:
                 subcol1.code(current_prompts[prompt_idx].input_template)
                 subcol2.caption("Completion Template")
                 subcol2.code(current_prompts[prompt_idx].completion_template)
+
+            eval_dataset_fraction = st.slider(
+                "Evaluation Dataset Fraction",
+                min_value=0.0,
+                max_value=1.0,
+                step=0.05,
+                value=st.session_state['eval_dataset_fraction'],
+                help="Specify the fraction of the dataset to use for evaluation. If you want to do a quick evaluation"
+                " select a smaller fraction such as 0.1 which will take only 10 percent of the evaluation dataset."
+                " For full dataset evaluation, keep it to 1. "
+                " Please note, dataset here refers to evaluation dataset. The training rows will not be used for evaluation")
+            st.session_state['eval_dataset_fraction'] = eval_dataset_fraction
 
             dataset_features = json.loads(fts.GetDataset(
                 GetDatasetRequest(
@@ -255,7 +270,8 @@ with ccol1:
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,
                             generation_config_id=generation_config_md.id,
-                            selected_features=st.session_state.selected_features
+                            selected_features=st.session_state.selected_features,
+                            eval_dataset_fraction=st.session_state['eval_dataset_fraction']
                         )
                     )
                     st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")

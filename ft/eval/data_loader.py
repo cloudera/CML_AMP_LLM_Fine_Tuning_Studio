@@ -19,7 +19,8 @@ class Dataloader:
             client: FineTuningStudioClient = None,
             prompt_metadata=None,
             dataset_split: GetDatasetSplitByAdapterMetadata = None,
-            selected_features: List[str] = []):
+            selected_features: List[str] = [],
+            eval_dataset_fraction: float = 1.0):
         dataset: DatasetMetadata = client.GetDataset(GetDatasetRequest(id=dataset_id)).dataset
         if not dataset or dataset == DatasetMetadata():
             # return this as error in UI
@@ -66,7 +67,7 @@ class Dataloader:
         except Exception as e:
             print(f"Error parsing selected_features: {e}")
             selected_features = []
-        eval_df = eval_df.sample(n=total_examples)
+        eval_df = eval_df.sample(frac=eval_dataset_fraction)
         selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
         eval_df = eval_df.loc[:, selected_features]
         print(eval_df)

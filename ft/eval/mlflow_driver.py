@@ -21,6 +21,7 @@ def driver(
         generation_config_id: str = None,
         prompt_id: str = None,
         selected_features: List[str] = None,
+        eval_dataset_fraction: float = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
@@ -45,7 +46,7 @@ def driver(
         GetDatasetSplitByAdapterRequest(adapter_id=adapter_id)).response
     # Load dataset
     eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(
-        dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split, selected_features=selected_features)
+        dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split, selected_features=selected_features, eval_dataset_fraction=eval_dataset_fraction)
     # Load Model Pipeline
     # TODO: remove dependencies on model and adapter type. Right now this assumes that an adapter
     # is available in the project files location, and that the base model is available
@@ -85,11 +86,11 @@ def driver(
         raise ValueError("The driver script is currently set up to handle only GPU evaluation.")
 
     # Evaluate model
-    necessary_eval_dataset = eval_dataset.loc[:,[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
+    necessary_eval_dataset = eval_dataset.loc[:, [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
     results = evaluator.evaluate_model(model_info, necessary_eval_dataset, eval_column_name)
 
     results_df = pd.DataFrame(results.tables['eval_results_table'])
-    merged_results_df = eval_dataset.merge(results_df, on= [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM], how='inner')
+    merged_results_df = eval_dataset.merge(results_df, on=[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM], how='inner')
     response = EvaluationResponse(metrics=results.metrics, csv=merged_results_df)
     return response
 

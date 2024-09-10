@@ -466,6 +466,9 @@ message StartEvaluationJobRequest {
   // Features to be displayed in the eval CSV
   repeated string selected_features = 19;
 
+  // Fraction of dataset to be used for evaluation
+  float eval_dataset_fraction = 20;
+
 
 }
 message StartEvaluationJobResponse {
