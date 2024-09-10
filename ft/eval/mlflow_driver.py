@@ -85,7 +85,7 @@ def driver(
         raise ValueError("The driver script is currently set up to handle only GPU evaluation.")
 
     # Evaluate model
-    necessary_eval_dataset = eval_dataset.iloc[:,[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
+    necessary_eval_dataset = eval_dataset.loc[:,[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
     results = evaluator.evaluate_model(model_info, necessary_eval_dataset, eval_column_name)
 
     results_df = pd.DataFrame(results.tables['eval_results_table'])
