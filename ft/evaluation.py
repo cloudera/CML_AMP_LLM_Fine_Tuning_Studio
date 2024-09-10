@@ -158,6 +158,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     arg_list.append("--generation_config_id")
     arg_list.append(request.generation_config_id)
 
+    arg_list.append("--selected_features")
+    arg_list.append(request.selected_features)
+
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory
@@ -178,7 +181,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     # If provided, set accelerator label id for targeting gpu
     if gpu_label_id != -1:
         job_instance.accelerator_label_id = gpu_label_id
-        
+
     # Create job on CML
     created_job = cml.create_job(
         body=job_instance,
