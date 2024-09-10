@@ -2,7 +2,7 @@ import streamlit as st
 from ft.api import *
 from typing import *
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from datasets import load_dataset
+from ft.datasets import load_dataset_into_memory
 import random
 import os
 import torch
@@ -113,16 +113,15 @@ def update_text_area():
 
             # Generate the completion string based on the prompt and completion templates
             try:
-                dataset_name = fts.GetDataset(
+                dataset_md: DatasetMetadata = fts.GetDataset(
                     GetDatasetRequest(
                         id=st.session_state.filtered_prompts[prompt_idx].dataset_id
                     )
-                ).dataset.huggingface_name
+                ).dataset
+                dataset_name = dataset_md.name
 
                 if dataset_name:
-                    dataset = load_dataset(dataset_name)
-                    if "train" in dataset:
-                        dataset = dataset["train"]
+                    dataset = load_dataset_into_memory(dataset_md)["train"]
                     idx = random.randint(0, len(dataset) - 1)
 
                     prompt_string = st.session_state.input_prompt_template.format(**dataset[idx])
@@ -144,16 +143,15 @@ def generate_random():
         prompt_template = st.session_state.input_prompt_template
         completion_template = st.session_state.completion_template
         if prompt_template and completion_template:
-            dataset_name = fts.GetDataset(
+            dataset_md: DatasetMetadata = fts.GetDataset(
                 GetDatasetRequest(
                     id=st.session_state.filtered_prompts[0].dataset_id
                 )
-            ).dataset.huggingface_name
+            ).dataset
+            dataset_name = dataset_md.name
 
             if dataset_name:
-                dataset = load_dataset(dataset_name)
-                if "train" in dataset:
-                    dataset = dataset["train"]
+                dataset = load_dataset_into_memory(dataset_md)["train"]
                 idx = random.randint(0, len(dataset) - 1)
                 prompt_string = prompt_template.format(**dataset[idx])
                 completion_string = completion_template.format(**dataset[idx])
