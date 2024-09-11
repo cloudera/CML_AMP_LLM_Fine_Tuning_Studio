@@ -201,6 +201,7 @@ sqlite3
 .jupyter_ystore.db
 .virtual_documents/
 .zshrc
+.app/state.db
 
 # Right now we are pulling down axolotl's git repository to src/,
 # but we don't want to ship this in the repo. (maybe go back

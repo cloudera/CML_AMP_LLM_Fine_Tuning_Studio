@@ -1,0 +1,108 @@
+{
+  "datasets": [
+    {
+      "id": "8ba6f0d8-22a8-4a1a-a823-1dba88f2c377",
+      "type": "huggingface",
+      "name": "philschmid/sql-create-context-copy",
+      "description": "",
+      "huggingface_name": "philschmid/sql-create-context-copy",
+      "features": "[\"question\", \"answer\", \"context\"]"
+    },
+    {
+      "id": "524dee49-29c4-4c9b-acec-ca47746eb608",
+      "type": "project_csv",
+      "name": "Ticketing Actions",
+      "description": "data/datasets/clean_ticketing.csv",
+      "location": "data/datasets/clean_ticketing.csv",
+      "features": "[\"instruction\", \"intent\"]"
+    }
+  ],
+  "models": [
+    {
+      "id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "type": "huggingface",
+      "name": "bigscience/bloom-1b1",
+      "huggingface_model_name": "bigscience/bloom-1b1"
+    },
+    {
+      "id": "dcefe975-b1fd-466b-9b54-6c66bc708f58",
+      "type": "huggingface",
+      "name": "NousResearch/Llama-2-7b-hf",
+      "huggingface_model_name": "NousResearch/Llama-2-7b-hf"
+    },
+    {
+      "id": "804e3cf5-09b4-4e7d-99c2-a351848ef0fd",
+      "type": "huggingface",
+      "name": "unsloth/mistral-7b-instruct-v0.3",
+      "huggingface_model_name": "unsloth/mistral-7b-instruct-v0.3"
+    }
+  ],
+  "prompts": [
+    {
+      "id": "6dd9fb67-5654-4466-a15c-cc07fb397142",
+      "type": "in_place",
+      "name": "SQL Creation",
+      "dataset_id": "8ba6f0d8-22a8-4a1a-a823-1dba88f2c377",
+      "prompt_template": "You are tasked with creating an SQL statement from some context and a question.\n\n<context>: {context}\n<question>: {question}\n<sql>: {answer}",
+      "input_template": "You are tasked with creating an SQL statement from some context and a question.\n\n<context>: {context}\n<question>: {question}\n<sql>:",
+      "completion_template": "{answer}"
+    },
+    {
+      "id": "54fd85db-93ea-4ae3-a7a2-9aae6db2f1a3",
+      "type": "in_place",
+      "name": "Ticketing Prompt with Actions",
+      "dataset_id": "524dee49-29c4-4c9b-acec-ca47746eb608",
+      "prompt_template": "You are an event ticketing customer LLM chatbot responsible for generating a one-word, snake_case action, based on a customer input. You may only select from one of these actions:\n\n['track_cancellation', 'transfer_ticket', 'upgrade_ticket', 'check_cancellation_policy', 'pay', 'buy_ticket', 'check_cancellation_fee', 'delivery_period', 'get_refund', 'check_refund_policy', 'track_refund', 'cancel_ticket', 'customer_service', 'check_privacy_policy', 'information_about_type_events', 'report_payment_issue', 'find_ticket', 'sell_ticket', 'change_personal_details_on_ticket', 'payment_methods', 'information_about_tickets', 'human_agent', 'delivery_options', 'find_upcoming_events', 'event_organizer']\n\nPlease provide the most relevant action based on the input from the customer below.\n\n### CUSTOMER: {instruction}\n### ACTION: {intent}",
+      "input_template": "You are an event ticketing customer LLM chatbot responsible for generating a one-word, snake_case action, based on a customer input. You may only select from one of these actions:\n\n['track_cancellation', 'transfer_ticket', 'upgrade_ticket', 'check_cancellation_policy', 'pay', 'buy_ticket', 'check_cancellation_fee', 'delivery_period', 'get_refund', 'check_refund_policy', 'track_refund', 'cancel_ticket', 'customer_service', 'check_privacy_policy', 'information_about_type_events', 'report_payment_issue', 'find_ticket', 'sell_ticket', 'change_personal_details_on_ticket', 'payment_methods', 'information_about_tickets', 'human_agent', 'delivery_options', 'find_upcoming_events', 'event_organizer']\n\nPlease provide the most relevant action based on the input from the customer below.\n\n### CUSTOMER: {instruction}\n### ACTION: ",
+      "completion_template": "{intent}"
+    }
+  ],
+  "adapters": [
+    {
+      "id": "cf0c06f9-0435-49f8-b660-5126bd4cde29",
+      "type": "project",
+      "name": "llama-2-sql",
+      "huggingface_name": "",
+      "model_id": "dcefe975-b1fd-466b-9b54-6c66bc708f58",
+      "location": "data/adapters/llama-2-sql",
+      "prompt_id": "6dd9fb67-5654-4466-a15c-cc07fb397142"
+    },
+    {
+      "id": "2075e64d-345c-4fc8-abbf-87194e5cf368",
+      "type": "project",
+      "name": "mistral-7b-ticketing",
+      "huggingface_name": "",
+      "model_id": "804e3cf5-09b4-4e7d-99c2-a351848ef0fd",
+      "location": "data/adapters/mistral-7b-ticketing",
+      "prompt_id": "54fd85db-93ea-4ae3-a7a2-9aae6db2f1a3"
+    }
+  ],
+  "fine_tuning_jobs": [],
+  "evaluation_jobs": [],
+  "configs": [
+    {
+      "id": "2838f446-7605-4d0c-a159-830b1ef3aab3",
+      "type": "lora_config",
+      "description": "",
+      "config": "{\"r\": 16, \"lora_alpha\": 32, \"lora_dropout\": 0.05, \"bias\": \"none\", \"task_type\": \"CAUSAL_LM\"}"
+    },
+    {
+      "id": "8a994665-6e13-436e-991a-cb12de106c67",
+      "type": "bitsandbytes_config",
+      "description": "",
+      "config": "{\"load_in_4bit\": true, \"bnb_4bit_quant_type\": \"nf4\", \"bnb_4bit_compute_dtype\": \"float16\", \"bnb_4bit_use_double_quant\": true, \"quant_method\": \"bitsandbytes\"}"
+    },
+    {
+      "id": "6b60dc9c-6a13-48d2-87ad-9b0b07323d6a",
+      "type": "training_arguments",
+      "description": "",
+      "config": "{\"num_train_epochs\": 1, \"optim\": \"paged_adamw_32bit\", \"per_device_train_batch_size\": 1, \"gradient_accumulation_steps\": 4, \"warmup_ratio\": 0.03, \"max_grad_norm\": 0.3, \"learning_rate\": 0.0002, \"fp16\": true, \"logging_steps\": 1, \"lr_scheduler_type\": \"constant\", \"disable_tqdm\": true, \"report_to\": \"mlflow\", \"ddp_find_unused_parameters\": false}"
+    },
+    {
+      "id": "eb80976a-99f6-4866-a102-befb60c16490",
+      "type": "generation_config",
+      "description": "",
+      "config": "{\"do_sample\": true, \"temperature\": 0.8, \"max_new_tokens\": 60, \"top_p\": 1, \"top_k\": 50, \"num_beams\": 1, \"repetition_penalty\": 1.1}"
+    }
+  ]
+}

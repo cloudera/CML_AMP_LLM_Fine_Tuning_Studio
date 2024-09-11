@@ -11,6 +11,10 @@ environment_variables:
     default: ".app/state.db"
     description: >-
       This is the location of the FTS app's SQLite database.
+  FINE_TUNING_STUDIO_PROJECT_DEFAULTS:
+    default: "data/project_defaults.json"
+    description: >-
+      Project defaults for the app that are populated into the Studio when the AMP is initially deployed.
   CUSTOM_LORA_ADAPTERS_DIR:
     default: "data/adapters/"
     description: >-
@@ -80,6 +84,15 @@ tasks:
     gpu: 1
     environment:
       TASK_TYPE: CREATE/RUN_JOB
+
+  - type: run_session
+    name: Initialize Project Defaults
+    script: bin/initialize-project-defaults.py
+    short_summary: Initialize Project Defaults
+    long_summary: Initialize default datasets, prompts, models, adapters, etc., shipped with this version of the Studio.
+    kernel: python3
+    cpu: 2
+    memory: 8
   
   - type: start_application
     name: CML Fine Tuning Studio

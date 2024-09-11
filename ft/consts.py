@@ -19,6 +19,20 @@ TRAINING_DATASET_SEED = 42
 EVAL_INPUT_COLUMN = "model_input"
 EVAL_OUTPUT_COLUM = "expected_output"
 
+# Database constants
+DEFAULT_SQLITE_DB_LOCATION = ".app/state.db"
+"""
+State location of the app. This contains all data that
+is a project-specific session.
+"""
+
+DEFAULT_PROJECT_DEFAULTS_LOCATION = "data/project_defaults.json"
+"""
+Default project data defaults location for the application that is populated into
+.app/state.db when the AMP is deployed. A user can override the
+project defaults JSON when initializing the AMP.
+"""
+
 
 class IconPaths:
     class FineTuningStudio:
