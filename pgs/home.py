@@ -6,9 +6,10 @@ import requests
 from ft.api import *
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
-from ft.utils import format_status_with_icon
+from ft.utils import format_status_with_icon, get_current_git_hash, get_latest_git_hash, check_if_ahead_or_behind
 import json
 from ft.consts import IconPaths, DIVIDER_COLOR
+import subprocess
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -37,12 +38,39 @@ def create_tile(container, image_path: str, button_text: str, page_path: str, de
         c2.caption(description)
 
 
+def check_amp_update_status():
+    """Check if the AMP is up-to-date."""
+    try:
+        # Retrieve the current branch only once
+        current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode("utf-8")
+
+        # Retrieve the current and latest git hashes
+        current_hash = get_current_git_hash()
+        latest_hash = get_latest_git_hash(current_branch)
+
+        if current_hash and latest_hash:
+            if current_hash != latest_hash:
+                _, behind = check_if_ahead_or_behind(current_hash, current_branch)
+                if behind > 0:
+                    st.toast(
+                        f"Your AMP is out of date by {behind} commit(s). Please update to the latest version.",
+                        icon=":material/error:")
+                    st.warning(
+                        f"Your AMP is out of date by {behind} commit(s). Please update to the latest version.",
+                        icon=":material/error:")
+        else:
+            st.toast("Unable to check AMP update status.", icon=":material/error:")
+    except ValueError as e:
+        st.toast(f"Unable to check AMP update status: {e}", icon=":material/error:")
+
+
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 
 create_homepage_header()
+check_amp_update_status()
 
 col1, col2, col3, col4 = st.columns(4)
 create_tile(

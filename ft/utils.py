@@ -7,6 +7,7 @@ import torch
 from huggingface_hub import login
 import yaml
 from ft.consts import AXOLOTL_TRAINING_CONFIGS_TEMPLATE_FILE_PATH
+import subprocess
 
 
 def get_env_variable(var_name: str, default_value: Optional[str] = None) -> str:
@@ -277,3 +278,41 @@ def generate_templates(columns):
     completion_template = f"{{{output_column}}}\n"
 
     return prompt_template, completion_template
+
+
+def get_current_git_hash():
+    """Retrieve the current git hash of the deployed AMP."""
+    try:
+        current_hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8")
+        return current_hash
+    except subprocess.CalledProcessError:
+        raise ValueError("Failed to retrieve current git hash.")
+
+
+def get_latest_git_hash(current_branch):
+    """Retrieve the latest git hash from the remote repository for the current branch."""
+    try:
+        # Fetch the latest updates from the remote
+        subprocess.check_call(["git", "fetch", "origin", current_branch])
+
+        # Get the latest hash for the current branch
+        latest_hash = subprocess.check_output(["git", "rev-parse", f"origin/{current_branch}"]).strip().decode("utf-8")
+
+        return latest_hash
+    except subprocess.CalledProcessError:
+        raise ValueError(f"Failed to retrieve latest git hash from remote for the branch: {current_branch}.")
+
+
+def check_if_ahead_or_behind(current_hash, current_branch):
+    """Check if the current commit is ahead or behind the remote branch."""
+    try:
+        # Get the number of commits ahead or behind
+        ahead_behind = subprocess.check_output(
+            ["git", "rev-list", "--left-right", "--count", f"{current_hash}...origin/{current_branch}"]
+        ).strip().decode("utf-8")
+
+        ahead, behind = map(int, ahead_behind.split())
+
+        return ahead, behind
+    except subprocess.CalledProcessError:
+        raise ValueError(f"Failed to determine if the branch {current_branch} is ahead or behind.")
