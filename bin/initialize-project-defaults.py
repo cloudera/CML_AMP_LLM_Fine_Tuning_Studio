@@ -12,7 +12,10 @@ def main():
     # file yet.
     if os.path.exists(get_sqlite_db_location()):
         delete_database()
-    
+
+    # Make the app state location if it's not yet created.
+    os.makedirs(os.path.dirname(get_sqlite_db_location()), exist_ok=True)
+
     # Import project defaults.
     import_defaults()
     
