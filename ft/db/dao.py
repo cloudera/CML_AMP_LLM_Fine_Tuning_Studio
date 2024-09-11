@@ -1,17 +1,11 @@
-import os
 
 from ft.db.model import Base
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-
-
-DEFAULT_SQLITE_DB_LOCATION = ".app/state.db"
-"""
-State location of the app. This contains all data that
-is a project-specific session.
-"""
+from ft.consts import DEFAULT_SQLITE_DB_LOCATION
+import os
 
 
 def get_sqlite_db_location():
@@ -21,6 +15,20 @@ def get_sqlite_db_location():
     if os.environ.get("FINE_TUNING_STUDIO_SQLITE_DB"):
         return os.environ.get("FINE_TUNING_STUDIO_SQLITE_DB")
     return DEFAULT_SQLITE_DB_LOCATION
+
+
+def delete_database() -> None:
+    """
+    Delete the currently existing database. Note that this only deletes
+    the baseline database, and doesn't delete any of the actual content
+    generate from studio (i.e., if an adapter was trained using Studio and this
+    method is ran, the metadata table row of the adapter is removed from the
+    database, but the actual database entry itself)
+    """
+
+    state_db = get_sqlite_db_location()
+    os.remove(state_db)
+    return
 
 
 class FineTuningStudioDao():
