@@ -53,11 +53,13 @@ def check_amp_update_status():
                 _, behind = check_if_ahead_or_behind(current_hash, current_branch)
                 if behind > 0:
                     st.toast(
-                        f"Your AMP is out of date by {behind} commit(s). Please update to the latest version.",
+                        f"Your AMP is out of date. Please update to the latest version.",
                         icon=":material/error:")
                     st.warning(
-                        f"Your AMP is out of date by {behind} commit(s). Please update to the latest version.",
-                        icon=":material/error:")
+                        f"Your AMP is out of date. Please update Studio following these guidelines: "
+                        "[Upgrading Fine Tuning Studio](https://github.com/Suryakant03/CML_AMP_LLM_Fine_Tuning_Studio/docs/upgrading_finetuning_studio.md).",
+                        icon=":material/error:"
+                    )
         else:
             st.toast("Unable to check AMP update status.", icon=":material/error:")
     except ValueError as e:
