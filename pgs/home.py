@@ -57,7 +57,7 @@ def check_amp_update_status():
                         icon=":material/error:")
                     st.warning(
                         f"Your AMP is out of date. Please update Studio following these guidelines: "
-                        "[Upgrading Fine Tuning Studio](https://github.com/Suryakant03/CML_AMP_LLM_Fine_Tuning_Studio/docs/upgrading_finetuning_studio.md).",
+                        "[Upgrading Fine Tuning Studio](https://github.com/cloudera/CML_AMP_LLM_Fine_Tuning_Studio/docs/upgrading_finetuning_studio.md).",
                         icon=":material/error:")
         else:
             st.toast("Unable to check AMP update status.", icon=":material/error:")
