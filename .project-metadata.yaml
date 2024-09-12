@@ -1,4 +1,4 @@
-name: CML Fine Tuning Studio
+name: Fine Tuning Studio
 description: |
   This AMP demonstrates how PEFT and other fine-tuning optimization techniques can be used for efficient and effective customization of an existing LLM to perform new tasks.
 author: Cloudera Inc.
@@ -95,8 +95,8 @@ tasks:
     memory: 8
   
   - type: start_application
-    name: CML Fine Tuning Studio
-    subdomain: cml-llm-fine-tuning-studio
+    name: Fine Tuning Studio
+    subdomain: fine-tuning-studio
     script: bin/run-app.py
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
