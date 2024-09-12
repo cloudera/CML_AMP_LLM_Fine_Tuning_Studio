@@ -1,6 +1,10 @@
-# CML Fine Tuning Studio
+# Fine Tuning Studio
 
-## Resources
+> IMPORTANT: Please read the following before proceeding. This AMP includes or otherwise depends on certain third party software packages. Information about such third party software packages are made available in the notice file associated with this AMP. By configuring and launching this AMP, you will cause such third party software packages to be downloaded and installed into your environment, in some instances, from third parties' websites. For each third party software package, please see the notice file and the applicable websites for more information, including the applicable license terms. If you do not wish to download and install the third party software packages, do not configure, launch or otherwise use this AMP. By configuring, launching or otherwise using the AMP, you acknowledge the foregoing statement and agree that Cloudera is not responsible or liable in any way for the third party software packages.
+
+## Getting Started
+
+Want to hop right in? Try the [end-to-end tutorial on training an SQL adapter](docs/tutorials/train_an_sql_peft_adapter.md), which requires no prior knowledge of the Studio!
 
 * [Technical Overview](docs/techinical_overview.md)
 * [User Guide](docs/user_guide.md)

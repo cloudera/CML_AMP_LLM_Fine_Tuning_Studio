@@ -1,0 +1,856 @@
+/**
+
+CML LLM Fine Tuning Studio
+
+This is the protobuf definition used at the API
+surface of the Fine Tuning Studio (FTS) application. Given that 
+this may integrate in the future as a first-class citizen of CML, 
+we are prepending FTS to our objects to make it abundantly clear
+that these model metadata definitions, etc., are different
+from the CML model metadata definitions.
+
+*/
+
+syntax = "proto3";
+
+package fine_tuning_studio;
+
+/**
+-----------------------
+gRPC Service Definition
+-----------------------
+*/
+
+// gRPC service representation of the Fine Tuning Studio app. This 
+// presents an API surface to interact with the gRPC server for requests.
+service FineTuningStudio {
+  
+  // Dataset operations
+  rpc ListDatasets (ListDatasetsRequest) returns (ListDatasetsResponse) {}
+  rpc GetDataset (GetDatasetRequest) returns (GetDatasetResponse) {}
+  rpc AddDataset (AddDatasetRequest) returns (AddDatasetResponse) {}
+  rpc RemoveDataset (RemoveDatasetRequest) returns (RemoveDatasetResponse) {}
+  rpc GetDatasetSplitByAdapter (GetDatasetSplitByAdapterRequest) returns (GetDatasetSplitByAdapterResponse) {}
+  
+  // Model operations
+  rpc ListModels (ListModelsRequest) returns (ListModelsResponse) {}
+  rpc GetModel (GetModelRequest) returns (GetModelResponse) {}
+  rpc AddModel (AddModelRequest) returns (AddModelResponse) {}
+  rpc ExportModel (ExportModelRequest) returns (ExportModelResponse) {}
+  rpc RemoveModel (RemoveModelRequest) returns (RemoveModelResponse) {}
+
+  // Model adapter operations
+  rpc ListAdapters (ListAdaptersRequest) returns (ListAdaptersResponse) {}
+  rpc GetAdapter (GetAdapterRequest) returns (GetAdapterResponse) {}
+  rpc AddAdapter (AddAdapterRequest) returns (AddAdapterResponse) {}
+  rpc RemoveAdapter (RemoveAdapterRequest) returns (RemoveAdapterResponse) {}
+  
+  // Prompt operations
+  rpc ListPrompts (ListPromptsRequest) returns (ListPromptsResponse) {}
+  rpc GetPrompt (GetPromptRequest) returns (GetPromptResponse) {}
+  rpc AddPrompt (AddPromptRequest) returns (AddPromptResponse) {}
+  rpc RemovePrompt (RemovePromptRequest) returns (RemovePromptResponse) {}
+
+  // Training Jobs
+  rpc ListFineTuningJobs (ListFineTuningJobsRequest) returns (ListFineTuningJobsResponse) {}
+  rpc GetFineTuningJob (GetFineTuningJobRequest) returns (GetFineTuningJobResponse) {}
+  rpc StartFineTuningJob (StartFineTuningJobRequest) returns (StartFineTuningJobResponse) {}
+  rpc RemoveFineTuningJob (RemoveFineTuningJobRequest) returns (RemoveFineTuningJobResponse) {}
+
+  // Evaluation Jobs
+  rpc ListEvaluationJobs (ListEvaluationJobsRequest) returns (ListEvaluationJobsResponse) {}
+  rpc GetEvaluationJob (GetEvaluationJobRequest) returns (GetEvaluationJobResponse) {}
+  rpc StartEvaluationJob (StartEvaluationJobRequest) returns (StartEvaluationJobResponse) {}
+  rpc RemoveEvaluationJob (RemoveEvaluationJobRequest) returns (RemoveEvaluationJobResponse) {}
+
+  // Quantization Configs
+  rpc ListConfigs (ListConfigsRequest) returns (ListConfigsResponse) {}
+  rpc GetConfig (GetConfigRequest) returns (GetConfigResponse) {}
+  rpc AddConfig (AddConfigRequest) returns (AddConfigResponse) {}
+  rpc RemoveConfig (RemoveConfigRequest) returns (RemoveConfigResponse) {}
+
+}
+
+
+/**
+-------------------------------------------
+gRPC protobuf Request/Response Definitions
+-------------------------------------------
+*/
+
+// Dataset controls
+message ListDatasetsRequest {
+
+}
+message ListDatasetsResponse {
+  repeated DatasetMetadata datasets = 1;
+}
+message GetDatasetRequest {
+  string id = 1;
+}
+message GetDatasetResponse {
+  DatasetMetadata dataset = 1;
+}
+message AddDatasetRequest {
+  // Type of dataset to be imported.
+  string type = 1;
+
+  // If this is a huggingface dataset, the huggingface name
+  // should be provided.
+  string huggingface_name = 2;
+
+  // If this is a project-relative dataset, then add project
+  // location
+  string location = 3;
+
+  // Name of the dataset (optional). Right now, HF datasets are
+  // automatically set to be named by their HF id.
+  string name = 4;
+}
+message AddDatasetResponse {
+  DatasetMetadata dataset = 1;
+}
+message RemoveDatasetRequest {
+  string id = 1;
+  bool remove_prompts = 2;
+}
+message RemoveDatasetResponse {
+
+}
+
+message GetDatasetSplitByAdapterRequest{
+  string adapter_id = 1;
+}
+
+message GetDatasetSplitByAdapterResponse{
+  GetDatasetSplitByAdapterMetadata response = 1;
+}
+
+message GetDatasetSplitByAdapterMetadata{
+  float dataset_fraction = 1;
+  float train_test_split = 2;
+}
+
+
+// Model controls
+message ListModelsRequest {
+
+}
+message ListModelsResponse {
+  repeated ModelMetadata models = 1;
+}
+message GetModelRequest {
+  string id = 1;
+}
+message GetModelResponse {
+  ModelMetadata model = 1;
+}
+message AddModelRequest {
+  // type of model to import. This affects how the model
+  // is loaded and how metadata is extracted for the model. 
+  string type = 1; 
+
+  // Name of the huggingface model. This is the full huggingface
+  // model name used to identify the model on HF hub.
+  string huggingface_name = 2;
+
+  // Model ID of the model in the model registry of the workspace.
+  // Used when importing models from model registries.
+  string model_registry_id = 3;
+}
+message AddModelResponse {
+  ModelMetadata model = 1;
+}
+// Export a model out of the FTS app ecosystem. 
+message ExportModelRequest {
+
+  // Type of export model operation to perform.
+  string type = 1; 
+
+  // Model ID that should be exported
+  string model_id = 2;
+
+  // Trained adapter that is to also be
+  // exported (optional). Depending on the model
+  // export type, any PEFT adapter weights may be
+  // merged into the base model.
+  string adapter_id = 3;
+
+  // Human-friendly name to give to the exported
+  // model. Might not be used if only exporting
+  // model to a file output (for example, ONNX output)
+  string model_name = 4;
+
+  // Export output artifact location for export types
+  // that require file-writing to project files.
+  string artifact_location = 5;
+
+  // model description for those model export
+  // types that allow for descriptions.
+  string model_description = 6;
+
+}
+message ExportModelResponse {
+
+  // If a model is exported, this typically means a new
+  // model is created and can technically be imported into
+  // the FTS app. For this reason, the ModelMetadata object
+  // can be used to store this information.
+  ModelMetadata model = 1;
+}
+message RemoveModelRequest {
+  string id = 1;
+}
+message RemoveModelResponse {
+  
+}
+
+
+
+// Adapter controls
+message ListAdaptersRequest {
+
+}
+message ListAdaptersResponse {
+  repeated AdapterMetadata adapters = 1;
+}
+message GetAdapterRequest {
+  string id = 1;
+}
+message GetAdapterResponse {
+  AdapterMetadata adapter = 1;
+}
+message AddAdapterRequest {
+    // Type of model adapter.
+    string type = 1;
+
+    // Human friendly name of the adapter for tracking.
+    string name = 2;
+  
+    // Corresponding model ID that this adapter is designed for. This is the
+    // model ID in the FT app.
+    string model_id = 3;
+  
+    // Project-relative directory where the PEFT adapter data is stored.
+    // This dataclass currently just stores the location of the PEFT adapter
+    // in the local directory which can then be used to load an adapter.
+    string location = 4;
+  
+    // Huggingface PEFT adapter name (identifier used to find
+    // the adapter on HF hub).
+    string huggingface_name = 5;
+  
+    // Job ID of the job that was used to train/create this adapter. This is
+    // used to determine if an adapter was trained within this framework or not.
+    string fine_tuning_job_id = 6;
+  
+    // Prompt ID of the prompt that was used to train this adapter.
+    string prompt_id = 7;
+}
+message AddAdapterResponse {
+  AdapterMetadata adapter = 1;
+}
+message RemoveAdapterRequest {
+  string id = 1;
+}
+message RemoveAdapterResponse {
+  
+}
+
+
+// Prompt controls
+message ListPromptsRequest {
+
+}
+message ListPromptsResponse {
+  repeated PromptMetadata prompts = 1;
+}
+message GetPromptRequest {
+  string id = 1;
+}
+message GetPromptResponse {
+  PromptMetadata prompt = 1;
+}
+message AddPromptRequest {
+  // For now, we are requiring the entire
+  // prompt metadata to be passed (in fact, this is
+  // how the original API layer worked anyway, so
+  // this is fine)
+  PromptMetadata prompt = 1;
+}
+message AddPromptResponse {
+  PromptMetadata prompt = 1;
+}
+message RemovePromptRequest {
+  string id = 1;
+}
+message RemovePromptResponse {
+  
+}
+
+
+// FineTuningJob controls
+message ListFineTuningJobsRequest {
+
+}
+message ListFineTuningJobsResponse {
+  repeated FineTuningJobMetadata fine_tuning_jobs = 1;
+}
+message GetFineTuningJobRequest {
+  string id = 1;
+}
+message GetFineTuningJobResponse {
+  FineTuningJobMetadata fine_tuning_job = 1;
+}
+message StartFineTuningJobRequest {
+  // Human-friendly identifier for the name of the output adapter.
+  string adapter_name = 1;
+
+  // The model ID of the base model that should be used as a
+  // base for the fine tuning job.
+  string base_model_id = 2;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 3;
+
+  // The prompt that will be used for training. This is
+  // tied to the dataset for now, but that won't necessarily
+  // be a many-to-one relationship in the future.
+  string prompt_id = 4;
+
+  // Number of workers to use for this fine-tuning job.
+  int32 num_workers = 5;
+
+  // Automatically add the trained job as an adapter to the app.
+  bool auto_add_adapter = 7;
+
+  // Number of epochs to run during fine-tuning.
+  int32 num_epochs = 8;
+
+  // Learning rate to use during fine-tuning.
+  float learning_rate = 9;
+
+  // Number of CPUs to allocate for this job.
+  int32 cpu = 10;
+
+  // Number of GPUs to allocate for this job.  
+  int32 gpu = 11;
+
+  // Amount of memory to allocate for this job (e.g., '16Gi').
+  int32 memory = 12;
+
+  // Optional dataset test split to split the dataset into a training
+  // dataset and an eval dataset. Evaluation datasets are used at epoch boundaries
+  // during training to compute metrics and compte loss again.
+  float train_test_split = 13;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 14;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 15;
+
+  string training_arguments_config_id = 16;
+
+  string lora_config_id = 17;
+
+  // Output directory of the final adapter.
+  string output_dir = 18;
+
+  // Optional dataset fraction to reduce/downsample the total dataset size. 
+  float dataset_fraction = 19;
+
+  // Optional overriding of the script that is the base of the job that
+  // runs. If this is present, the job instantiates a different script from
+  // a user's project. This script should be provided as relative to the project
+  // file base of the project.
+  string user_script = 20;
+
+  // Optional ID of a config struct that is passed to a custom user fine tuning
+  // script as a job argument in the form of --user_config_id. It is up to the user
+  // to extract this config as part of the script.
+  string user_config_id = 21;
+
+  // Optionally pass a complete serialized version of the config directly to the
+  // fine tuning request. If both this field and the user_config_id field are set,
+  // this serialized config is PREFERRED over the user_config_id. Note that from within
+  // a custom user fine tuning script, this serialized user config is still passed
+  // as a user_config_id (as in, Fine Tuning Studio will add this config to the config
+  // store, and pass the new config ID to the script), which means it is still up to the
+  // user to extrac tthis config as part of the script.
+  string user_config = 22;
+
+  // Framework type employed for the training job.
+  string framework_type = 23;
+
+  // Optional axolotol config, if working with axolotl
+  string axolotl_config_id = 24;
+
+  // The GPU label to use for this job
+  int32 gpu_label_id = 25;
+}
+
+message StartFineTuningJobResponse {
+  FineTuningJobMetadata fine_tuning_job = 1;
+}
+message RemoveFineTuningJobRequest {
+  string id = 1;
+}
+message RemoveFineTuningJobResponse {
+  
+}
+
+
+// EvaluationJob controls
+message ListEvaluationJobsRequest {
+
+}
+message ListEvaluationJobsResponse {
+  repeated EvaluationJobMetadata evaluation_jobs = 1;
+}
+message GetEvaluationJobRequest {
+  string id = 1;
+}
+message GetEvaluationJobResponse {
+  EvaluationJobMetadata evaluation_job = 1;
+}
+message StartEvaluationJobRequest {
+
+  // Type of EvaluationJob to start
+  string type = 1;
+
+  // The model ID of the base model that should be used as a
+  // base for the job.
+  string base_model_id = 2;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 3;
+
+  // Adapter ID of the adapter for this job
+  string adapter_id = 4;
+
+  // Number of CPUs to allocate for this job.
+  int32 cpu = 5;
+
+  // Number of GPUs to allocate for this job.
+  int32 gpu = 6;
+
+  // Amount of memory to allocate for this job (e.g., '16Gi').
+  int32 memory = 7;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 14;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 15;
+
+  // Id for the generation args config.
+  string generation_config_id = 16;
+
+  // ID of the prompt to use for evals
+  string prompt_id = 17;
+
+  // The GPU label to use for this job
+  int32 gpu_label_id = 18;
+
+  // Features to be displayed in the eval CSV
+  repeated string selected_features = 19;
+
+  // Fraction of dataset to be used for evaluation
+  float eval_dataset_fraction = 20;
+
+
+}
+message StartEvaluationJobResponse {
+  EvaluationJobMetadata evaluation_job = 1;
+}
+message RemoveEvaluationJobRequest {
+  string id = 1;
+}
+message RemoveEvaluationJobResponse {
+  
+}
+
+
+message ListConfigsRequest {
+
+  // Optionally only return a specific config type.
+  string type = 1;
+
+  // Optional, Specify a model id for any future filtering
+  // that may occur on model id.
+  string model_id = 2;
+
+  // Optional, Specify an adapter id for any future filtering
+  // that may occur on an adapter.
+  string adapter_id = 3;
+
+  // Optional, specify a training job for filtering that may
+  // be related to configs that were present on this
+  // fine tuning training job.
+  string fine_tuning_job_id = 4;
+}
+
+message ListConfigsResponse {
+  repeated ConfigMetadata configs = 1;
+}
+
+message GetConfigRequest {
+  string id = 1;
+}
+
+message GetConfigResponse {
+  ConfigMetadata config = 1;
+}
+
+message AddConfigRequest {
+  string type = 1;
+  string config = 2;
+  string description = 3;
+}
+
+message AddConfigResponse {
+  // check for id matching, etc.
+  ConfigMetadata config = 1;
+}
+
+message RemoveConfigRequest {
+  string id = 1;
+}
+
+message RemoveConfigResponse {
+
+}
+
+
+/**
+-----------------------------
+protobuf datatype definitions
+-----------------------------
+*/
+
+
+// Metadata about a dataset that is being tracked in FTS. 
+message DatasetMetadata {
+
+  // FTS id of the dataset.
+  string id = 1;
+
+  // Type of the dataset.
+  string type = 2;
+
+  // human-readable name of the dataset. 
+  string name = 3;
+  
+  // description of the dataset.
+  string description = 4;
+
+  // canonical huggingface dataset name (can be used to find
+  // huggingface hub if this is a huggingface dataset)
+  string huggingface_name = 5;
+
+  // Project-relative location of the dataset that is
+  // loaded into the app's state, if this is a project dataset.
+  string location = 6;
+
+  // JSON list of features in the dataset.
+  string features = 7;
+
+}
+
+
+// Metadata about a model that is loaded into the FTS
+// application.
+message ModelMetadata {
+  
+  // Global identifier for models.
+  //
+  // For the purpose of this
+  // AMP application, during local ML model loading & inference,
+  // model IDs are random unique identifiers that have no
+  // significance within the CML ecosystem. Evenutally when this
+  // AMP is integrated with CML model registry, we will ideally
+  // be able to have a more significant model ID.
+  string id = 1;
+
+  // Type of model. This type affects the source of where models
+  // are loaded from.
+  string type = 2;
+
+  // framework of the model.
+  string framework = 3;
+
+  // human-friendly name for the model.
+  string name = 4;
+
+  // Name of the huggingface model. This is the human-readable
+  // model name that can be used to identify a huggingface model
+  // on HF hub.
+  string huggingface_model_name = 5;
+
+  // Location of the model if it is a local project model.
+  string location = 6;
+
+  // Model ID of the registered model.
+  string cml_registered_model_id = 7;
+
+  // MLFlow experiment ID. This allows us to extract individual
+  // model artifacts from the model registry, for example.
+  string mlflow_experiment_id = 8;
+
+  // MLFlow run ID tied to this specific model artifact. This is used
+  // to extract individual model artifacts from MLFlow.
+  string mlflow_run_id = 9;
+}
+
+
+
+message AdapterMetadata {
+
+  // Unique ID of the PEFT adapter.
+  string id = 1;
+
+  // Type of model adapter.
+  string type = 2;
+
+  // Human friendly name of the adapter for tracking.
+  string name = 3;
+
+  // Corresponding model ID that this adapter is designed for. This is the
+  // model ID in the FT app.
+  string model_id = 4;
+
+  // Project-relative directory where the PEFT adapter data is stored.
+
+  // When training with HF/TRL libraries, a typical output directory
+  // for PEFT adapters will contain files like:
+  // * adapter_config.json
+  // * adapter_model.bin
+  
+  // This dataclass currently just stores the location of the PEFT adapter
+  // in the local directory which can then be used to load an adapter.
+  string location = 5;
+
+  // Huggingface PEFT adapter name (identifier used to find
+  // the adapter on HF hub).
+  string huggingface_name = 6;
+
+  // Job ID of the job that was used to train/create this adapter. This is
+  // used to determine if an adapter was trained within this framework or not.
+  string fine_tuning_job_id = 7;
+
+  // Prompt ID of the prompt that was used to train this adapter.
+  string prompt_id = 8;
+
+  // Model ID of the registered adapter.
+  string cml_registered_model_id = 9;
+
+  // MLFlow experiment ID. This allows us to extract individual
+  // model artifacts from the model registry, for example.
+  string mlflow_experiment_id = 10;
+
+  // MLFlow run ID tied to this specific adapter artifact. This is used
+  // to extract individual model artifacts from MLFlow.
+  string mlflow_run_id = 11;
+}
+
+
+message PromptMetadata {
+
+  // Unique ID of the prompt in question.
+  string id = 1;
+
+  // Type of prompt template.
+  string type = 2;
+
+  // Human-friendly name of this prompt template
+  // for use-cases elsewhere
+  string name = 3;
+
+  // ID of the dataset that uses this prompt.
+  // This dataset should contain column names
+  // that correspond to the items that are
+  // in the list of slots.
+  string dataset_id = 4;
+
+  // Python formatted prompt string template.
+  string prompt_template = 5;
+
+  // Python formatted input prompt string template.
+  string input_template = 6;
+
+  // Python formatted completion string template.
+  string completion_template = 7;
+}
+
+
+message FineTuningJobMetadata {
+
+  // Unique job identifier of the job.
+  string id = 1;
+
+  // The model ID of the base model that should be used as a
+  // base for the fine tuning job.
+  string base_model_id = 2;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 3;
+
+  // The prompt that will be used for training. This is
+  // tied to the dataset for now, but that won't necessarily
+  // be a many-to-one relationship in the future.
+  string prompt_id = 4;
+
+  // Number of workers to use for this fine-tuning job.
+  int32 num_workers = 5;
+
+  // CML identifier for the created CML job.
+  string cml_job_id = 6;
+
+  // Adapter ID of the adapter that this job is training.
+  string adapter_id = 7;
+
+  // Properties of each worker that will be spawned up.
+  int32 num_cpu = 8;
+  int32 num_memory = 9;
+  int32 num_gpu = 10;
+
+  // Number of epochs to run during fine-tuning.
+  int32 num_epochs = 11;
+
+  // Learning rate to use during fine-tuning.
+  float learning_rate = 12;
+
+  // Output directory for the adapter
+  string out_dir = 13;
+
+  // Training arguments for the run.
+  string training_arguments_config_id = 14;
+
+  // Bits and bytes config used for the model layers.
+  string model_bnb_config_id = 15;
+
+  // Bits and bytes config used for the adapter. For 
+  // most use cases, this should be the same id as 
+  // for the model, but technically a model can have
+  // a different quantization config for training 
+  // than an adapter.
+  string adapter_bnb_config_id = 16;
+
+  // PEFT config.
+  string lora_config_id = 17;
+
+  float dataset_fraction = 18;
+  float train_test_split = 19;
+
+  // Optional overriding of the script that is the base of the job that
+  // runs. If this is present, the job instantiates a different script from
+  // a user's project. This script should be provided as relative to the project
+  // file base of the project.
+  string user_script = 20;
+
+  // Optional ID of a config struct that is passed to a custom user fine tuning
+  // script as a job argument in the form of --user_config_id. It is up to the user
+  // to extract this config as part of the script.
+  string user_config_id = 21;
+
+  // Optionally pass a complete serialized version of the config directly to the
+  // fine tuning request. If both this field and the user_config_id field are set,
+  // this serialized config is PREFERRED over the user_config_id. Note that from within
+  // a custom user fine tuning script, this serialized user config is still passed
+  // as a user_config_id (as in, Fine Tuning Studio will add this config to the config
+  // store, and pass the new config ID to the script), which means it is still up to the
+  // user to extrac tthis config as part of the script.
+  string user_config = 22;
+
+  // Framework type employed for the training job.
+  string framework_type = 23;
+
+  // Optional axolotol config, if working with axolotl
+  string axolotl_config_id = 24;
+
+  // The GPU label to use for this job
+  int32 gpu_label_id = 25;
+
+  // Human-friendly identifier for the name of the output adapter.
+  string adapter_name = 26;
+}
+
+
+message ConfigMetadata {
+  string id = 1;
+
+  // Optional description of the config
+  string description = 2;
+
+  // type of configuration
+  string type = 3;
+
+  // Serialized (json) representation of the config. This
+  // can be passed directly into any of the config types
+  // at runtime, such as transformers.TrainingArguments(),
+  // peft.LoraConfig(), and so on.
+  string config = 4;
+
+  string model_family = 5;
+
+  int32 is_default = 6;
+}
+
+
+message EvaluationJobMetadata {
+
+  // Unique job identifier of the job.
+  string id = 1;
+
+  // CML identifier for the created CML job.
+  string cml_job_id = 2;
+
+  // The model ID of the base model that should be used as a
+  // base for the fine tuning job.
+  string base_model_id = 3;
+
+  // The dataset that will be used to perform the training.
+  // This dataset ID is the App-specific ID.
+  string dataset_id = 4;
+
+  // Number of workers to use for this evaluation job.
+  int32 num_workers = 5;
+
+  // Adapter ID of the adapter that this job is training.
+  string adapter_id = 6;
+
+  // Properties of each worker that will be spawned up.
+  int32 num_cpu = 7;
+  int32 num_memory = 8;
+  int32 num_gpu = 9;
+
+  // Resulting directory of evaluation
+  string evaluation_dir = 10;
+
+  // BnB config of the model
+  string model_bnb_config_id = 11;
+
+  // BnB config of the adapter
+  string adapter_bnb_config_id = 12;
+
+  // Generation argument configs. 
+  string generation_config_id = 13;
+
+  // type of evaluation job.
+  string type = 14;
+
+  // ID of the prompt to use for evals
+  string prompt_id = 15;
+}

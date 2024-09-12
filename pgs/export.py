@@ -1,35 +1,19 @@
 import streamlit as st
 import streamlit as st
-import pandas as pd
-import numpy as np
-import time
-import datasets
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from trl import SFTConfig, SFTTrainer
-from setfit.trainer import TrainerCallback, TrainerState
-from peft import LoraConfig
-import ft
-import ft.fine_tune
-import os
-from ft.app import get_app
-from ft.state import get_state
-from ft.job import StartFineTuningJobRequest, FineTuningJobMetadata, StartFineTuningJobResponse
-import json
-import torch
-from ft.pipeline import fetch_pipeline
-from ft.model import ModelMetadata
-from ft.adapter import AdapterMetadata, AdapterType
-import mlflow
-from transformers import GenerationConfig
+from ft.api import *
 from typing import List
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.consts import IconPaths, DIVIDER_COLOR
 
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
     with col1:
-        col1.image("./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png")
+        col1.image(IconPaths.CML.EXPORT_TO_CML_MODEL_REGISTRY)
     with col2:
-        col2.subheader('Export to CML Model Registry', divider='red')
+        col2.subheader('Export to CML Model Registry', divider=DIVIDER_COLOR)
         st.caption("Export your fine-tuned models and adapters to the Cloudera Model Registry for easy access and deployment.")
 
 # Container for model and adapter selection
@@ -44,7 +28,7 @@ with st.container(border=True):
                 key="registered_model_name")
 
         with col2:
-            current_models = get_state().models
+            current_models = fts.get_models()
             model_idx = st.selectbox(
                 "Base Model",
                 range(
@@ -63,7 +47,7 @@ with st.container(border=True):
                 key="model_description")
 
         with col2:
-            model_adapters = get_state().adapters
+            model_adapters = fts.get_adapters()
             if model_idx is not None:
                 current_model: ModelMetadata = current_models[model_idx]
                 model_adapters: List[AdapterMetadata] = list(
@@ -84,42 +68,13 @@ with st.container(border=True):
 
     if start_job_button:
         try:
-            # TODO: move model export logic out of Streamlit UI logic
-            with st.spinner("Generating an MLFlow model pipeline..."):
-                model: ModelMetadata = current_models[model_idx]
-                adapter: AdapterMetadata = model_adapters[adapter_idx]
-
-                # For now, let's assume HF model is available. If not, we should be ideally
-                # raising an error or handling custom models differently.
-                adapter_location_or_name = adapter.location if adapter.type == AdapterType.PROJECT else adapter.huggingface_name
-                pipeline = fetch_pipeline(
-                    model_name=model.huggingface_model_name,
-                    adapter_name=adapter_location_or_name)
-
-            signature = mlflow.models.infer_signature(
-                model_input="What are the three primary colors?",
-                model_output="The three primary colors are red, yellow, and blue.",
-            )
-
-            # TODO: pull out generation config to arguments
-            config = GenerationConfig(
-                do_sample=True,
-                temperature=0.8,
-                max_new_tokens=60,
-                top_p=1
-            )
-
-            with st.spinner("Logging model to MLFlow..."):
-                with mlflow.start_run():
-                    model_info = mlflow.transformers.log_model(
-                        transformers_model=pipeline,
-                        torch_dtype='float16',
-                        artifact_path="custom-pipe",        # artifact_path can be dynamic
-                        signature=signature,
-                        registered_model_name=registered_model_name,  # model_name can be dynamic
-                        model_config=config.to_dict()
-                    )
-
+            with st.spinner("Exporting model to CML Model Registry..."):
+                res: ExportModelRequest = fts.ExportModel(ExportModelRequest(
+                    type=ModelType.MODEL_REGISTRY,
+                    model_id=current_models[model_idx].id,
+                    adapter_id=model_adapters[adapter_idx].id,
+                    model_name=registered_model_name,
+                ))
             st.success(
                 "Exported Model. Please go to **CML Model Registry** to view your model!",
                 icon=":material/check:")

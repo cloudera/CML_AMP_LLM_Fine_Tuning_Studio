@@ -1,4 +1,4 @@
-name: Fine-Tuning Application
+name: CML Fine Tuning Studio
 description: |
   This AMP demonstrates how PEFT and other fine-tuning optimization techniques can be used for efficient and effective customization of an existing LLM to perform new tasks.
 author: Cloudera Inc.
@@ -7,10 +7,14 @@ prototype_version: 1.0
 date: "2023-07-22"
 
 environment_variables:
-  FINE_TUNING_APP_STATE_LOCATION:
-    default: ".app/state.json"
+  FINE_TUNING_STUDIO_SQLITE_DB:
+    default: ".app/state.db"
     description: >-
-      The location of the FT app's state, which is a session store that saves app information across browser sessions.
+      This is the location of the FTS app's SQLite database.
+  FINE_TUNING_STUDIO_PROJECT_DEFAULTS:
+    default: "data/project_defaults.json"
+    description: >-
+      Project defaults for the app that are populated into the Studio when the AMP is initially deployed.
   CUSTOM_LORA_ADAPTERS_DIR:
     default: "data/adapters/"
     description: >-
@@ -54,24 +58,25 @@ tasks:
   #   gpu: 1
 
   - type: create_job
-    name: Finetuning_Base_Jobs
+    name: Accel_Finetuning_Base_Job
     short_summary: Create Template Job for creating finetuning tasks
-    entity_label: fine_tune_job_template
-    script: ft/fine_tune_base_script.py
+    entity_label: accel_fine_tune_job_template
+    script: ft/scripts/accel_fine_tune_base_script.py
     arguments: None
-    long_summary: Create Template Job for creating finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
+    long_summary: Create Template Job for creating accelerator-based finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
     cpu: 2
     memory: 8
     gpu: 1
     environment:
       TASK_TYPE: CREATE/RUN_JOB
       MLFLOW_FLATTEN_PARAMS: true
+      PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
 
   - type: create_job
     name: Mlflow_Evaluation_Base_Job
     short_summary: Create Template Job for creating mlflow evaluation tasks
     entity_label: mlflow_evaluation_job_template
-    script: ft/mlflow_evaluation_base_script.py
+    script: ft/scripts/mlflow_evaluation_base_script.py
     arguments: None
     long_summary: Create Template Job for creating mlflow evaluation tasks. This job is used as the template for creating and launching mlflow evaluation tasks in the application.
     cpu: 2
@@ -79,14 +84,22 @@ tasks:
     gpu: 1
     environment:
       TASK_TYPE: CREATE/RUN_JOB
+
+  - type: run_session
+    name: Initialize Project Defaults
+    script: bin/initialize-project-defaults.py
+    short_summary: Initialize Project Defaults
+    long_summary: Initialize default datasets, prompts, models, adapters, etc., shipped with this version of the Studio.
+    kernel: python3
+    cpu: 2
+    memory: 8
   
   - type: start_application
-    name: LLM Fine Tuning Application
-    subdomain: cml-llm-ft-app
+    name: CML Fine Tuning Studio
+    subdomain: cml-llm-fine-tuning-studio
     script: bin/run-app.py
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
     memory: 8
-    gpu: 1
     environment_variables:
       TASK_TYPE: START_APPLICATION

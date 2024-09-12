@@ -1,15 +1,6 @@
 import streamlit as st
-import ft.app
-from ft.app import FineTuningAppProps, FineTuningApp
-from ft.state import get_state_location
-from ft.managers import (
-    DatasetsManagerSimple,
-    ModelsManagerSimple,
-    FineTuningJobsManagerSimple,
-    MLflowEvaluationJobsManagerSimple
-)
-import streamlit.components.v1 as components
 from ft.utils import get_env_variable
+from ft.consts import IconPaths
 
 # Module for custom CSS
 
@@ -38,20 +29,6 @@ def apply_custom_css():
     '''
     st.markdown(css, unsafe_allow_html=True)
 
-# Module for initialization of FineTuningApp
-
-
-def initialize_ft_app():
-    ft.app.INSTANCE = FineTuningApp(
-        FineTuningAppProps(
-            state_location=get_state_location(),
-            datasets_manager=DatasetsManagerSimple(),
-            models_manager=ModelsManagerSimple(),
-            jobs_manager=FineTuningJobsManagerSimple(),
-            mlflow_manager=MLflowEvaluationJobsManagerSimple()
-        )
-    )
-
 # Module for setting up navigation
 
 
@@ -62,7 +39,8 @@ def setup_navigation():
         st.Page("pgs/view_datasets.py", title="View Datasets"),
         st.Page("pgs/models.py", title="Import Base Models"),
         st.Page("pgs/view_models.py", title="View Base Models"),
-        st.Page("pgs/prompts.py", title="Training Prompts"),
+        st.Page("pgs/prompts.py", title="Create Prompts"),
+        st.Page("pgs/view_prompts.py", title="View Prompts"),
         st.Page("pgs/train_adapter.py", title="Train a New Adapter"),
         st.Page("pgs/jobs.py", title="Training Job Tracking"),
         st.Page("pgs/evaluate.py", title="Local Adapter Comparison"),
@@ -89,7 +67,8 @@ def setup_sidebar():
         st.page_link("pgs/view_datasets.py", label="View Datasets", icon=":material/data_object:")
         st.page_link("pgs/models.py", label="Import Base Models", icon=":material/neurology:")
         st.page_link("pgs/view_models.py", label="View Base Models", icon=":material/view_day:")
-        st.page_link("pgs/prompts.py", label="Training Prompts", icon=":material/chat:")
+        st.page_link("pgs/prompts.py", label="Create Prompts", icon=":material/chat:")
+        st.page_link("pgs/view_prompts.py", label="View Prompts", icon=":material/forum:")
         st.write("\n")
 
         st.markdown("Experiments")
@@ -112,11 +91,10 @@ def setup_sidebar():
 
 # Main function to orchestrate the setup
 st.set_page_config(
-    page_title="LLM Finetuning Studio",
-    page_icon="./resources/images/architecture_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png",
+    page_title="Fine Tuning Studio",
+    page_icon=IconPaths.FineTuningStudio.FINE_TUNING_STUDIO,
     layout="wide"
 )
 apply_custom_css()
-initialize_ft_app()
 setup_navigation()
 setup_sidebar()

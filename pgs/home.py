@@ -1,26 +1,29 @@
 import streamlit as st
-from ft.dataset import DatasetMetadata, DatasetType
-from ft.app import get_app
-from ft.state import get_state
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data
-from typing import List, Optional, Dict, Any
+from typing import List
 import pandas as pd
-import os
 import requests
-from ft.model import ModelMetadata, ModelType, ImportModelRequest
-from ft.adapter import AdapterMetadata, AdapterType
+from ft.api import *
+from google.protobuf.json_format import MessageToDict
+from pgs.streamlit_utils import get_fine_tuning_studio_client
+from ft.utils import format_status_with_icon, get_current_git_hash, get_latest_git_hash, check_if_ahead_or_behind
+import json
+from ft.consts import IconPaths, DIVIDER_COLOR
+import subprocess
+
+# Instantiate the client to the FTS gRPC app server.
+fts = get_fine_tuning_studio_client()
 
 
 def create_homepage_header():
     with st.container(border=True):
         col1, col2 = st.columns([1, 16])
         with col1:
-            col1.image("./resources/images/architecture_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png")
+            col1.image(IconPaths.FineTuningStudio.FINE_TUNING_STUDIO)
         with col2:
-            col2.subheader('LLM Finetuning Studio', divider='red')
+            col2.subheader('Fine Tuning Studio', divider=DIVIDER_COLOR)
             col2.caption(
-                'The LLM Fine Tuning Studio, updated in July 2024, features a new Streamlit-based UI and integrates with Cloudera Machine Learning (CML) components. '
-                'It supports custom datasets, BitsAndBytes, LoRA configurations, and distributed training.')
+                'One-stop shop for training, managing, and evaluating large language models.')
 
 
 def create_tile(container, image_path: str, button_text: str, page_path: str, description: str) -> None:
@@ -35,44 +38,69 @@ def create_tile(container, image_path: str, button_text: str, page_path: str, de
         c2.caption(description)
 
 
+def check_amp_update_status():
+    """Check if the AMP is up-to-date."""
+    try:
+        # Retrieve the current branch only once
+        current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode("utf-8")
+
+        # Retrieve the current and latest git hashes
+        current_hash = get_current_git_hash()
+        latest_hash = get_latest_git_hash(current_branch)
+
+        if current_hash and latest_hash:
+            if current_hash != latest_hash:
+                _, behind = check_if_ahead_or_behind(current_hash, current_branch)
+                if behind > 0:
+                    st.toast(
+                        f"Your AMP is out of date. Please update to the latest version.",
+                        icon=":material/error:")
+                    st.warning(
+                        f"Your AMP is out of date. Please update Studio following these guidelines: "
+                        "[Upgrading Fine Tuning Studio](https://github.com/cloudera/CML_AMP_LLM_Fine_Tuning_Studio/docs/upgrading_finetuning_studio.md).",
+                        icon=":material/error:")
+        else:
+            st.toast("Unable to check AMP update status.", icon=":material/error:")
+    except ValueError as e:
+        st.toast(f"Unable to check AMP update status: {e}", icon=":material/error:")
+
+
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
 cdsw_api_url = get_env_variable('CDSW_API_URL')
 cdsw_api_key = get_env_variable('CDSW_API_KEY')
 cdsw_project_url = get_env_variable('CDSW_PROJECT_URL')
 
-
-# st.subheader(f"Welcome to LLM Finetuning Studio, {project_owner}", divider="red")
 create_homepage_header()
-# st.write("\n")
+check_amp_update_status()
 
 col1, col2, col3, col4 = st.columns(4)
 create_tile(
     col1,
-    "./resources/images/publish_24dp_EA3323_FILL0_wght400_GRAD0_opsz48.png",
+    IconPaths.AIToolkit.IMPORT_DATASETS,
     "Import Datasets",
     "pgs/datasets.py",
     'Import datasets from Hugging Face or upload your own preprocessed dataset from local sources for fine-tuning.')
 
 create_tile(
     col2,
-    "./resources/images/neurology_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png",
+    IconPaths.AIToolkit.IMPORT_BASE_MODELS,
     "Import Base Models",
     "pgs/models.py",
     'Import foundational LLM models from Hugging Face or local sources for your fine-tuning job specific requirements.')
 
-create_tile(col3, "./resources/images/forward_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png",
+create_tile(col3, IconPaths.Experiments.TRAIN_NEW_ADAPTER,
             "Finetune your model", "pgs/train_adapter.py",
             'Finetune your model, leveraging advanced techniques to improve performance.')
 
-create_tile(col4, "./resources/images/move_group_24dp_EA3323_FILL0_wght400_GRAD0_opsz40.png",
+create_tile(col4, IconPaths.CML.EXPORT_TO_CML_MODEL_REGISTRY,
             "Export to CML Model Registry", "pgs/export.py",
             'Export your fine-tuned models and adapters to the Cloudera Model Registry for easy access and deployment.')
 
 st.write("\n")
 
-datasets: List[DatasetMetadata] = get_app().datasets.list_datasets()
-current_jobs = get_state().jobs
-current_adapters = get_state().adapters
+datasets: List[DatasetMetadata] = fts.get_datasets()
+current_jobs = fts.get_fine_tuning_jobs()
+current_adapters = fts.get_adapters()
 
 col1, col2, col3 = st.columns([5, 4, 4])
 with col1:
@@ -100,7 +128,7 @@ with col1:
 with col2:
     st.caption("**Training Jobs**")
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
@@ -119,34 +147,30 @@ with col2:
                         cml_jobs_list_df,
                         left_on='cml_job_id',
                         right_on='public_identifier',
-                        how='inner')
+                        how='inner',
+                        suffixes=('', '_cml'))
 
-                    display_df = display_df[['job_id', 'num_workers', 'latest']]
+                    display_df = display_df[['id', 'num_workers', 'latest', 'adapter_name']]
 
-                    status_mapping = {
-                        "succeeded": 100,
-                        "running": 30,
-                        "scheduling": 1
-                    }
-                    display_df['status'] = display_df['latest'].apply(
-                        lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
+                    display_df.rename(columns={
+                        'id': 'id',
+                        'latest': 'Status',
+                        'adapter_name': 'Adapter Name'
+                    }, inplace=True)
 
-                    display_df['adapter_name'] = display_df['job_id'].map(
-                        lambda x: next((adapter.name for adapter in current_adapters if adapter.job_id == x), "Unknown")
-                    )
+                    display_df['Status'] = display_df['Status'].apply(
+                        lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
+                    display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
                     st.data_editor(
-                        display_df[['job_id', 'status', 'adapter_name']],
+                        display_df[['id', 'status_with_icon', 'Adapter Name']],
                         column_config={
-                            "job_id": st.column_config.TextColumn("Job ID"),
-                            "status": st.column_config.ProgressColumn(
+                            "id": st.column_config.TextColumn("Job ID"),
+                            "status_with_icon": st.column_config.TextColumn(
                                 "Status",
-                                help="Job status as progress",
-                                format="%.0f%%",
-                                min_value=0,
-                                max_value=100,
+                                help="Job status as text with icon"
                             ),
-                            "adapter_name": st.column_config.TextColumn("Adapter Name")
+                            "Adapter Name": st.column_config.TextColumn("Adapter Name"),
                         },
                         hide_index=True,
                         use_container_width=True,
@@ -155,29 +179,27 @@ with col2:
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
     else:
-        jobs_df = pd.DataFrame(columns=['job_id', 'status', 'adapter_name'])
+        jobs_df = pd.DataFrame(columns=['id', 'status', 'Adapter Name'])
         st.data_editor(
-            jobs_df[['job_id', 'status', 'adapter_name']],
+            jobs_df[['id', 'status', 'Adapter Name']],
             column_config={
-                "job_id": st.column_config.TextColumn("Job ID"),
-                "status": st.column_config.ProgressColumn(
+                "id": st.column_config.TextColumn("Job ID"),
+                "status": st.column_config.TextColumn(
                     "Status",
-                    help="Job status as progress",
-                    format="%d",
-                    min_value=0,
-                    max_value=100,
+                    help="Job status as text with icon"
                 ),
-                "adapter_name": st.column_config.TextColumn("Adapter Name")
+                "Adapter Name": st.column_config.TextColumn("Adapter Name")
             },
             hide_index=True,
-            use_container_width=True
+            use_container_width=True,
+            key="training_jobs_df"
         )
 
 with col3:
     st.caption("**MLflow Jobs**")
-    current_jobs = get_state().mlflow
+    current_jobs = fts.get_evaluation_jobs()
     if current_jobs:
-        jobs_df = pd.DataFrame([res.model_dump() for res in current_jobs])
+        jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
         if 'cml_job_id' not in jobs_df.columns:
             st.error("Column 'cml_job_id' not found in jobs_df")
         else:
@@ -196,56 +218,50 @@ with col3:
                         cml_jobs_list_df,
                         left_on='cml_job_id',
                         right_on='public_identifier',
-                        how='inner')
+                        how='inner',
+                        suffixes=('', '_cml'))
 
-                    display_df = display_df[['job_id', 'num_workers', 'latest']]
+                    display_df = display_df[['id', 'num_workers', 'latest']]
 
-                    status_mapping = {
-                        "succeeded": 100,
-                        "running": 30,
-                        "scheduling": 1
-                    }
-                    display_df['status'] = display_df['latest'].apply(
-                        lambda x: status_mapping.get(x['status'], 0) if pd.notnull(x) else 0)
+                    display_df.rename(columns={
+                        'id': 'id',
+                        'latest': 'Status'
+                    }, inplace=True)
 
-                    display_df['adapter_name'] = display_df['job_id'].map(
-                        lambda x: next((adapter.name for adapter in current_adapters if adapter.job_id == x), "Unknown")
-                    )
+                    display_df['Status'] = display_df['Status'].apply(
+                        lambda x: x['status'] if isinstance(x, dict) and 'status' in x else 'Unknown')
+                    display_df['status_with_icon'] = display_df['Status'].apply(format_status_with_icon)
 
                     st.data_editor(
-                        display_df[['job_id', 'status']],
+                        display_df[['id', 'status_with_icon']],
                         column_config={
-                            "job_id": st.column_config.TextColumn("Job ID"),
-                            "status": st.column_config.ProgressColumn(
+                            "id": st.column_config.TextColumn("Job ID"),
+                            "status_with_icon": st.column_config.TextColumn(
                                 "Status",
-                                help="Job status as progress",
-                                format="%.0f%%",
-                                min_value=0,
-                                max_value=100,
+                                help="Job status as text with icon"
                             )
                         },
                         hide_index=True,
                         use_container_width=True,
-                        height=140
+                        height=140,
+                        key="mlflow"
                     )
             except requests.RequestException as e:
                 st.error(f"Failed to fetch jobs from API: {e}")
     else:
-        jobs_df = pd.DataFrame(columns=['job_id', 'status'])
+        jobs_df = pd.DataFrame(columns=['id', 'status'])
         st.data_editor(
-            jobs_df[['job_id', 'status']],
+            jobs_df[['id', 'status']],
             column_config={
-                "job_id": st.column_config.TextColumn("Job ID"),
-                "status": st.column_config.ProgressColumn(
+                "id": st.column_config.TextColumn("Job ID"),
+                "status": st.column_config.TextColumn(
                     "Status",
-                    help="Job status as progress",
-                    format="%d",
-                    min_value=0,
-                    max_value=100,
+                    help="Job status as text with icon"
                 )
             },
             hide_index=True,
-            use_container_width=True
+            use_container_width=True,
+            key="mlflow"
         )
 
 st.write("\n")
@@ -254,7 +270,7 @@ col1, col2 = st.columns([1, 1])
 
 with col1:
     st.caption("**Datasets**")
-    data_dicts = [{"name": dataset.name, "features": dataset.features} for dataset in datasets]
+    data_dicts = [{"name": dataset.name, "features": json.loads(dataset.features)} for dataset in datasets]
     df = pd.DataFrame(data_dicts)
     st.data_editor(
         df,
@@ -268,8 +284,8 @@ with col1:
 
 with col2:
     st.caption("**Models & Adapters**")
-    models: List[ModelMetadata] = get_state().models
-    adapters: List[AdapterMetadata] = get_state().adapters
+    models: List[ModelMetadata] = fts.get_models()
+    adapters: List[AdapterMetadata] = fts.get_adapters()
 
     # Prepare data for the data editor
     data = []
