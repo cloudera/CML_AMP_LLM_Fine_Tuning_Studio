@@ -1,6 +1,7 @@
 import streamlit as st
 from ft.utils import get_env_variable
 from ft.consts import IconPaths
+from streamlit_navigation_bar import st_navbar
 
 # Module for custom CSS
 
@@ -13,17 +14,6 @@ def apply_custom_css():
         }
         .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
             font-size: 0.9rem;
-        }
-        [data-testid="stHeader"] {
-            color: #4CAF50;
-            background-color: #f0f0f0;
-        }
-        [data-testid="stSidebarContent"] {
-            background: #16262c;
-            color: white;
-        }
-        [data-testid="stSidebarContent"] * {
-            color: white;
         }
     </style>
     '''
@@ -49,44 +39,9 @@ def setup_navigation():
         st.Page("pgs/export.py", title="Export to CML Model Registry"),
         # st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),
     ], position="hidden")
-    pg.run()
+    # pg.run()
+    return pg
 
-# Module for sidebar content
-
-
-def setup_sidebar():
-    with st.sidebar:
-        st.image("./resources/images/ft-logo.png")
-        st.subheader("")
-        st.markdown("Navigation")
-        st.page_link("pgs/home.py", label="Home", icon=":material/home:")
-        st.write("\n")
-
-        st.markdown("AI Toolkit")
-        st.page_link("pgs/datasets.py", label="Import Datasets", icon=":material/publish:")
-        st.page_link("pgs/view_datasets.py", label="View Datasets", icon=":material/data_object:")
-        st.page_link("pgs/models.py", label="Import Base Models", icon=":material/neurology:")
-        st.page_link("pgs/view_models.py", label="View Base Models", icon=":material/view_day:")
-        st.page_link("pgs/prompts.py", label="Create Prompts", icon=":material/chat:")
-        st.page_link("pgs/view_prompts.py", label="View Prompts", icon=":material/forum:")
-        st.write("\n")
-
-        st.markdown("Experiments")
-        st.page_link("pgs/train_adapter.py", label="Train a New Adapter", icon=":material/forward:")
-        st.page_link("pgs/jobs.py", label="Monitor Training Jobs", icon=":material/subscriptions:")
-        st.page_link("pgs/evaluate.py", label="Local Adapter Comparison", icon=":material/difference:")
-        st.page_link("pgs/mlflow.py", label="Run MLFlow Evaluation", icon=":material/model_training:")
-        st.page_link("pgs/mlflow_jobs.py", label="View MLflow Runs", icon=":material/monitoring:")
-        st.write("\n")
-
-        st.markdown("CML")
-        st.page_link("pgs/export.py", label="Export to CML Model Registry", icon=":material/move_group:")
-        # st.page_link("pgs/deploy.py", label="Deploy to Cloudera AI Inference", icon=":material/deployed_code:")
-        st.subheader("", divider="green")
-
-        project_owner = get_env_variable('PROJECT_OWNER', 'User')
-        cdsw_url = get_env_variable('CDSW_DOMAIN', 'CDSW Url')
-        st.page_link(f"https://{cdsw_url}", label=f"{project_owner}", icon=":material/account_circle:")
 
 
 # Main function to orchestrate the setup
@@ -95,6 +50,143 @@ st.set_page_config(
     page_icon=IconPaths.FineTuningStudio.FINE_TUNING_STUDIO,
     layout="wide"
 )
+
+styles = {
+    "nav": {
+        "background-color": "white",
+        "display": "flex",
+        
+        "height": ".01rem"
+    },
+}
+options = {
+    'show_menu': False
+}
+pages = ['Home']
+page = st_navbar(pages,
+                    styles=styles,
+                    options=options
+                    )
+
+# Include Material Icons stylesheet
+st.markdown('<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">', unsafe_allow_html=True)
+
+# Bootstrap CSS for styling
+st.markdown('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">', unsafe_allow_html=True)
+
+# Custom CSS for bigger dropdown menus and icons for links
+st.markdown("""
+    <style>
+    .navbar {
+        background-color: #3498DB;
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+        padding: 10px;
+        margin: 0;
+        left: 0;
+        display: flex;
+        justify-content: flex-start;
+        gap: 20px; /* Control space between navbar items */
+    }
+    
+    .navbar a {
+        color: white;
+        padding: 10px 20px; /* Adjust padding to control spacing around each item */
+        text-decoration: none;
+        font-size: 16px;
+        display: inline-block;
+    }
+    
+    .navbar a:hover {
+        background-color: #2980B9;
+    }
+    
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 325px; /* Increased width of the dropdown by 30% (from 250px to 325px) */
+        padding: 13px 0; /* Increased padding for dropdown items */
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 14px 25px; /* Increased padding to make dropdown items bigger */
+        text-decoration: none;
+        display: block;
+        text-align: left;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #ddd;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        background-color: #2980B9;
+    }
+
+    .material-icons {
+        font-size: 18px;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+
+    </style>
+""", unsafe_allow_html=True)
+
+# Navbar HTML with bigger dropdown menus and icons for each link
+st.markdown("""
+<nav class="navbar">
+  <strong><a href="/home"><span class="material-icons">home</span>Fine Tuning Studio</a></strong>
+
+  <div class="dropdown">
+    <a class="dropbtn" href="#"><span class="material-icons">build</span> AI Toolkit</a>
+    <div class="dropdown-content">
+      <a href="/datasets"><span class="material-icons">publish</span> Import Datasets</a>
+      <a href="/view_datasets"><span class="material-icons">data_object</span> View Datasets</a>
+      <a href="/models"><span class="material-icons">download</span> Import Base Models</a>
+      <a href="/view_models"><span class="material-icons">view_day</span> View Base Models</a>
+      <a href="/prompts"><span class="material-icons">chat</span> Create Prompts</a>
+      <a href="/view_prompts"><span class="material-icons">forum</span> View Prompts</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <a class="dropbtn" href="#"><span class="material-icons">science</span> Experiment</a>
+    <div class="dropdown-content">
+      <a href="/train_adapter"><span class="material-icons">forward</span> Train a New Adapter</a>
+      <a href="/jobs"><span class="material-icons">subscriptions</span> Monitor Training Jobs</a>
+      <a href="/evaluate"><span class="material-icons">difference</span> Local Adapter Comparison</a>
+      <a href="/mlflow"><span class="material-icons">model_training</span> Run MLFlow Evaluation</a>
+      <a href="/mlflow_jobs"><span class="material-icons">dashboard</span> View MLflow Runs</a>
+    </div>
+  </div>
+
+  <div class="dropdown">
+    <a class="dropbtn" href="#"><span class="material-icons">cloud</span> CML</a>
+    <div class="dropdown-content">
+      <a href="/export"><span class="material-icons">upgrade</span> Export to CML Model Registry</a>
+    </div>
+  </div>
+</nav>
+""", unsafe_allow_html=True)
+
+
+
 apply_custom_css()
-setup_navigation()
-setup_sidebar()
+pg = setup_navigation()
+pg.run()
+
