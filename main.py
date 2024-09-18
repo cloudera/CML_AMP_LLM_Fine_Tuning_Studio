@@ -150,41 +150,39 @@ st.markdown("""
 # Navbar HTML with bigger dropdown menus and icons for each link
 st.markdown("""
 <nav class="navbar">
-  <strong><a href="/home"><span class="material-icons">home</span>Fine Tuning Studio</a></strong>
+  <a href="/home" target="_self"><span class="material-icons">home</span>Fine Tuning Studio</a>
 
   <div class="dropdown">
-    <a class="dropbtn" href="#"><span class="material-icons">build</span> AI Toolkit</a>
+    <a class="dropbtn" href="#" target="_self"><span class="material-icons">build</span> AI Toolkit</a>
     <div class="dropdown-content">
-      <a href="/datasets"><span class="material-icons">publish</span> Import Datasets</a>
-      <a href="/view_datasets"><span class="material-icons">data_object</span> View Datasets</a>
-      <a href="/models"><span class="material-icons">download</span> Import Base Models</a>
-      <a href="/view_models"><span class="material-icons">view_day</span> View Base Models</a>
-      <a href="/prompts"><span class="material-icons">chat</span> Create Prompts</a>
-      <a href="/view_prompts"><span class="material-icons">forum</span> View Prompts</a>
+      <a href="/datasets" target="_self"><span class="material-icons">publish</span> Import Datasets</a>
+      <a href="/view_datasets" target="_self"><span class="material-icons">data_object</span> View Datasets</a>
+      <a href="/models" target="_self"><span class="material-icons">download</span> Import Base Models</a>
+      <a href="/view_models" target="_self"><span class="material-icons">view_day</span> View Base Models</a>
+      <a href="/prompts" target="_self"><span class="material-icons">chat</span> Create Prompts</a>
+      <a href="/view_prompts" target="_self"><span class="material-icons">forum</span> View Prompts</a>
     </div>
   </div>
 
   <div class="dropdown">
-    <a class="dropbtn" href="#"><span class="material-icons">science</span> Experiment</a>
+    <a class="dropbtn" href="#" target="_self"><span class="material-icons">science</span> Experiment</a>
     <div class="dropdown-content">
-      <a href="/train_adapter"><span class="material-icons">forward</span> Train a New Adapter</a>
-      <a href="/jobs"><span class="material-icons">subscriptions</span> Monitor Training Jobs</a>
-      <a href="/evaluate"><span class="material-icons">difference</span> Local Adapter Comparison</a>
-      <a href="/mlflow"><span class="material-icons">model_training</span> Run MLFlow Evaluation</a>
-      <a href="/mlflow_jobs"><span class="material-icons">dashboard</span> View MLflow Runs</a>
+      <a href="/train_adapter" target="_self"><span class="material-icons">forward</span> Train a New Adapter</a>
+      <a href="/jobs" target="_self"><span class="material-icons">subscriptions</span> Monitor Training Jobs</a>
+      <a href="/evaluate" target="_self"><span class="material-icons">difference</span> Local Adapter Comparison</a>
+      <a href="/mlflow" target="_self"><span class="material-icons">model_training</span> Run MLFlow Evaluation</a>
+      <a href="/mlflow_jobs" target="_self"><span class="material-icons">dashboard</span> View MLflow Runs</a>
     </div>
   </div>
 
   <div class="dropdown">
-    <a class="dropbtn" href="#"><span class="material-icons">cloud</span> CML</a>
+    <a class="dropbtn" href="#" target="_self"><span class="material-icons">cloud</span> CML</a>
     <div class="dropdown-content">
-      <a href="/export"><span class="material-icons">upgrade</span> Export to CML Model Registry</a>
+      <a href="/export" target="_self"><span class="material-icons">upgrade</span> Export to CML Model Registry</a>
     </div>
   </div>
 </nav>
 """, unsafe_allow_html=True)
-
-
 
 apply_custom_css()
 pg = setup_navigation()
