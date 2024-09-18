@@ -78,7 +78,7 @@ st.markdown('<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootst
 st.markdown("""
     <style>
     .navbar {
-        background-color: #3498DB;
+        background-color: #132329;
         position: fixed;
         top: 0;
         width: 100%;
