@@ -161,6 +161,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     arg_list.append("--selected_features")
     arg_list.append(request.selected_features)
 
+    arg_list.append("--eval_dataset_fraction")
+    arg_list.append(request.eval_dataset_fraction)
+
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory
