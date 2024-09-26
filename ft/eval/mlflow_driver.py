@@ -10,7 +10,7 @@ from ft.api import *
 import json
 import torch
 from typing import List
-from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
+from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, BASE_MODEL_ONLY_ADAPTER_ID, BASE_MODEL_ONLY_ADAPTER_LOCATION
 
 
 def driver(
@@ -35,15 +35,20 @@ def driver(
     # given that this is a script that runs on a remote worker (not the same host
     # as the application), need to make gRPC calls to the app server.
     base_model: ModelMetadata = client.GetModel(GetModelRequest(id=base_model_id)).model
-    adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
     prompt: PromptMetadata = client.GetPrompt(GetPromptRequest(id=prompt_id)).prompt
     # Load in the generation config and bnb config.
     bnb_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=bnb_config_id)).config.config) if bnb_config_id else None
     generation_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=generation_config_id)).config.config) if generation_config_id else None
-    dataset_split: GetDatasetSplitByAdapterMetadata = client.GetDatasetSplitByAdapter(
-        GetDatasetSplitByAdapterRequest(adapter_id=adapter_id)).response
+    if adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
+        dataset_split: GetDatasetSplitByAdapterMetadata = client.GetDatasetSplitByAdapter(
+            GetDatasetSplitByAdapterRequest(adapter_id=adapter_id)).response
+        adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
+    else:
+        # as this is only base model evaluation, no need to do any splitting as all data is unseen
+        dataset_split = GetDatasetSplitByAdapterMetadata(dataset_fraction=0.2, train_test_split= 0.2)  # make them variables
+        adapter: AdapterMetadata = AdapterMetadata(type=AdapterType.PROJECT, location=BASE_MODEL_ONLY_ADAPTER_LOCATION)
     # Load dataset
     eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(
         dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split, selected_features=selected_features, eval_dataset_fraction=eval_dataset_fraction)

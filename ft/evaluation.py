@@ -1,6 +1,6 @@
 from uuid import uuid4
 import pathlib
-
+from ft.consts import BASE_MODEL_ONLY_ADAPTER_ID
 import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
@@ -76,9 +76,12 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
         if not session.query(Dataset).filter_by(id=request.dataset_id.strip()).first():
             raise ValueError(f"Dataset with ID '{request.dataset_id}' does not exist.")
 
-        # Check if the referenced adapter_id exists in the database
+        # Check if the referenced adapter_id exists in the database or is the default base model
         if not session.query(Adapter).filter_by(id=request.adapter_id.strip()).first():
-            raise ValueError(f"Adapter with ID '{request.adapter_id}' does not exist.")
+            if request.adapter_id == BASE_MODEL_ONLY_ADAPTER_ID:
+                pass
+            else:
+                raise ValueError(f"Adapter with ID '{request.adapter_id}' does not exist.")
 
         # Check if the referenced prompt_id exists in the database
         if not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
@@ -160,6 +163,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
 
     arg_list.append("--selected_features")
     arg_list.append(request.selected_features)
+
+    arg_list.append("--eval_dataset_fraction")
+    arg_list.append(request.eval_dataset_fraction)
 
     cpu = request.cpu
     gpu = request.gpu
