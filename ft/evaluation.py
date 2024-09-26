@@ -1,6 +1,6 @@
 from uuid import uuid4
 import pathlib
-
+from ft.consts import BASE_MODEL_ONLY_ADAPTER_ID
 import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
@@ -76,8 +76,8 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
         if not session.query(Dataset).filter_by(id=request.dataset_id.strip()).first():
             raise ValueError(f"Dataset with ID '{request.dataset_id}' does not exist.")
 
-        # Check if the referenced adapter_id exists in the database
-        if not session.query(Adapter).filter_by(id=request.adapter_id.strip()).first():
+        # Check if the referenced adapter_id exists in the database or is the default base model
+        if not session.query(Adapter).filter_by(id=request.adapter_id.strip()).first() or request.adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
             raise ValueError(f"Adapter with ID '{request.adapter_id}' does not exist.")
 
         # Check if the referenced prompt_id exists in the database
