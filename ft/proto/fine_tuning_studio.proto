@@ -419,6 +419,18 @@ message GetEvaluationJobRequest {
 message GetEvaluationJobResponse {
   EvaluationJobMetadata evaluation_job = 1;
 }
+
+
+message EvaluationJobModelCombination{
+  // The model ID of the base model that should be used as a
+  // base for the job.
+  string base_model_id = 1;
+
+  // Adapter ID of the adapter for this job
+  string adapter_id = 2;
+}
+
+
 message StartEvaluationJobRequest {
 
   // Type of EvaluationJob to start
@@ -426,14 +438,11 @@ message StartEvaluationJobRequest {
 
   // The model ID of the base model that should be used as a
   // base for the job.
-  string base_model_id = 2;
+  repeated EvaluationJobModelCombination model_adapter_combinations = 2;
 
   // The dataset that will be used to perform the training.
   // This dataset ID is the App-specific ID.
   string dataset_id = 3;
-
-  // Adapter ID of the adapter for this job
-  string adapter_id = 4;
 
   // Number of CPUs to allocate for this job.
   int32 cpu = 5;
