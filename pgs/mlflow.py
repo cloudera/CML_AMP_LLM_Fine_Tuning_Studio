@@ -158,10 +158,13 @@ with ccol1:
                                 model_adapter = model_adapters[model_adapter_idx]
                         else:
                             model_adapter_idx = BASE_MODEL_ONLY_IDX
+                if {"model_idx": model_idx, "model_adapter_idx": model_adapter_idx} in model_adapters:
+                    st.warning(
+                        "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
                 all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter_idx": model_adapter_idx})
-                if i == NUM_GPUS:
+                if i == NUM_GPUS - 1:
                     continue
-                add = st.toggle(label="Add additional model", key=f"add_additional_model_{i}")
+                add = st.toggle(label="Evaluate more model", key=f"add_additional_model_{i}")
                 if add:
                     continue
                 else:
@@ -264,12 +267,14 @@ with ccol1:
                     prompt = current_prompts[prompt_idx]
                     dataset = current_datasets[dataset_idx]
                     for combo in all_model_adapter_combinations:
+                        model_idx, model_adapter_idx = combo['model_idx'], combo['model_adapter_idx']
                         model = current_models[model_idx]
                         if model_adapter_idx == BASE_MODEL_ONLY_IDX:
                             adapter = AdapterMetadata()
                             adapter.id = BASE_MODEL_ONLY_ADAPTER_ID
                         else:
                             adapter = model_adapters[model_adapter_idx]
+
                         model_adapter_combo.append(EvaluationJobModelCombination(
                             base_model_id=model.id,
                             adapter_id=adapter.id))

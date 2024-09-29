@@ -45,7 +45,7 @@ def get_evaluation_job(request: GetEvaluationJobRequest,
 def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, dao: FineTuningStudioDao) -> None:
     # Check for required fields in StartEvaluationJobRequest
     required_fields = [
-        "base_model_id", "dataset_id", "adapter_id",
+        "model_adapter_combinations", "dataset_id",
         "prompt_id", "adapter_bnb_config_id",
         "model_bnb_config_id", "generation_config_id",
         "cpu", "gpu", "memory"
@@ -57,13 +57,17 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
 
     # Ensure certain string fields are not empty after stripping out spaces
     string_fields = [
-        "base_model_id", "dataset_id", "adapter_id",
+        "model_adapter_combinations", "dataset_id",
         "prompt_id", "adapter_bnb_config_id",
         "model_bnb_config_id", "generation_config_id"
     ]
 
     for field in string_fields:
-        field_value = getattr(request, field).strip()
+        try:
+            field_value = getattr(request, field).strip()
+        except BaseException:
+            # repeatable proto strip error
+            field_value = getattr(request, field)
         if not field_value:
             raise ValueError(f"Field '{field}' cannot be an empty string or only spaces.")
 

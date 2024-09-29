@@ -945,7 +945,8 @@ class EvaluationJobMetadata(_message.Message):
         "adapter_bnb_config_id",
         "generation_config_id",
         "type",
-        "prompt_id")
+        "prompt_id",
+        "parent_job_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -961,6 +962,7 @@ class EvaluationJobMetadata(_message.Message):
     GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
+    PARENT_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     cml_job_id: str
     base_model_id: str
@@ -976,6 +978,7 @@ class EvaluationJobMetadata(_message.Message):
     generation_config_id: str
     type: str
     prompt_id: str
+    parent_job_id: str
 
     def __init__(
         self,
@@ -993,4 +996,5 @@ class EvaluationJobMetadata(_message.Message):
         adapter_bnb_config_id: _Optional[str] = ...,
         generation_config_id: _Optional[str] = ...,
         type: _Optional[str] = ...,
-        prompt_id: _Optional[str] = ...) -> None: ...
+        prompt_id: _Optional[str] = ...,
+        parent_job_id: _Optional[str] = ...) -> None: ...

@@ -862,4 +862,8 @@ message EvaluationJobMetadata {
 
   // ID of the prompt to use for evals
   string prompt_id = 15;
+
+  // Parent job id of the run
+  string parent_job_id = 16;
+
 }

@@ -106,6 +106,7 @@ def display_jobs_list():
     display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
 
     columns_we_care_about = [
+        'parent_id',
         'id',
         'html_url',
         'latest',
@@ -123,6 +124,7 @@ def display_jobs_list():
     display_df = display_df[columns_we_care_about]
 
     display_df.rename(columns={
+        'parent_id': 'Parent Job ID',
         'id': 'Job ID',
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
@@ -143,9 +145,10 @@ def display_jobs_list():
 
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Job ID", "status_with_icon", "created_at",
+        display_df[["Parent Job ID", "Job ID", "status_with_icon", "created_at",
                     "html_url", "Model Name", "Adapter Name", "Dataset Name", "Prompt Name"]],
         column_config={
+            "Parent Job ID": st.column_config.TextColumn("Parent Job ID"),
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
                 "Status",
