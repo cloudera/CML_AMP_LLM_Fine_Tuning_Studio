@@ -22,6 +22,7 @@ EVAL_OUTPUT_COLUM = "expected_output"
 BASE_MODEL_ONLY_IDX = "base-model-only-idx"
 BASE_MODEL_ONLY_ADAPTER_ID = "idx-no-adapt"
 BASE_MODEL_ONLY_ADAPTER_LOCATION = "no-adapter-location"
+USER_DEFINED_IDENTIFIER = "_$useradded$"
 # Database constants
 DEFAULT_SQLITE_DB_LOCATION = ".app/state.db"
 """

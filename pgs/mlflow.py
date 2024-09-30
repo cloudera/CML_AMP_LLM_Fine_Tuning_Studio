@@ -104,16 +104,17 @@ with ccol1:
             st.session_state.selected_features = selected_features or []
 
         st.divider()
+        st.caption("**Choose Models for Evaluation**")
         all_model_adapter_combinations = []
         CURRENT_MODEL = None
-        NUM_GPUS = 2  # let's make it dynamic via API call to cdp
+        NUM_GPUS = 5  # let's make it dynamic via API call to cdp
         # currently let's try to take at max 3 model + adapter combination and dispatch them to cml jobs
         with st.container(border=True):
             for i in range(NUM_GPUS):
                 with st.container(border=True):
                     current_models = fts.get_models()
                     model_idx = st.selectbox(
-                        "Base Models",
+                        "Base Model",
                         range(len(current_models)),
                         format_func=lambda x: current_models[x].name,
                         index=None,
@@ -139,7 +140,7 @@ with ccol1:
                                 if not loc.endswith("/"):
                                     loc += "/"
 
-                        only = st.toggle("Base Model Evaluation Only", key=f"base_model_evaluation_only_key_{i}")
+                        only = st.toggle("Base Model Only", key=f"base_model_evaluation_only_key_{i}")
                         if not only:
                             model_adapter_idx = st.selectbox(
                                 "Choose an Adapter",
@@ -158,13 +159,14 @@ with ccol1:
                                 model_adapter = model_adapters[model_adapter_idx]
                         else:
                             model_adapter_idx = BASE_MODEL_ONLY_IDX
-                if {"model_idx": model_idx, "model_adapter_idx": model_adapter_idx} in model_adapters:
-                    st.warning(
-                        "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
+                        if {"model_idx": model_idx,
+                                "model_adapter_idx": model_adapter_idx} in all_model_adapter_combinations:
+                            st.warning(
+                                "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
                 all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter_idx": model_adapter_idx})
                 if i == NUM_GPUS - 1:
                     continue
-                add = st.toggle(label="Evaluate more model", key=f"add_additional_model_{i}")
+                add = st.toggle(label="Add", key=f"add_additional_model_{i}")
                 if add:
                     continue
                 else:

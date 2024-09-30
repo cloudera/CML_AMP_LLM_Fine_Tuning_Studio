@@ -6,7 +6,7 @@ import os
 from ft.client import FineTuningStudioClient
 import pandas as pd
 from copy import deepcopy
-from ft.consts import EVAL_DATASET_DEFAULT_FRACTION
+from ft.consts import EVAL_DATASET_DEFAULT_FRACTION, USER_DEFINED_IDENTIFIER
 
 # Function to install required packages
 
@@ -68,7 +68,10 @@ try:
 
     if "exact_match/v1" in response.metrics:
         mod_metrics["exact_match/v1"] = response.metrics["exact_match/v1"]
-
+    f_map = {}
+    for feature in args.selected_features:
+        f_map[feature] = f"{feature}{USER_DEFINED_IDENTIFIER}"
+    response.csv.rename(columns=f_map, inplace=True)
     aggregated_results = pd.DataFrame(mod_metrics.items(), columns=["metric", "score"])
 
     file_name = os.path.join(result_dir, "result_evaluation.csv")
