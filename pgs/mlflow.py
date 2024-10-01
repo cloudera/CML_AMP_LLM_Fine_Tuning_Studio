@@ -122,7 +122,7 @@ with ccol1:
                     )
 
                     model_adapter_idx = None
-
+                    model_adapter = None
                     # TODO: this currently assumes HF model for local eval, but should not have to be in the future
                     if model_idx is not None:
                         current_model_metadata = current_models[model_idx]
@@ -158,12 +158,13 @@ with ccol1:
                             if model_adapter_idx is not None:
                                 model_adapter = model_adapters[model_adapter_idx]
                         else:
-                            model_adapter_idx = BASE_MODEL_ONLY_IDX
+                            model_adapter = BASE_MODEL_ONLY_IDX
                         if {"model_idx": model_idx,
-                                "model_adapter_idx": model_adapter_idx} in all_model_adapter_combinations:
+                                "model_adapter": model_adapter} in all_model_adapter_combinations:
                             st.warning(
                                 "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
-                all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter_idx": model_adapter_idx})
+                if model_idx is not None and model_adapter is not None:
+                    all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter": model_adapter})
                 if i == NUM_GPUS - 1:
                     continue
                 add = st.toggle(label="Add", key=f"add_additional_model_{i}")
@@ -203,15 +204,15 @@ with ccol1:
         st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
         gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
 
-        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None and prompt_idx is not None
+        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter is not None and prompt_idx is not None
 
         if button_enabled:
             with st.expander("Configs"):
                 cc1, cc2 = st.columns([1, 1])
                 model_idx = all_model_adapter_combinations[0]["model_idx"]
-                model_adapter_idx = all_model_adapter_combinations[0]["model_adapter_idx"]
-                if model_adapter_idx is not BASE_MODEL_ONLY_IDX:
-                    adapter_id = model_adapters[model_adapter_idx].id
+                model_adapter = all_model_adapter_combinations[0]["model_adapter"]
+                if model_adapter is not BASE_MODEL_ONLY_IDX:
+                    adapter_id = model_adapter.id
                 else:
                     adapter_id = BASE_MODEL_ONLY_ADAPTER_ID
                 # Extract out a BnB config and a generation config that will be used for
@@ -269,13 +270,13 @@ with ccol1:
                     prompt = current_prompts[prompt_idx]
                     dataset = current_datasets[dataset_idx]
                     for combo in all_model_adapter_combinations:
-                        model_idx, model_adapter_idx = combo['model_idx'], combo['model_adapter_idx']
+                        model_idx, model_adapter = combo['model_idx'], combo['model_adapter']
                         model = current_models[model_idx]
-                        if model_adapter_idx == BASE_MODEL_ONLY_IDX:
+                        if model_adapter == BASE_MODEL_ONLY_IDX:
                             adapter = AdapterMetadata()
                             adapter.id = BASE_MODEL_ONLY_ADAPTER_ID
                         else:
-                            adapter = model_adapters[model_adapter_idx]
+                            adapter = model_adapter
 
                         model_adapter_combo.append(EvaluationJobModelCombination(
                             base_model_id=model.id,

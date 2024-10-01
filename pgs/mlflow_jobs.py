@@ -5,7 +5,7 @@ import requests
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.utils import format_status_with_icon
-from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_ADAPTER_ID, USER_DEFINED_IDENTIFIER
+from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_ADAPTER_ID, USER_DEFINED_IDENTIFIER, EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -221,7 +221,9 @@ def display_mlflow_runs():
                                         "adapter_name": adapter_dict[selected_job.adapter_id] if selected_job.adapter_id != BASE_MODEL_ONLY_ADAPTER_ID else ""})
         final_df = None
         for idx, all_aggreated_path in enumerate(all_aggreated_paths):
-            evaluation_name = f"{all_aggreated_path['model_name']} \n\n {all_aggreated_path['adapter_name']}"
+            evaluation_name = f"{all_aggreated_path['model_name']}"
+            if all_aggreated_path['adapter_name']:
+                evaluation_name += f" + {all_aggreated_path['adapter_name']}"
             if os.path.exists(all_aggreated_path['aggregated_csv']):
                 df_ar = pd.read_csv(all_aggreated_path['aggregated_csv'])
                 #st.data_editor(df_ar)
@@ -234,22 +236,42 @@ def display_mlflow_runs():
             st.write("\n")
             st.caption("**Aggregated Results**")
             st.data_editor(final_df, hide_index=True)
-
+            st.write("\n")
+            st.caption("**Row Wise Results**")
+        non_metric_columns = [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]
+        flag = False
+        final_df = None
         for all_aggreated_path in all_aggreated_paths:
+            evaluation_name = f"{all_aggreated_path['model_name']}"
+            if all_aggreated_path['adapter_name']:
+                evaluation_name += f" + {all_aggreated_path['adapter_name']}"
             csv_file_path = all_aggreated_path.get("row_wise_csv")
             if csv_file_path and os.path.exists(csv_file_path):
-                st.write("\n")
-                st.caption("**Row Wise Results**")
-                st.warning("In development currently showing only first models result")
                 df = pd.read_csv(csv_file_path)
-                st.data_editor(df, hide_index=True)
+                if not flag:
+                    for col in list(df.columns):
+                        if USER_DEFINED_IDENTIFIER in col:
+                            non_metric_columns.append(col.split(USER_DEFINED_IDENTIFIER)[0])
+                    flag = True
+                col_map = {}
+                for col in list(df.columns):
+                    if col in non_metric_columns:
+                        col_map[col] = col.split(USER_DEFINED_IDENTIFIER)[0]
+                    else:
+                        col_map[col] = col + "\n" + " " + evaluation_name
+                df.rename(columns=col_map, inplace=True)
+                if final_df is None:
+                    final_df = df
+                else:
+                    final_df = pd.merge(final_df, df, on=non_metric_columns)
+        st.data_editor(final_df, hide_index=True)
 
         # if os.path.exists(csv_file_path):
         #     st.write("\n")
         #     st.caption("**Row Wise Results**")
         #     df = pd.read_csv(csv_file_path)
         #     st.data_editor(df, hide_index=True)
-        else:
+        if final_df is None:
             st.info("Evaluation report not available yet. Please wait for MLflow run to complete.", icon=':material/info:')
     else:
         st.error("Selected job not found.")
