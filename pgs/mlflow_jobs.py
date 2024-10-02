@@ -255,8 +255,9 @@ def display_mlflow_runs():
                     flag = True
                 col_map = {}
                 for col in list(df.columns):
-                    if col in non_metric_columns:
-                        col_map[col] = col.split(USER_DEFINED_IDENTIFIER)[0]
+                    target_col = col.split(USER_DEFINED_IDENTIFIER)[0]
+                    if target_col in non_metric_columns:
+                        col_map[col] = target_col
                     else:
                         col_map[col] = col + "\n" + " " + evaluation_name
                 df.rename(columns=col_map, inplace=True)
