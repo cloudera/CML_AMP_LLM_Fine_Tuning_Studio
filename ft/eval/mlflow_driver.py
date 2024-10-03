@@ -47,7 +47,8 @@ def driver(
         adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
     else:
         # as this is only base model evaluation, no need to do any splitting as all data is unseen
-        dataset_split = GetDatasetSplitByAdapterMetadata(dataset_fraction=0.2, train_test_split= 0.2)  # make them variables
+        dataset_split = GetDatasetSplitByAdapterMetadata(
+            dataset_fraction=0.2, train_test_split=0.2)  # make them variables
         adapter: AdapterMetadata = AdapterMetadata(type=AdapterType.PROJECT, location=BASE_MODEL_ONLY_ADAPTER_LOCATION)
     # Load dataset
     eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(
