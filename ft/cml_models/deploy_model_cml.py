@@ -2,7 +2,7 @@ import cmlapi
 import os
 import time
 
-FILEPATH="/home/cdsw/ft/cml_models/predict.py"
+FILEPATH="ft/cml_models/predict.py"
 
 
 def deploy_model():
