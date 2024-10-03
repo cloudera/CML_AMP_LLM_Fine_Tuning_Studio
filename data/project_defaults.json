@@ -75,6 +75,15 @@
       "model_id": "804e3cf5-09b4-4e7d-99c2-a351848ef0fd",
       "location": "data/adapters/mistral-7b-ticketing",
       "prompt_id": "54fd85db-93ea-4ae3-a7a2-9aae6db2f1a3"
+    },
+    {
+      "id": "7031c6a2-a41d-4e1e-b544-673f903681a7",
+      "type": "project",
+      "name": "bloom-1b-ticketing",
+      "huggingface_name": "",
+      "model_id": "f1c3d635-980d-4114-a43e-b3a2eba13910",
+      "location": "data/adapters/bloom-1b-ticketing",
+      "prompt_id": "54fd85db-93ea-4ae3-a7a2-9aae6db2f1a3"
     }
   ],
   "fine_tuning_jobs": [],

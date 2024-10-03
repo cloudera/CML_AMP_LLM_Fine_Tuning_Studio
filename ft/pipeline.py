@@ -12,6 +12,7 @@ from typing import Dict
 from ft.config.model_configs.config_loader import ModelMetadataFinder
 from ft.consts import BASE_MODEL_ONLY_ADAPTER_LOCATION
 
+
 def load_adapted_hf_generation_pipeline(
         base_model_name,
         lora_model_name,
