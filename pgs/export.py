@@ -5,6 +5,11 @@ from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.consts import IconPaths, DIVIDER_COLOR
 
+MODEL_EXPORT_TYPE_MAP = {
+    "CML Model": ModelType.CML_MODEL,
+    "Model Registry": ModelType.MODEL_REGISTRY
+}
+
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
@@ -13,8 +18,9 @@ with st.container(border=True):
     with col1:
         col1.image(IconPaths.CML.EXPORT_TO_CML_MODEL_REGISTRY)
     with col2:
-        col2.subheader('Export to CML Model Registry', divider=DIVIDER_COLOR)
-        st.caption("Export your fine-tuned models and adapters to the Cloudera Model Registry for easy access and deployment.")
+        col2.subheader('Export Model', divider=DIVIDER_COLOR)
+        st.caption(
+            "Export your fine-tuned models and adapters to Cloudera Model Registry, or Cloudera CML Models, for use in production.")
 
 # Container for model and adapter selection
 with st.container(border=True):
@@ -23,7 +29,7 @@ with st.container(border=True):
 
         with col1:
             registered_model_name = st.text_input(
-                "Registered Model Name",
+                "Model Name",
                 placeholder="human-friendly name in model registry",
                 key="registered_model_name")
 
@@ -58,6 +64,9 @@ with st.container(border=True):
             adapter_idx = st.selectbox("Choose an Adapter", range(len(model_adapters)),
                                        format_func=lambda x: model_adapters[x].name, index=None)
 
+    with st.container():
+        model_export_type = st.selectbox("Model Export Type", MODEL_EXPORT_TYPE_MAP.keys())
+
     # Start job button
     button_enabled = model_idx is not None and adapter_idx is not None and registered_model_name != ""
     start_job_button = st.button(
@@ -70,15 +79,17 @@ with st.container(border=True):
         try:
             with st.spinner("Exporting model to CML Model Registry..."):
                 res: ExportModelRequest = fts.ExportModel(ExportModelRequest(
-                    type=ModelType.MODEL_REGISTRY,
+                    type=MODEL_EXPORT_TYPE_MAP[model_export_type],
                     model_id=current_models[model_idx].id,
                     adapter_id=model_adapters[adapter_idx].id,
                     model_name=registered_model_name,
                 ))
             st.success(
-                "Exported Model. Please go to **CML Model Registry** to view your model!",
+                "Model export is started. Please go to **CML Model Registry** or **Model Deployments** to view progress.",
                 icon=":material/check:")
-            st.toast("Exported Model. Please go to **CML Model Registry** to view your model!", icon=":material/check:")
+            st.toast(
+                "Model export is started. Please go to **CML Model Registry** or **Model Deployments** to view progress.",
+                icon=":material/check:")
         except Exception as e:
             st.error(f"Failed to export model: **{str(e)}**", icon=":material/error:")
             st.toast(f"Failed to export model: **{str(e)}**", icon=":material/error:")

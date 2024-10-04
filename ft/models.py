@@ -129,15 +129,16 @@ def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuni
     return response
 
 
-def export_model(request: ExportModelRequest, cml: CMLServiceApi = None,
-                 dao: FineTuningStudioDao = None) -> ExportModelResponse:
+def _export_model_registry_model(request: ExportModelRequest, cml: CMLServiceApi = None,
+                                 dao: FineTuningStudioDao = None) -> ExportModelResponse:
     """
-    Export model. Currently only applies to exporting to model registry.
+    Export a model to CML model registry. For now, model registry cannot deploy huggingface models and
+    adapters to Cloudera AI Inference, so exporting a model to model registry doesn't enable
+    more features for the model.
     """
 
-    if not request.type == ModelType.MODEL_REGISTRY:
-        raise ValueError("Model exports are only supported to model registry at this time.")
-
+    # Right now, our response object contains a model metadata nullable object, just in case
+    # we want to automatically add other model types to the studio in the future.
     response: ExportModelResponse = ExportModelResponse()
 
     pipeline = None
@@ -179,6 +180,30 @@ def export_model(request: ExportModelRequest, cml: CMLServiceApi = None,
     # We aren't doing any error handling at this time, and we aren't
     # explicitly using the return metadata yet.
     return response
+
+
+def _export_and_deploy_cml_model(request: ExportModelRequest, cml: CMLServiceApi = None,
+                                 dao: FineTuningStudioDao = None) -> ExportModelResponse:
+    """
+    Stub for exporting and deploying to CML models.
+    TODO: call application logic from here
+    """
+
+    return ExportModelResponse()
+
+
+def export_model(request: ExportModelRequest, cml: CMLServiceApi = None,
+                 dao: FineTuningStudioDao = None) -> ExportModelResponse:
+    """
+    Export model outside of Fine Tuning Studio.
+    """
+
+    if request.type == ModelType.MODEL_REGISTRY:
+        return _export_model_registry_model(request, cml, dao)
+    elif request.type == ModelType.CML_MODEL:
+        return _export_and_deploy_cml_model(request, cml, dao)
+    else:
+        raise ValueError(f"Model export of type '{request.type}' is not supported.")
 
 
 def remove_model(request: RemoveModelRequest, cml: CMLServiceApi = None,

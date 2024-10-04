@@ -60,6 +60,7 @@ class ModelType(str, Enum):
     HUGGINGFACE = "huggingface"
     PROJECT = "project"
     MODEL_REGISTRY = "model_registry"
+    CML_MODEL = "cml_model"
 
 
 class ModelFrameworkType(str, Enum):

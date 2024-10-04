@@ -1,4 +1,5 @@
 import pytest
+import unittest
 from unittest.mock import patch, MagicMock
 from sqlalchemy.exc import NoResultFound
 
@@ -7,6 +8,7 @@ from ft.models import (
     get_model,
     add_model,
     remove_model,
+    export_model
 )
 from ft.api import *
 
@@ -120,3 +122,35 @@ def test_add_model_invalid_type():
 
     with pytest.raises(ValueError, match="ERROR: Cannot import model of this type."):
         add_model(request, dao=test_dao)
+
+
+class TestModelExports(unittest.TestCase):
+
+    @patch("ft.models._export_model_registry_model")
+    def test_export_model_type_registry(self, export_to_registry):
+        request: ExportModelRequest = ExportModelRequest(
+            type=ModelType.MODEL_REGISTRY,
+            model_id="id1"
+        )
+        response = export_model(request, None, None)
+        export_to_registry.assert_called_once()
+
+    @patch("ft.models._export_and_deploy_cml_model")
+    def test_export_model_type_cml(self, export_to_cml):
+        request: ExportModelRequest = ExportModelRequest(
+            type=ModelType.CML_MODEL,
+            model_id="id1"
+        )
+        response = export_model(request, None, None)
+        export_to_cml.assert_called_once()
+
+    def test_export_model_type_not_supported(self):
+        request: ExportModelRequest = ExportModelRequest(
+            type="bad_type",
+            model_id="id1"
+        )
+
+        with self.assertRaises(ValueError) as context:
+            response = export_model(request, None, None)
+
+        assert str(context.exception) == "Model export of type 'bad_type' is not supported."
