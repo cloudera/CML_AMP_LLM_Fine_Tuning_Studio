@@ -15,6 +15,8 @@ if len(found_app_list) > 0:
         url = "https://" + subdomain + "." + os.getenv("CDSW_DOMAIN")
         components.iframe(url, height=1600)
     else:
-        st.error(f"Application [Sample-Ticketing-Agent-Application] not started.\nPlease restart the application in the Workspace Project")
+        st.error(
+            f"Application [Sample-Ticketing-Agent-Application] not started.\nPlease restart the application in the Workspace Project")
 else:
-    st.error(f"Application [Sample-Ticketing-Agent-Application] not found.\nPlease refer to `examples/ticketing-agent-app/README.md` for creation.")
+    st.error(
+        f"Application [Sample-Ticketing-Agent-Application] not found.\nPlease refer to `examples/ticketing-agent-app/README.md` for creation.")
