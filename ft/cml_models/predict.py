@@ -11,7 +11,7 @@ class SingletonModelFetcher:
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            cls._instance.initialize_model()
+            # cls._instance.initialize_model() <--- just force a direct call to initialize_model() for now
         return cls._instance
 
     def initialize_model(self, base_model_name, peft_model_name):
@@ -22,7 +22,7 @@ class SingletonModelFetcher:
 
 
 modelFetcher = SingletonModelFetcher()
-model, tokenizer = modelFetcher.initialize_model("huggingface/gpt2", "adapter/gpt2-ticketing")
+model, tokenizer = modelFetcher.initialize_model("bigscience/bloom-1b1", "data/adapters/bloom-1b-ticketing")
 
 
 def opt_args_value(args, arg_name, default):
@@ -57,3 +57,7 @@ def api_wrapper(args):
     num_beams = int(opt_args_value(args, "num_beams", 1))
 
     return generate(prompt, max_new_tokens, temperature, repetition_penalty, num_beams, top_p, top_k)
+
+
+if __name__ == "__main__":
+    print("hello")

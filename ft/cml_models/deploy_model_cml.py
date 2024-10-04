@@ -49,7 +49,12 @@ def deploy_model():
         raise Exception.exit(1)
     print("model built successfully!")
     model_deployment_body = cmlapi.CreateModelDeploymentRequest(
-        project_id=project.id, model_id=model.id, build_id=model_build.id)
+        project_id=project.id,
+        model_id=model.id,
+        build_id=model_build.id,
+        cpu=2,
+        memory=8,
+        nvidia_gpus=1)
     model_deployment = client.create_model_deployment(model_deployment_body, project.id, model.id, model_build.id)
     while model_deployment.status not in ["stopped", "failed", "deployed"]:
         print("waiting for model to deploy...")
