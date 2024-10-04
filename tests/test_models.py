@@ -129,7 +129,7 @@ class TestModelExports(unittest.TestCase):
     @patch("ft.models._export_model_registry_model")
     def test_export_model_type_registry(self, export_to_registry):
         request: ExportModelRequest = ExportModelRequest(
-            type=ModelType.MODEL_REGISTRY,
+            type=ModelExportType.MODEL_REGISTRY,
             model_id="id1"
         )
         response = export_model(request, None, None)
@@ -138,7 +138,7 @@ class TestModelExports(unittest.TestCase):
     @patch("ft.models._export_and_deploy_cml_model")
     def test_export_model_type_cml(self, export_to_cml):
         request: ExportModelRequest = ExportModelRequest(
-            type=ModelType.CML_MODEL,
+            type=ModelExportType.CML_MODEL,
             model_id="id1"
         )
         response = export_model(request, None, None)

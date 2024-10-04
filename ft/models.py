@@ -198,9 +198,9 @@ def export_model(request: ExportModelRequest, cml: CMLServiceApi = None,
     Export model outside of Fine Tuning Studio.
     """
 
-    if request.type == ModelType.MODEL_REGISTRY:
+    if request.type == ModelExportType.MODEL_REGISTRY:
         return _export_model_registry_model(request, cml, dao)
-    elif request.type == ModelType.CML_MODEL:
+    elif request.type == ModelExportType.CML_MODEL:
         return _export_and_deploy_cml_model(request, cml, dao)
     else:
         raise ValueError(f"Model export of type '{request.type}' is not supported.")

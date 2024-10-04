@@ -6,8 +6,8 @@ from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.consts import IconPaths, DIVIDER_COLOR
 
 MODEL_EXPORT_TYPE_MAP = {
-    "CML Model": ModelType.CML_MODEL,
-    "Model Registry": ModelType.MODEL_REGISTRY
+    "CML Model": ModelExportType.CML_MODEL,
+    "Model Registry": ModelExportType.MODEL_REGISTRY
 }
 
 # Instantiate the client to the FTS gRPC app server.
