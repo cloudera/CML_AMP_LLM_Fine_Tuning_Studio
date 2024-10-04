@@ -70,7 +70,7 @@ with st.container(border=True):
     # Start job button
     button_enabled = model_idx is not None and adapter_idx is not None and registered_model_name != ""
     start_job_button = st.button(
-        "Register Model to CML Model Registry",
+        "Export Model",
         type="primary",
         use_container_width=True,
         disabled=not button_enabled)
