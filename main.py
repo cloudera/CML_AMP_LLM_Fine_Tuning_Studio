@@ -46,7 +46,7 @@ def setup_navigation():
         st.Page("pgs/evaluate.py", title="Local Adapter Comparison"),
         st.Page("pgs/mlflow.py", title="Run MLFlow Evaluation"),
         st.Page("pgs/mlflow_jobs.py", title="View MLflow Runs"),
-        st.Page("pgs/export.py", title="Export to CML Model Registry"),
+        st.Page("pgs/export.py", title="Export Model"),
         st.Page("pgs/sample_ticketing_agent_app_embed.py", title="Sample Ticketing Agent App"),
         # st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),
     ], position="hidden")
@@ -81,7 +81,7 @@ def setup_sidebar():
         st.write("\n")
 
         st.markdown("CML")
-        st.page_link("pgs/export.py", label="Export to CML Model Registry", icon=":material/move_group:")
+        st.page_link("pgs/export.py", label="Export Model", icon=":material/move_group:")
         # st.page_link("pgs/deploy.py", label="Deploy to Cloudera AI Inference", icon=":material/deployed_code:")
         st.write("\n")
 

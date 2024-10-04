@@ -5,7 +5,7 @@ import requests
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.utils import format_status_with_icon
-from ft.consts import IconPaths, DIVIDER_COLOR
+from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_ADAPTER_ID, USER_DEFINED_IDENTIFIER, EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -75,17 +75,14 @@ def display_jobs_list():
             st.rerun(scope="fragment")
 
     # delete_button = col2.button("Delete Jobs", type="primary", use_container_width=True)
-
     try:
         jobs_df = pd.DataFrame([MessageToDict(res, preserving_proto_field_name=True) for res in current_jobs])
     except Exception as e:
         st.error(f"Error converting jobs to DataFrame: {e}")
         jobs_df = pd.DataFrame()
-
     if 'cml_job_id' not in jobs_df.columns:
         st.error("Column 'cml_job_id' not found in jobs_df")
         return
-
     cml_jobs_list_df = fetch_api_jobs()
 
     if 'public_identifier' not in cml_jobs_list_df.columns:
@@ -106,6 +103,7 @@ def display_jobs_list():
     display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)
 
     columns_we_care_about = [
+        'parent_job_id',
         'id',
         'html_url',
         'latest',
@@ -123,6 +121,7 @@ def display_jobs_list():
     display_df = display_df[columns_we_care_about]
 
     display_df.rename(columns={
+        'parent_job_id': 'Parent Job ID',
         'id': 'Job ID',
         'base_model_name': 'Model Name',
         'dataset_name': 'Dataset Name',
@@ -143,9 +142,10 @@ def display_jobs_list():
 
     # Data editor for job table
     edited_df = st.data_editor(
-        display_df[["Job ID", "status_with_icon", "created_at",
+        display_df[["Parent Job ID", "Job ID", "status_with_icon", "created_at",
                     "html_url", "Model Name", "Adapter Name", "Dataset Name", "Prompt Name"]],
         column_config={
+            "Parent Job ID": st.column_config.TextColumn("Parent Job ID"),
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
                 "Status",
@@ -197,34 +197,82 @@ def display_jobs_list():
 
 
 def display_mlflow_runs():
-    current_jobs, _, _, _, _ = fetch_job_data()
+    current_jobs, model_dict, adapter_dict, dataset_dict, _ = fetch_job_data()
     if not current_jobs:
         st.info("No MLflow jobs triggered.", icon=":material/info:")
         return
 
-    job_ids = [job.id for job in current_jobs]
-    selected_job_id = st.selectbox('Select Job ID', job_ids, index=0)
+    parent_job_ids = list(set([job.parent_job_id for job in current_jobs]))
+    selected_parent_job_id = st.selectbox('Select Parent Job ID', parent_job_ids, index=0)
 
     st.write("\n")
     st.caption("**Evaluation Results**")
+    selected_jobs = [job for job in current_jobs if job.parent_job_id == selected_parent_job_id]
 
-    selected_job = next((job for job in current_jobs if job.id == selected_job_id), None)
-
-    if selected_job:
-        aggregated_file_path = os.path.join(selected_job.evaluation_dir, "aggregregated_results.csv")
-        if os.path.exists(aggregated_file_path):
+    if selected_jobs is not None:
+        st.write("\n")
+        st.write(f"Dataset used : {dataset_dict[selected_jobs[0].dataset_id]}")
+        all_aggreated_paths = []
+        for selected_job in selected_jobs:
+            aggregated_file_path = os.path.join(selected_job.evaluation_dir, "aggregregated_results.csv")
+            csv_file_path = os.path.join(selected_job.evaluation_dir, 'result_evaluation.csv')
+            all_aggreated_paths.append({"aggregated_csv": aggregated_file_path, "row_wise_csv": csv_file_path,
+                                        "model_name": model_dict[selected_job.base_model_id],
+                                        "adapter_name": adapter_dict[selected_job.adapter_id] if selected_job.adapter_id != BASE_MODEL_ONLY_ADAPTER_ID else ""})
+        final_df = None
+        for idx, all_aggreated_path in enumerate(all_aggreated_paths):
+            evaluation_name = f"{all_aggreated_path['model_name']}"
+            if all_aggreated_path['adapter_name']:
+                evaluation_name += f" + {all_aggreated_path['adapter_name']}"
+            if os.path.exists(all_aggreated_path['aggregated_csv']):
+                df_ar = pd.read_csv(all_aggreated_path['aggregated_csv'])
+                # st.data_editor(df_ar)
+                df_ar.columns = ["metric", evaluation_name]
+                if final_df is None:
+                    final_df = df_ar
+                else:
+                    final_df = pd.merge(final_df, df_ar, on="metric")
+        if final_df is not None:
             st.write("\n")
             st.caption("**Aggregated Results**")
-            df_ar = pd.read_csv(aggregated_file_path)
-            st.data_editor(df_ar)
-
-        csv_file_path = os.path.join(selected_job.evaluation_dir, 'result_evaluation.csv')
-        if os.path.exists(csv_file_path):
+            st.data_editor(final_df, hide_index=True)
             st.write("\n")
             st.caption("**Row Wise Results**")
-            df = pd.read_csv(csv_file_path)
-            st.data_editor(df, hide_index=True)
-        else:
+        non_metric_columns = [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]
+        flag = False
+        final_df = None
+        for all_aggreated_path in all_aggreated_paths:
+            evaluation_name = f"{all_aggreated_path['model_name']}"
+            if all_aggreated_path['adapter_name']:
+                evaluation_name += f" + {all_aggreated_path['adapter_name']}"
+            csv_file_path = all_aggreated_path.get("row_wise_csv")
+            if csv_file_path and os.path.exists(csv_file_path):
+                df = pd.read_csv(csv_file_path)
+                if not flag:
+                    for col in list(df.columns):
+                        if USER_DEFINED_IDENTIFIER in col:
+                            non_metric_columns.append(col.split(USER_DEFINED_IDENTIFIER)[0])
+                    flag = True
+                col_map = {}
+                for col in list(df.columns):
+                    target_col = col.split(USER_DEFINED_IDENTIFIER)[0]
+                    if target_col in non_metric_columns:
+                        col_map[col] = target_col
+                    else:
+                        col_map[col] = col + "\n" + " " + evaluation_name
+                df.rename(columns=col_map, inplace=True)
+                if final_df is None:
+                    final_df = df
+                else:
+                    final_df = pd.merge(final_df, df, on=non_metric_columns)
+        st.data_editor(final_df, hide_index=True)
+
+        # if os.path.exists(csv_file_path):
+        #     st.write("\n")
+        #     st.caption("**Row Wise Results**")
+        #     df = pd.read_csv(csv_file_path)
+        #     st.data_editor(df, hide_index=True)
+        if final_df is None:
             st.info("Evaluation report not available yet. Please wait for MLflow run to complete.", icon=':material/info:')
     else:
         st.error("Selected job not found.")

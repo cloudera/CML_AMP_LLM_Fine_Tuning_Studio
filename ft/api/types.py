@@ -62,6 +62,11 @@ class ModelType(str, Enum):
     MODEL_REGISTRY = "model_registry"
 
 
+class ModelExportType(str, Enum):
+    MODEL_REGISTRY = "model_registry"
+    CML_MODEL = "cml_model"
+
+
 class ModelFrameworkType(str, Enum):
     PYTORCH = "pytorch"
     TENSORFLOW = "tensorflow"
