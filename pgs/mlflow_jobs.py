@@ -226,7 +226,7 @@ def display_mlflow_runs():
                 evaluation_name += f" + {all_aggreated_path['adapter_name']}"
             if os.path.exists(all_aggreated_path['aggregated_csv']):
                 df_ar = pd.read_csv(all_aggreated_path['aggregated_csv'])
-                #st.data_editor(df_ar)
+                # st.data_editor(df_ar)
                 df_ar.columns = ["metric", evaluation_name]
                 if final_df is None:
                     final_df = df_ar

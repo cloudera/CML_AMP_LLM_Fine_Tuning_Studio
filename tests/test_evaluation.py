@@ -11,7 +11,7 @@ from ft.evaluation import (
 
 from ft.api import *
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import EvaluationJob
+from ft.db.model import EvaluationJob, Dataset
 
 
 class MockCMLCreatedJob:
@@ -71,9 +71,13 @@ def test_start_evaluation_job_missing_required_fields():
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
     request = StartEvaluationJobRequest(
-        base_model_id="model-id",
+        model_adapter_combinations=[
+            EvaluationJobModelCombination(
+                base_model_id="model-id",
+                adapter_id="adapter-id"
+            )
+        ],
         dataset_id="dataset-id",
-        adapter_id="adapter-id",
         prompt_id="",  # Required field is empty
         adapter_bnb_config_id="",  # Required field is empty
         model_bnb_config_id="model_bnb_config_id",
@@ -95,10 +99,19 @@ def test_start_evaluation_job_missing_references(uuid4_mock):
 
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
+    # Dataset existence is validated before model/adapter existence, so we need
+    # to populate the dataset
+    with test_dao.get_session() as session:
+        session.add(Dataset(id="dataset-id"))
+
     request = StartEvaluationJobRequest(
-        base_model_id="non_existent_model_id",
+        model_adapter_combinations=[
+            EvaluationJobModelCombination(
+                base_model_id="non_existent_model_id",
+                adapter_id="adapter-id"
+            )
+        ],
         dataset_id="dataset-id",
-        adapter_id="adapter-id",
         prompt_id="prompt-id",
         adapter_bnb_config_id="adapter_bnb_config_id",
         model_bnb_config_id="model_bnb_config_id",
