@@ -85,6 +85,19 @@ tasks:
     environment:
       TASK_TYPE: CREATE/RUN_JOB
 
+  - type: create_job
+    name: CML_Export_Base_Job
+    short_summary: Create Template Job for exporting model to cml models
+    entity_label: cml_export_job_template
+    script: ft/scripts/cml_export_base_script.py
+    arguments: None
+    long_summary: Create Template Job for exporting model to cml models. This job is used as the template for creating and launching cml models export job for the application.
+    cpu: 2
+    memory: 8
+    gpu: 1
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+
   - type: run_session
     name: Initialize Project Defaults
     script: bin/initialize-project-defaults.py

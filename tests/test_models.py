@@ -130,7 +130,7 @@ class TestModelExports(unittest.TestCase):
     def test_export_model_type_registry(self, export_to_registry):
         request: ExportModelRequest = ExportModelRequest(
             type=ModelExportType.MODEL_REGISTRY,
-            model_id="id1"
+            base_model_id="id1"
         )
         response = export_model(request, None, None)
         export_to_registry.assert_called_once()
@@ -139,7 +139,7 @@ class TestModelExports(unittest.TestCase):
     def test_export_model_type_cml(self, export_to_cml):
         request: ExportModelRequest = ExportModelRequest(
             type=ModelExportType.CML_MODEL,
-            model_id="id1"
+            base_model_id="id1"
         )
         response = export_model(request, None, None)
         export_to_cml.assert_called_once()
@@ -147,7 +147,7 @@ class TestModelExports(unittest.TestCase):
     def test_export_model_type_not_supported(self):
         request: ExportModelRequest = ExportModelRequest(
             type="bad_type",
-            model_id="id1"
+            base_model_id="id1"
         )
 
         with self.assertRaises(ValueError) as context:

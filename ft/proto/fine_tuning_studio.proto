@@ -168,7 +168,7 @@ message ExportModelRequest {
   string type = 1; 
 
   // Model ID that should be exported
-  string model_id = 2;
+  string base_model_id = 2;
 
   // Trained adapter that is to also be
   // exported (optional). Depending on the model
@@ -197,7 +197,11 @@ message ExportModelResponse {
   // the FTS app. For this reason, the ModelMetadata object
   // can be used to store this information.
   ModelMetadata model = 1;
+  string base_model_id = 2;
+  string adapter_id = 3;
+
 }
+
 message RemoveModelRequest {
   string id = 1;
 }

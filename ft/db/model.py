@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Double
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Double, Boolean
 from sqlalchemy.orm import declarative_base
 from google.protobuf.message import Message
 from sqlalchemy.inspection import inspect
@@ -175,6 +175,17 @@ class EvaluationJob(Base, MappedProtobuf, MappedDict):
     model_bnb_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     adapter_bnb_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     generation_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
+
+
+class ExportJob(Base, MappedProtobuf, MappedDict):
+    __tablename__ = "export_jobs"
+    id = Column(String, primary_key=True, nullable=False)
+    type = Column(String, nullable=True)
+    cml_job_id = Column(String, nullable=True)
+    base_model_id = Column(String, ForeignKey('models.id'), nullable=True)
+    adapter_id = Column(String, ForeignKey('adapters.id'), nullable=True)
+    model_name = Column(String, nullable=True)
+    status = Column(Boolean, default=False)
 
 
 class Config(Base, MappedProtobuf, MappedDict):

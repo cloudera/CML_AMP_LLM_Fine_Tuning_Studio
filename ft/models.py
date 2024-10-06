@@ -4,6 +4,7 @@ from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata, CMLServiceApi
 from ft.pipeline import fetch_pipeline
+from ft.cml_model_export import start_cml_export_job
 import mlflow
 from transformers import GenerationConfig
 
@@ -143,7 +144,7 @@ def _export_model_registry_model(request: ExportModelRequest, cml: CMLServiceApi
 
     pipeline = None
     with dao.get_session() as session:
-        model: Model = session.query(Model).where(Model.id == request.model_id).one()
+        model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
         assert model.type == ModelType.HUGGINGFACE
 
         # For now, require adapter.
@@ -188,7 +189,7 @@ def _export_and_deploy_cml_model(request: ExportModelRequest, cml: CMLServiceApi
     Stub for exporting and deploying to CML models.
     TODO: call application logic from here
     """
-
+    response = start_cml_export_job(request, cml, dao)
     return ExportModelResponse()
 
 

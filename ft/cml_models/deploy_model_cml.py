@@ -2,6 +2,7 @@ import cmlapi
 import os
 import time
 from cmlapi import CMLServiceApi
+from ft.client import FineTuningStudioClient
 
 FILEPATH = "ft/cml_models/predict.py"
 
@@ -24,12 +25,18 @@ def get_inference_runtime_identifier(cml: CMLServiceApi) -> str:
     return template_job.runtime_identifier
 
 
-def deploy_model():
+def deploy_model(
+        model_name: str,
+        model_description: str,
+        base_model_id: str,
+        adapter_id: str,
+        fts: FineTuningStudioClient):
     print("Deploying")
     project_id = os.getenv("CDSW_PROJECT_ID")
+    # TODO: using base_model_id and adapter_id, override the prediction script.
     client = cmlapi.default_client()
     project: cmlapi.Project = client.get_project(project_id)
-    model_body = cmlapi.CreateModelRequest(project_id=project.id, name="Demo Model", description="A simple model")
+    model_body = cmlapi.CreateModelRequest(project_id=project.id, name=model_name, description=model_description)
     model = client.create_model(model_body, project.id)
     model_build_body = cmlapi.CreateModelBuildRequest(
         project_id=project.id,
@@ -63,6 +70,7 @@ def deploy_model():
     if model_deployment.status != "deployed":
         raise Exception("model deployment failed, see UI for more information")
     print("model deployed successfully!")
+    return True
 
 
 if __name__ == "__main__":
