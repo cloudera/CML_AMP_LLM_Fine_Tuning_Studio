@@ -152,8 +152,4 @@ def display_jobs_list():
 
 display_page_header()
 
-
-tab1 = st.tabs(["**CML Models Export Jobs List**"])
-
-with tab1:
-    display_jobs_list()
+display_jobs_list()

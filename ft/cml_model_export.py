@@ -40,7 +40,7 @@ from ft.db.model import ExportJob, Adapter, Model
 def _validate_start_evaluation_job_request(request: ExportModelRequest, dao: FineTuningStudioDao) -> None:
     # Check for required fields in StartEvaluationJobRequest
     required_fields = [
-        "type", "model_id", "adapter_id", "model_name"
+        "type", "base_model_id", "adapter_id", "model_name"
     ]
 
     for field in required_fields:
@@ -49,7 +49,7 @@ def _validate_start_evaluation_job_request(request: ExportModelRequest, dao: Fin
 
     # Ensure certain string fields are not empty after stripping out spaces
     string_fields = [
-        "type", "model_id", "adapter_id", "model_name"
+        "type", "base_model_id", "adapter_id", "model_name"
     ]
 
     for field in string_fields:
@@ -64,7 +64,7 @@ def _validate_start_evaluation_job_request(request: ExportModelRequest, dao: Fin
     # Check if the referenced base_model_id exists in the database
     with dao.get_session() as session:
 
-        base_model_id = request.model_id
+        base_model_id = request.base_model_id
         adapter_id = request.adapter_id
         if not session.query(Model).filter_by(id=base_model_id.strip()).first():
             raise ValueError(f"Model with ID '{base_model_id}' does not exist.")
