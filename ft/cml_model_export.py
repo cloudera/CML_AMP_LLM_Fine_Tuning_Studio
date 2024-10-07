@@ -63,6 +63,9 @@ def _validate_start_evaluation_job_request(request: ExportModelRequest, dao: Fin
 
     # Check if the referenced base_model_id exists in the database
     with dao.get_session() as session:
+        # check if the model_name is already present in Export Job table. if yes raise ValueError
+        if session.query(ExportJob).filter_by(model_name=request.model_name.strip()).first():
+            raise ValueError(f"Export job with name '{request.model_name}' already exists.")
 
         base_model_id = request.base_model_id
         adapter_id = request.adapter_id
@@ -88,7 +91,7 @@ def update_export_job_status(id, job_status, dao: FineTuningStudioDao = None):
         if not job:
             raise ValueError(f"Export job with ID '{id}' does not exist.")
 
-        job.status = job_status
+        job.status = str(job_status)
         session.commit()
 
 
@@ -168,7 +171,7 @@ def start_cml_export_job(request: ExportModelRequest,
     with dao.get_session() as session:
         export_job: ExportJob = ExportJob(
             id=job_id,
-            type=ModelExportType.CML_MODEL,
+            type=str(ModelExportType.CML_MODEL),
             base_model_id=request.base_model_id,
             adapter_id=request.adapter_id,
             cml_job_id=created_job.id,

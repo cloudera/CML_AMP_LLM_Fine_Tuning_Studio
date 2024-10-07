@@ -186,7 +186,7 @@ class ExportJob(Base, MappedProtobuf, MappedDict):
     base_model_id = Column(String, ForeignKey('models.id'), nullable=True)
     adapter_id = Column(String, ForeignKey('adapters.id'), nullable=True)
     model_name = Column(String, nullable=True)
-    status = Column(String, default=DeploymentStates.STARTED, nullable=True)
+    status = Column(String, default=str(DeploymentStates.STARTED), nullable=True)
 
 
 class Config(Base, MappedProtobuf, MappedDict):
