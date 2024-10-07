@@ -1,5 +1,6 @@
 from ft.eval.mlflow_pyfunc import MLFlowTransformers
 import torch
+import os 
 
 mlt = MLFlowTransformers()
 
@@ -20,9 +21,12 @@ class SingletonModelFetcher:
         model, tokenizer = mlt.get_peft_model_and_tokenizer(base_model_name, peft_model_name)
         return model, tokenizer
 
+print("fetching model and adapter parameters from environment...")
+base_model_hf_name = os.getenv("FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME")
+adapter_location = os.getenv("FINE_TUNING_STUDIO_ADAPTER_LOCATION")
 
 modelFetcher = SingletonModelFetcher()
-model, tokenizer = modelFetcher.initialize_model("bigscience/bloom-1b1", "data/adapters/bloom-1b-ticketing")
+model, tokenizer = modelFetcher.initialize_model(base_model_hf_name, adapter_location)
 
 
 def opt_args_value(args, arg_name, default):

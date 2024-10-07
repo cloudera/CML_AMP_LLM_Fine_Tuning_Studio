@@ -119,15 +119,26 @@ def start_cml_export_job(request: ExportModelRequest,
     )
 
     arg_list = []
-
+    
+    # CML model export requires a HF model and a project-specific adapter.
+    base_model_hf_name = None
+    adapter_location = None 
+    with dao.get_session() as session:
+        model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
+        adapter: Adapter = session.query(Adapter).where(Adapter.id == request.adapter_id).one()
+        assert model.type == ModelType.HUGGINGFACE
+        assert adapter.type == AdapterType.PROJECT
+        base_model_hf_name = model.huggingface_model_name
+        adapter_location = adapter.location 
+        
     arg_list.append("--id")
     arg_list.append(job_id)
 
-    arg_list.append("--base_model_id")
-    arg_list.append(request.base_model_id)
+    arg_list.append("--base_model_hf_name")
+    arg_list.append(base_model_hf_name)
 
-    arg_list.append("--adapter_id")
-    arg_list.append(request.adapter_id)
+    arg_list.append("--adapter_location")
+    arg_list.append(adapter_location)
 
     arg_list.append("--model_name")
     arg_list.append(request.model_name)

@@ -28,8 +28,8 @@ def get_inference_runtime_identifier(cml: CMLServiceApi) -> str:
 def deploy_model(
         model_name: str,
         model_description: str,
-        base_model_id: str,
-        adapter_id: str,
+        base_model_hf_name: str,
+        adapter_location: str,
         fts: FineTuningStudioClient):
     print("Deploying")
     project_id = os.getenv("CDSW_PROJECT_ID")
@@ -61,7 +61,11 @@ def deploy_model(
         build_id=model_build.id,
         cpu=2,
         memory=8,
-        nvidia_gpus=1)
+        nvidia_gpus=1,
+        environment = {
+            "FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME": base_model_hf_name,
+            "FINE_TUNING_STUDIO_ADAPTER_LOCATION": adapter_location
+        })
     model_deployment = client.create_model_deployment(model_deployment_body, project.id, model.id, model_build.id)
     while model_deployment.status not in ["stopped", "failed", "deployed"]:
         print("waiting for model to deploy...")

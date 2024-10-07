@@ -14,8 +14,8 @@ arg_string = os.environ.get('JOB_ARGUMENTS', '')
 parser = argparse.ArgumentParser()
 
 parser.add_argument("--id", help="Identifier for the primary key in the export jobs table", default=None)
-parser.add_argument("--base_model_id", help="Base model ID to use.", default=None)
-parser.add_argument("--adapter_id", help="Adapter ID to use", default=None)
+parser.add_argument("--base_model_hf_name", help="Base model huggingface name.", default=None)
+parser.add_argument("--adapter_location", help="Adapter location", default=None)
 parser.add_argument("--model_name", help="Name of the model to be exported in CML", default=None)
 parser.add_argument("--model_description", help="Description of the model to be exported in CML", default=None)
 
@@ -26,8 +26,8 @@ client: FineTuningStudioClient = FineTuningStudioClient()
 try:
     # Deploy the model
     success = deploy_model(
-        base_model_id=args.base_model_id,
-        adapter_id=args.adapter_id,
+        base_model_hf_name=args.base_model_hf_name,
+        adapter_location=args.adapter_location,
         model_name=args.model_name,
         model_description=args.model_description,
         fts=client
