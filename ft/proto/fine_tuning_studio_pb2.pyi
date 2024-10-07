@@ -177,6 +177,43 @@ class ExportModelResponse(_message.Message):
                  base_model_id: _Optional[str] = ..., adapter_id: _Optional[str] = ...) -> None: ...
 
 
+class ListExportJobsRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ExportJobMetadata(_message.Message):
+    __slots__ = ("model_id", "adapter_id", "status", "model_name", "model_description", "cml_job_id")
+    MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
+    MODEL_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    model_id: str
+    adapter_id: str
+    status: str
+    model_name: str
+    model_description: str
+    cml_job_id: str
+
+    def __init__(
+        self,
+        model_id: _Optional[str] = ...,
+        adapter_id: _Optional[str] = ...,
+        status: _Optional[str] = ...,
+        model_name: _Optional[str] = ...,
+        model_description: _Optional[str] = ...,
+        cml_job_id: _Optional[str] = ...) -> None: ...
+
+
+class ListExportJobsResponse(_message.Message):
+    __slots__ = ("export_jobs",)
+    EXPORT_JOBS_FIELD_NUMBER: _ClassVar[int]
+    export_jobs: _containers.RepeatedCompositeFieldContainer[ExportJobMetadata]
+    def __init__(self, export_jobs: _Optional[_Iterable[_Union[ExportJobMetadata, _Mapping]]] = ...) -> None: ...
+
+
 class RemoveModelRequest(_message.Message):
     __slots__ = ("id",)
     ID_FIELD_NUMBER: _ClassVar[int]

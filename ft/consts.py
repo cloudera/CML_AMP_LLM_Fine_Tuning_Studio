@@ -1,3 +1,4 @@
+import enum
 HF_LOGO = "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.png"
 DEFAULT_FTS_GRPC_PORT = "50051"
 AXOLOTL_DATASET_FORMAT_CONFIGS_FOLDER_PATH = "ft/config/axolotl/dataset_formats"
@@ -63,3 +64,10 @@ class IconPaths:
     class CML:
         EXPORT_TO_CML_MODEL_REGISTRY = f"{BASE_DIR}/move_group.png"
         PROJECT_OWNER = f"{BASE_DIR}/account_circle.png"
+        VIEW_EXPORT_JOBS = f"{BASE_DIR}/monitoring.png"
+
+
+class DeploymentStates(enum.Enum):
+    STARTED = "started"
+    FAILED = "failed"
+    SUCCESS = "success"

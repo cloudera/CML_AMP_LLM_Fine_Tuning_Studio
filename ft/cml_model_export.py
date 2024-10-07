@@ -79,6 +79,19 @@ def _validate_start_evaluation_job_request(request: ExportModelRequest, dao: Fin
     # TODO: check if model_name exists in the database. This is necessary due to CML models constraints
 
 
+def update_export_job_status(id, job_status, dao: FineTuningStudioDao = None):
+    """
+    Update the status of a export job in the database.
+    """
+    with dao.get_session() as session:
+        job = session.query(ExportJob).filter_by(id=id).first()
+        if not job:
+            raise ValueError(f"Export job with ID '{id}' does not exist.")
+
+        job.status = job_status
+        session.commit()
+
+
 def start_cml_export_job(request: ExportModelRequest,
                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ExportModelResponse:
     """
@@ -103,6 +116,9 @@ def start_cml_export_job(request: ExportModelRequest,
     )
 
     arg_list = []
+
+    arg_list.append("--id")
+    arg_list.append(job_id)
 
     arg_list.append("--base_model_id")
     arg_list.append(request.base_model_id)

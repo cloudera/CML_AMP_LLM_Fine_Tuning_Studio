@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, Double, Boolean
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, Double
 from sqlalchemy.orm import declarative_base
 from google.protobuf.message import Message
 from sqlalchemy.inspection import inspect
+from ft.consts import DeploymentStates
 
 
 # Define the declarative base
@@ -185,7 +186,7 @@ class ExportJob(Base, MappedProtobuf, MappedDict):
     base_model_id = Column(String, ForeignKey('models.id'), nullable=True)
     adapter_id = Column(String, ForeignKey('adapters.id'), nullable=True)
     model_name = Column(String, nullable=True)
-    status = Column(Boolean, default=False)
+    status = Column(String, default=DeploymentStates.STARTED, nullable=True)
 
 
 class Config(Base, MappedProtobuf, MappedDict):

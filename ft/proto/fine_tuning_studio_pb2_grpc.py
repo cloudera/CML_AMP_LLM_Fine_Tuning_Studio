@@ -96,6 +96,11 @@ class FineTuningStudioStub(object):
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelRequest.SerializeToString,
             response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelResponse.FromString,
             _registered_method=True)
+        self.ListExportJobs = channel.unary_unary(
+            '/fine_tuning_studio.FineTuningStudio/ListExportJobs',
+            request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListExportJobsRequest.SerializeToString,
+            response_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListExportJobsResponse.FromString,
+            _registered_method=True)
         self.ListAdapters = channel.unary_unary(
             '/fine_tuning_studio.FineTuningStudio/ListAdapters',
             request_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListAdaptersRequest.SerializeToString,
@@ -265,6 +270,12 @@ class FineTuningStudioServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def RemoveModel(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListExportJobs(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -447,6 +458,11 @@ def add_FineTuningStudioServicer_to_server(servicer, server):
             servicer.RemoveModel,
             request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelRequest.FromString,
             response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelResponse.SerializeToString,
+        ),
+        'ListExportJobs': grpc.unary_unary_rpc_method_handler(
+            servicer.ListExportJobs,
+            request_deserializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListExportJobsRequest.FromString,
+            response_serializer=ft_dot_proto_dot_fine__tuning__studio__pb2.ListExportJobsResponse.SerializeToString,
         ),
         'ListAdapters': grpc.unary_unary_rpc_method_handler(
             servicer.ListAdapters,
@@ -827,6 +843,33 @@ class FineTuningStudio(object):
             '/fine_tuning_studio.FineTuningStudio/RemoveModel',
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelRequest.SerializeToString,
             ft_dot_proto_dot_fine__tuning__studio__pb2.RemoveModelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListExportJobs(request,
+                       target,
+                       options=(),
+                       channel_credentials=None,
+                       call_credentials=None,
+                       insecure=False,
+                       compression=None,
+                       wait_for_ready=None,
+                       timeout=None,
+                       metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fine_tuning_studio.FineTuningStudio/ListExportJobs',
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListExportJobsRequest.SerializeToString,
+            ft_dot_proto_dot_fine__tuning__studio__pb2.ListExportJobsResponse.FromString,
             options,
             channel_credentials,
             insecure,

@@ -64,3 +64,6 @@ class FineTuningStudioClient:
 
     def get_evaluation_jobs(self) -> List[EvaluationJobMetadata]:
         return self.ListEvaluationJobs(ListEvaluationJobsRequest()).evaluation_jobs
+
+    def get_export_jobs(self) -> List[ExportJobMetadata]:
+        return self.ListExportJobs(ListExportJobsRequest()).export_jobs

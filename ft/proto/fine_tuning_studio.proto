@@ -38,12 +38,14 @@ service FineTuningStudio {
   rpc AddModel (AddModelRequest) returns (AddModelResponse) {}
   rpc ExportModel (ExportModelRequest) returns (ExportModelResponse) {}
   rpc RemoveModel (RemoveModelRequest) returns (RemoveModelResponse) {}
+  rpc ListExportJobs (ListExportJobsRequest) returns (ListExportJobsResponse) {}
 
   // Model adapter operations
   rpc ListAdapters (ListAdaptersRequest) returns (ListAdaptersResponse) {}
   rpc GetAdapter (GetAdapterRequest) returns (GetAdapterResponse) {}
   rpc AddAdapter (AddAdapterRequest) returns (AddAdapterResponse) {}
   rpc RemoveAdapter (RemoveAdapterRequest) returns (RemoveAdapterResponse) {}
+
   
   // Prompt operations
   rpc ListPrompts (ListPromptsRequest) returns (ListPromptsResponse) {}
@@ -200,6 +202,23 @@ message ExportModelResponse {
   string base_model_id = 2;
   string adapter_id = 3;
 
+}
+
+message ListExportJobsRequest{
+
+}
+
+message ExportJobMetadata{
+  string model_id = 1;
+  string adapter_id = 2;
+  string status = 3;
+  string model_name = 4;
+  string model_description = 5;
+  string cml_job_id = 6;
+}
+
+message ListExportJobsResponse{
+  repeated ExportJobMetadata export_jobs = 1;
 }
 
 message RemoveModelRequest {

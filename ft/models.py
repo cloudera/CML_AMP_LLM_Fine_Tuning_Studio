@@ -12,7 +12,7 @@ from typing import List
 from sqlalchemy import delete
 
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import Model, Adapter
+from ft.db.model import Model, Adapter, ExportJob
 
 
 def list_models(request: ListModelsRequest, cml: CMLServiceApi = None,
@@ -27,6 +27,22 @@ def list_models(request: ListModelsRequest, cml: CMLServiceApi = None,
             models=list(map(
                 lambda x: x.to_protobuf(ModelMetadata),
                 models
+            ))
+        )
+
+
+def list_export_jobs(request: ListExportJobsRequest, cml: CMLServiceApi = None,
+                     dao: FineTuningStudioDao = None) -> ListExportJobsResponse:
+    """
+    List all export jobs. In the future, the request object may
+    have filtering routines, which is why this is abstracted out.
+    """
+    with dao.get_session() as session:
+        export_jobs: List[ExportJob] = session.query(ExportJob).all()
+        return ListExportJobsResponse(
+            export_jobs=list(map(
+                lambda x: x.to_protobuf(ExportJobMetadata),
+                export_jobs
             ))
         )
 

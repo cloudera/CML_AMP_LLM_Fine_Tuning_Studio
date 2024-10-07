@@ -53,7 +53,7 @@ def deploy_model(
 
     if model_build.status == "build failed":
         print("model build failed, see UI for more information")
-        raise Exception.exit(1)
+        raise Exception("model build failed, see CML models UI for more information")
     print("model built successfully!")
     model_deployment_body = cmlapi.CreateModelDeploymentRequest(
         project_id=project.id,

@@ -22,6 +22,7 @@ from ft.models import (
     add_model,
     export_model,
     remove_model,
+    list_export_jobs
 )
 
 from ft.adapters import (
@@ -184,3 +185,6 @@ class FineTuningStudioApp(FineTuningStudioServicer):
 
     def RemoveConfig(self, request, context):
         return remove_config(request, dao=self.dao)
+
+    def ListExportJobs(self, request, context):
+        return list_export_jobs(request, dao=self.dao)

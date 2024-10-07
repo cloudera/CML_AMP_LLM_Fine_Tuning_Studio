@@ -82,7 +82,7 @@ def setup_sidebar():
 
         st.markdown("CML")
         st.page_link("pgs/export.py", label="Export Model", icon=":material/move_group:")
-        # st.page_link("pgs/deploy.py", label="Deploy to Cloudera AI Inference", icon=":material/deployed_code:")
+        st.page_link("pgs/export_jobs.py", label="View CML Export Model Runs", icon=":material/deployed_code:")
         st.write("\n")
 
         st.markdown("Examples")
