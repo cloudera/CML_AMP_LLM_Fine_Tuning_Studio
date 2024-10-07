@@ -30,15 +30,15 @@ try:
         adapter_id=args.adapter_id,
         model_name=args.model_name,
         model_description=args.model_description,
-        client=client
+        fts=client
     )
     if success:
         print("Model deployed successfully in CML")
-        update_export_job_status(args.id, DeploymentStates.SUCCESS)
+        update_export_job_status(args.id, DeploymentStates.SUCCESS.name, client)
 
 
 except Exception as e:
     print(f"Error deploying model: {e}")
-    update_export_job_status(args.id, DeploymentStates.FAILED)
+    update_export_job_status(args.id, DeploymentStates.FAILED.name, client)
     # TODO: Update the status of the run as failed in the database. Check for update on nonkey
     raise e

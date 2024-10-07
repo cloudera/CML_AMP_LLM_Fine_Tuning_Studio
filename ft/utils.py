@@ -170,7 +170,10 @@ def format_status_with_icon(status):
         "running": "🔵 Running",
         "scheduling": "🟡 Scheduling",
         "failed": "🔴 Failed",
-        "Unknown": "⚪ Unknown"
+        "Unknown": "⚪ Unknown",
+        "SUCCESS": "🟢 Succeeded",
+        "FAILED": "🔴 Failed",
+        "STARTED": "🔵 Running"
     }
     return icons.get(status, f"⚪ {status.capitalize()}")
 
