@@ -4,7 +4,7 @@ from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata, CMLServiceApi
 from ft.pipeline import fetch_pipeline
-from ft.cml_model_export import start_cml_export_job, start_cml_export_async
+from ft.cml_model_export import start_cml_export_async
 import mlflow
 from transformers import GenerationConfig
 

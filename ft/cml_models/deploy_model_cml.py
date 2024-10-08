@@ -62,7 +62,7 @@ def deploy_model(
         cpu=2,
         memory=8,
         nvidia_gpus=1,
-        environment = {
+        environment={
             "FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME": base_model_hf_name,
             "FINE_TUNING_STUDIO_ADAPTER_LOCATION": adapter_location
         })
@@ -76,11 +76,12 @@ def deploy_model(
     print("model deployed successfully!")
     return True
 
+
 def deploy_model_v2(model_name: str,
-        model_description: str,
-        base_model_hf_name: str,
-        adapter_location: str,
-        fts: FineTuningStudioClient):
+                    model_description: str,
+                    base_model_hf_name: str,
+                    adapter_location: str,
+                    fts: FineTuningStudioClient):
     print("Deploying")
     project_id = os.getenv("CDSW_PROJECT_ID")
     # TODO: using base_model_id and adapter_id, override the prediction script.
@@ -88,18 +89,27 @@ def deploy_model_v2(model_name: str,
     project: cmlapi.Project = client.get_project(project_id)
     model_body = cmlapi.CreateModelRequest(project_id=project.id, name=model_name, description=model_description)
     model = client.create_model(model_body, project.id)
+    short_model_deployment = cmlapi.ShortCreateModelDeployment(
+        cpu=2,
+        memory=8,
+        nvidia_gpus=1,
+        environment={
+            "FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME": base_model_hf_name,
+            "FINE_TUNING_STUDIO_ADAPTER_LOCATION": adapter_location
+        }
+    )
     model_build_body = cmlapi.CreateModelBuildRequest(
         project_id=project.id,
         model_id=model.id,
         file_path=FILEPATH,
         function_name="api_wrapper",
         runtime_identifier=get_inference_runtime_identifier(client),
-        kernel="python3")
-    ### Tobe completed with thread. And later update status in DB
-    
-
-
-
+        kernel="python3",
+        auto_deployment_config=short_model_deployment,
+        auto_deploy_model=True)
+    # Tobe completed with thread. And later update status in DB
+    model_build_thread = client.create_model_build(model_build_body, project.id, model.id, async_req=True)
+    print("model build thread created")
 
 
 if __name__ == "__main__":

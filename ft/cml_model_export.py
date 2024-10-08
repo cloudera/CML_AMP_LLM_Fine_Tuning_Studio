@@ -96,7 +96,7 @@ def update_export_job_status(id, job_status, dao: FineTuningStudioDao = None):
 
 
 def start_cml_export_async(request: ExportModelRequest,
-                         cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ExportModelResponse:
+                           cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ExportModelResponse:
     """
     Launch a cml export async process
     """
@@ -106,15 +106,16 @@ def start_cml_export_async(request: ExportModelRequest,
     job_id = str(uuid4())
     # CML model export requires a HF model and a project-specific adapter.
     base_model_hf_name = None
-    adapter_location = None 
+    adapter_location = None
     with dao.get_session() as session:
         model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
         adapter: Adapter = session.query(Adapter).where(Adapter.id == request.adapter_id).one()
         assert model.type == ModelType.HUGGINGFACE
         assert adapter.type == AdapterType.PROJECT
         base_model_hf_name = model.huggingface_model_name
-        adapter_location = adapter.location 
-    
+        adapter_location = adapter.location
+
+    deploy_model_v2(request.model_name, request.model_description, base_model_hf_name, adapter_location)
     with dao.get_session() as session:
         export_job: ExportJob = ExportJob(
             id=job_id,
@@ -132,8 +133,6 @@ def start_cml_export_async(request: ExportModelRequest,
         )
 
     return response
-    
-
 
 
 def start_cml_export_job(request: ExportModelRequest,
@@ -161,18 +160,18 @@ def start_cml_export_job(request: ExportModelRequest,
     )
 
     arg_list = []
-    
+
     # CML model export requires a HF model and a project-specific adapter.
     base_model_hf_name = None
-    adapter_location = None 
+    adapter_location = None
     with dao.get_session() as session:
         model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
         adapter: Adapter = session.query(Adapter).where(Adapter.id == request.adapter_id).one()
         assert model.type == ModelType.HUGGINGFACE
         assert adapter.type == AdapterType.PROJECT
         base_model_hf_name = model.huggingface_model_name
-        adapter_location = adapter.location 
-        
+        adapter_location = adapter.location
+
     arg_list.append("--id")
     arg_list.append(job_id)
 

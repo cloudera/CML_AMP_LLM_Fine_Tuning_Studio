@@ -1,6 +1,6 @@
 from ft.eval.mlflow_pyfunc import MLFlowTransformers
 import torch
-import os 
+import os
 
 mlt = MLFlowTransformers()
 
@@ -20,6 +20,7 @@ class SingletonModelFetcher:
         # This assumes that the model is already trained and saved in a file
         model, tokenizer = mlt.get_peft_model_and_tokenizer(base_model_name, peft_model_name)
         return model, tokenizer
+
 
 print("fetching model and adapter parameters from environment...")
 base_model_hf_name = os.getenv("FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME")

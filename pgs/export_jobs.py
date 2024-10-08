@@ -128,7 +128,7 @@ def display_jobs_list():
     # Data editor for job table
     edited_df = st.data_editor(
         display_df[["Job ID", "status_with_icon", "created_at",
-                    "html_url", "CML Model Name","Base Model Name", "Adapter Name"]],
+                    "html_url", "CML Model Name", "Base Model Name", "Adapter Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
