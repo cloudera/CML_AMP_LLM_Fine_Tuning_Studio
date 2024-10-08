@@ -96,7 +96,7 @@ def display_jobs_list():
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     columns_we_care_about = [
         'id',
-        'model_name'
+        'model_name',
         'html_url',
         'latest',
         'base_model_name',
