@@ -183,13 +183,15 @@ class ListExportJobsRequest(_message.Message):
 
 
 class ExportJobMetadata(_message.Message):
-    __slots__ = ("base_model_id", "adapter_id", "status", "model_name", "model_description", "cml_job_id")
+    __slots__ = ("id", "base_model_id", "adapter_id", "status", "model_name", "model_description", "cml_job_id")
+    ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     MODEL_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
     base_model_id: str
     adapter_id: str
     status: str
@@ -199,6 +201,7 @@ class ExportJobMetadata(_message.Message):
 
     def __init__(
         self,
+        id: _Optional[str] = ...,
         base_model_id: _Optional[str] = ...,
         adapter_id: _Optional[str] = ...,
         status: _Optional[str] = ...,

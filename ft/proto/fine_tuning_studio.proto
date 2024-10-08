@@ -209,6 +209,7 @@ message ListExportJobsRequest{
 }
 
 message ExportJobMetadata{
+  string id = 7;
   string base_model_id = 1;
   string adapter_id = 2;
   string status = 3;

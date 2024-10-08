@@ -96,6 +96,7 @@ def display_jobs_list():
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     columns_we_care_about = [
         'id',
+        'model_name'
         'html_url',
         'latest',
         'base_model_name',
@@ -111,7 +112,8 @@ def display_jobs_list():
 
     display_df.rename(columns={
         'id': 'Job ID',
-        'base_model_name': 'Model Name',
+        'model_name': "CML Model Name",
+        'base_model_name': 'Base Model Name',
         'adapter_name': 'Adapter Name',
         'latest': 'Status'
     }, inplace=True)
@@ -126,7 +128,7 @@ def display_jobs_list():
     # Data editor for job table
     edited_df = st.data_editor(
         display_df[["Job ID", "status_with_icon", "created_at",
-                    "html_url", "Model Name", "Adapter Name"]],
+                    "html_url", "CML Model Name","Base Model Name", "Adapter Name"]],
         column_config={
             "Job ID": st.column_config.TextColumn("Job ID"),
             "status_with_icon": st.column_config.TextColumn(
@@ -136,8 +138,8 @@ def display_jobs_list():
             "html_url": st.column_config.LinkColumn(
                 "CML Job Link", display_text="Open CML Job"
             ),
-            "Model Name": st.column_config.TextColumn("Model Name"),
-            "Dataset Name": st.column_config.TextColumn("Dataset Name"),
+            "CML Model Name": st.column_config.TextColumn("CML Model Name"),
+            "Base Model Name": st.column_config.TextColumn("Base Model Name"),
             "created_at": st.column_config.DatetimeColumn(
                 "Created At",
                 format="D MMM YYYY, h:mm a",
