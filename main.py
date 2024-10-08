@@ -186,7 +186,7 @@ st.markdown("""
   <div class="dropdown">
     <a class="dropbtn" href="#" target="_self"><span class="material-icons">subscriptions</span> Examples</a>
     <div class="dropdown-content">
-      <a href="/sample_ticketing_agent_app_embed" target="_self"><span class="material-icons">deployed_code</span> Ticketing Agent App</a>
+      <a href="/sample_ticketing_agent_app_embed" target="_self"><span class="material-icons">forward</span> Ticketing Agent App</a>
     </div>
   </div>
 </nav>
