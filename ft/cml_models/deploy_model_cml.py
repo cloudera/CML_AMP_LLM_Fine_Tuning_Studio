@@ -76,6 +76,31 @@ def deploy_model(
     print("model deployed successfully!")
     return True
 
+def deploy_model_v2(model_name: str,
+        model_description: str,
+        base_model_hf_name: str,
+        adapter_location: str,
+        fts: FineTuningStudioClient):
+    print("Deploying")
+    project_id = os.getenv("CDSW_PROJECT_ID")
+    # TODO: using base_model_id and adapter_id, override the prediction script.
+    client = cmlapi.default_client()
+    project: cmlapi.Project = client.get_project(project_id)
+    model_body = cmlapi.CreateModelRequest(project_id=project.id, name=model_name, description=model_description)
+    model = client.create_model(model_body, project.id)
+    model_build_body = cmlapi.CreateModelBuildRequest(
+        project_id=project.id,
+        model_id=model.id,
+        file_path=FILEPATH,
+        function_name="api_wrapper",
+        runtime_identifier=get_inference_runtime_identifier(client),
+        kernel="python3")
+    ### Tobe completed with thread. And later update status in DB
+    
+
+
+
+
 
 if __name__ == "__main__":
     deploy_model()

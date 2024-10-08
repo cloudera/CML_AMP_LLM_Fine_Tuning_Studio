@@ -4,7 +4,7 @@ from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata, CMLServiceApi
 from ft.pipeline import fetch_pipeline
-from ft.cml_model_export import start_cml_export_job
+from ft.cml_model_export import start_cml_export_job, start_cml_export_async
 import mlflow
 from transformers import GenerationConfig
 
@@ -205,7 +205,7 @@ def _export_and_deploy_cml_model(request: ExportModelRequest, cml: CMLServiceApi
     Stub for exporting and deploying to CML models.
     TODO: call application logic from here
     """
-    response = start_cml_export_job(request, cml, dao)
+    response = start_cml_export_async(request, cml, dao)
     return ExportModelResponse()
 
 

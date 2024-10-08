@@ -3,7 +3,7 @@ import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
 import os
-
+from ft.cml_models.deploy_model_cml import deploy_model_v2
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import ExportJob, Adapter, Model
@@ -95,9 +95,51 @@ def update_export_job_status(id, job_status, dao: FineTuningStudioDao = None):
         session.commit()
 
 
+def start_cml_export_async(request: ExportModelRequest,
+                         cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ExportModelResponse:
+    """
+    Launch a cml export async process
+    """
+    _validate_start_evaluation_job_request(request, dao)
+
+    response = ExportModelResponse()
+    job_id = str(uuid4())
+    # CML model export requires a HF model and a project-specific adapter.
+    base_model_hf_name = None
+    adapter_location = None 
+    with dao.get_session() as session:
+        model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
+        adapter: Adapter = session.query(Adapter).where(Adapter.id == request.adapter_id).one()
+        assert model.type == ModelType.HUGGINGFACE
+        assert adapter.type == AdapterType.PROJECT
+        base_model_hf_name = model.huggingface_model_name
+        adapter_location = adapter.location 
+    
+    with dao.get_session() as session:
+        export_job: ExportJob = ExportJob(
+            id=job_id,
+            type=str(ModelExportType.CML_MODEL),
+            base_model_id=request.base_model_id,
+            adapter_id=request.adapter_id,
+            cml_job_id=None,
+            model_name=request.model_name,
+        )
+        session.add(export_job)
+
+        response = ExportModelResponse(
+            base_model_id=export_job.base_model_id,
+            adapter_id=export_job.adapter_id
+        )
+
+    return response
+    
+
+
+
 def start_cml_export_job(request: ExportModelRequest,
                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> ExportModelResponse:
     """
+    Deprecated
     Launch a CML Job which runs/orchestrates a finetuning operation.
     The CML Job itself does not run the finetuning work; it will launch a CML Worker(s) to allow
     more flexibility of parameters like CPU, memory, and GPU.
