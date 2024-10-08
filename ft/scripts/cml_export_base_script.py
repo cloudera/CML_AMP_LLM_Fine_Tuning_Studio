@@ -29,8 +29,7 @@ try:
         base_model_hf_name=args.base_model_hf_name,
         adapter_location=args.adapter_location,
         model_name=args.model_name,
-        model_description=args.model_description,
-        fts=client
+        model_description=args.model_description
     )
     if success:
         print("Model deployed successfully in CML")

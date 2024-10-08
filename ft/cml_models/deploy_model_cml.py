@@ -29,8 +29,7 @@ def deploy_model(
         model_name: str,
         model_description: str,
         base_model_hf_name: str,
-        adapter_location: str,
-        fts: FineTuningStudioClient):
+        adapter_location: str):
     print("Deploying")
     project_id = os.getenv("CDSW_PROJECT_ID")
     # TODO: using base_model_id and adapter_id, override the prediction script.
@@ -80,8 +79,7 @@ def deploy_model(
 def deploy_model_v2(model_name: str,
                     model_description: str,
                     base_model_hf_name: str,
-                    adapter_location: str,
-                    fts: FineTuningStudioClient):
+                    adapter_location: str):
     print("Deploying")
     project_id = os.getenv("CDSW_PROJECT_ID")
     # TODO: using base_model_id and adapter_id, override the prediction script.
