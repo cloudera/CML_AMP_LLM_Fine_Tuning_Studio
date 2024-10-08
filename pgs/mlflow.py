@@ -5,7 +5,7 @@ from typing import List
 from ft.api import *
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import json
-from ft.consts import IconPaths, DIVIDER_COLOR
+from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_IDX, BASE_MODEL_ONLY_ADAPTER_ID
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -41,53 +41,8 @@ ccol1, ccol2 = st.columns([3, 2])
 with ccol1:
     with st.container(border=True):
 
-        CURRENT_MODEL = None
-
-        current_models = fts.get_models()
-        model_idx = st.selectbox(
-            "Base Models",
-            range(len(current_models)),
-            format_func=lambda x: current_models[x].name,
-            index=None
-        )
-
-        model_adapter_idx = None
-
-        # TODO: this currently assumes HF model for local eval, but should not have to be in the future
-        if model_idx is not None:
-            current_model_metadata = current_models[model_idx]
-
-            model_adapters: List[AdapterMetadata] = fts.get_adapters()
-            model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
-
-            # Filter adapters based on their presence in the /data/adapter directory
-            model_adapters = list(filter(lambda x: os.path.isdir(os.path.join(x.location)), model_adapters))
-
-            # TODO: We should not have to load the adapters every run, this is overkill
-            with st.spinner("Loading Adapters..."):
-                for adapter in model_adapters:
-                    loc = os.path.join(adapter.location)
-                    if not loc.endswith("/"):
-                        loc += "/"
-
-            model_adapter_idx = st.selectbox(
-                "Choose an Adapter",
-                range(len(model_adapters)),
-                format_func=lambda x: model_adapters[x].name,
-                index=None
-            )
-
-            if len(model_adapters) == 0:
-                st.error(
-                    "No adapters available. Please create a fine tuning job for the selected base model to create an adapter.",
-                    icon=":material/error:")
-
-            if model_adapter_idx is not None:
-                model_adapter = model_adapters[model_adapter_idx]
-
-            # Container for dataset and prompt selection
-            col1, col2 = st.columns(2)
-
+        # Container for dataset and prompt selection
+        col1, col2 = st.columns(2)
         current_datasets = fts.get_datasets()
         dataset_idx = st.selectbox(
             "Datasets",
@@ -148,6 +103,76 @@ with ccol1:
 
             st.session_state.selected_features = selected_features or []
 
+        st.divider()
+        st.caption("**Choose Models for Evaluation**")
+        all_model_adapter_combinations = []
+        CURRENT_MODEL = None
+        NUM_GPUS = 5  # let's make it dynamic via API call to cdp
+        # currently let's try to take at max 3 model + adapter combination and dispatch them to cml jobs
+        with st.container(border=True):
+            for i in range(NUM_GPUS):
+                with st.container(border=True):
+                    current_models = fts.get_models()
+                    model_idx = st.selectbox(
+                        "Base Model",
+                        range(len(current_models)),
+                        format_func=lambda x: current_models[x].name,
+                        index=None,
+                        key=f"current_model_index_{i}"
+                    )
+
+                    model_adapter_idx = None
+                    model_adapter = None
+                    # TODO: this currently assumes HF model for local eval, but should not have to be in the future
+                    if model_idx is not None:
+                        current_model_metadata = current_models[model_idx]
+
+                        model_adapters: List[AdapterMetadata] = fts.get_adapters()
+                        model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
+
+                        # Filter adapters based on their presence in the /data/adapter directory
+                        model_adapters = list(filter(lambda x: os.path.isdir(os.path.join(x.location)), model_adapters))
+
+                        # TODO: We should not have to load the adapters every run, this is overkill
+                        with st.spinner("Loading Adapters..."):
+                            for adapter in model_adapters:
+                                loc = os.path.join(adapter.location)
+                                if not loc.endswith("/"):
+                                    loc += "/"
+
+                        only = st.toggle("Base Model Only", key=f"base_model_evaluation_only_key_{i}")
+                        if not only:
+                            model_adapter_idx = st.selectbox(
+                                "Choose an Adapter",
+                                range(len(model_adapters)),
+                                format_func=lambda x: model_adapters[x].name,
+                                index=None,
+                                key=f"current_adapter_index_{i}"
+                            )
+
+                            if len(model_adapters) == 0:
+                                st.error(
+                                    "No adapters available. Please create a fine tuning job for the selected base model to create an adapter. Or run evaluation on base model only!",
+                                    icon=":material/error:")
+
+                            if model_adapter_idx is not None:
+                                model_adapter = model_adapters[model_adapter_idx]
+                        else:
+                            model_adapter = BASE_MODEL_ONLY_IDX
+                        if {"model_idx": model_idx,
+                                "model_adapter": model_adapter} in all_model_adapter_combinations:
+                            st.warning(
+                                "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
+                if model_idx is not None and model_adapter is not None:
+                    all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter": model_adapter})
+                if i == NUM_GPUS - 1:
+                    continue
+                add = st.toggle(label="Add", key=f"add_additional_model_{i}")
+                if add:
+                    continue
+                else:
+                    break
+
         # Advanced options
         st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
@@ -179,16 +204,22 @@ with ccol1:
         st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
         gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
 
-        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter_idx is not None and prompt_idx is not None
+        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter is not None and prompt_idx is not None
 
         if button_enabled:
             with st.expander("Configs"):
                 cc1, cc2 = st.columns([1, 1])
-
+                model_idx = all_model_adapter_combinations[0]["model_idx"]
+                model_adapter = all_model_adapter_combinations[0]["model_adapter"]
+                if model_adapter is not BASE_MODEL_ONLY_IDX:
+                    adapter_id = model_adapter.id
+                else:
+                    adapter_id = BASE_MODEL_ONLY_ADAPTER_ID
                 # Extract out a BnB config and a generation config that will be used for
                 # this specific mlflow evaluation run. Right now there is no selection logic on
                 # these configs for a specific model type, but there may be in the future. For now,
                 # just use the first selected configuration for each.
+                # Just picking up the first models configuration.
                 bnb_config_text = cc1.text_area(
                     "Quantization Config",
                     json.dumps(
@@ -197,7 +228,7 @@ with ccol1:
                                 ListConfigsRequest(
                                     type=ConfigType.BITSANDBYTES_CONFIG,
                                     model_id=current_models[model_idx].id,
-                                    adapter_id=model_adapters[model_adapter_idx].id
+                                    adapter_id=adapter_id
                                 )
                             ).configs[0].config
                         ),
@@ -213,7 +244,7 @@ with ccol1:
                                 ListConfigsRequest(
                                     type=ConfigType.GENERATION_CONFIG,
                                     model_id=current_models[model_idx].id,
-                                    adapter_id=model_adapters[model_adapter_idx].id
+                                    adapter_id=adapter_id
                                 )
                             ).configs[0].config
                         ),
@@ -234,10 +265,22 @@ with ccol1:
                     icon=":material/error:")
             else:
                 try:
-                    model = current_models[model_idx]
-                    dataset = current_datasets[dataset_idx]
-                    adapter = model_adapters[model_adapter_idx]
+                    model_adapter_combo: List[EvaluationJobModelCombination] = []
+                    first_model = current_models[all_model_adapter_combinations[0]['model_idx']]
                     prompt = current_prompts[prompt_idx]
+                    dataset = current_datasets[dataset_idx]
+                    for combo in all_model_adapter_combinations:
+                        model_idx, model_adapter = combo['model_idx'], combo['model_adapter']
+                        model = current_models[model_idx]
+                        if model_adapter == BASE_MODEL_ONLY_IDX:
+                            adapter = AdapterMetadata()
+                            adapter.id = BASE_MODEL_ONLY_ADAPTER_ID
+                        else:
+                            adapter = model_adapter
+
+                        model_adapter_combo.append(EvaluationJobModelCombination(
+                            base_model_id=model.id,
+                            adapter_id=adapter.id))
 
                     # If there were any changes made to the generation or bnb config,
                     # add these new configs to the config store.
@@ -259,8 +302,7 @@ with ccol1:
                     fts.StartEvaluationJob(
                         StartEvaluationJobRequest(
                             type=EvaluationJobType.MFLOW,
-                            adapter_id=adapter.id,
-                            base_model_id=model.id,
+                            model_adapter_combinations=model_adapter_combo,
                             dataset_id=dataset.id,
                             prompt_id=prompt.id,
                             cpu=int(cpu),

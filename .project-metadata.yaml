@@ -94,8 +94,54 @@ tasks:
     cpu: 2
     memory: 8
   
+  - type: create_model
+    name: Ticketing Agent Model
+    entity_label: ticket_agent_adapter_model
+    description: This sample model API endpoint is used to generate support ticket intent
+    short_summary: Create the sample support ticket intent model api endpoint
+    access_key_environment_variable: TICKETING_MODEL_ACCESS_KEY
+    default_resources:
+      cpu: 2
+      memory: 4
+      gpu: 1
+    default_replication_policy:
+      type: fixed
+      num_replicas: 1
+
+  - type: build_model
+    name: Build Sample Ticketing Agent Adapter Model
+    short_summary: Build Sample Ticketing Agent Adapter Model
+    entity_label: ticket_agent_adapter_model
+    comment: Build Sample Ticketing Agent Adapter Model
+    examples:
+      - request:
+          prompt: "You are an event ticketing customer LLM chatbot responsible for generating a one-word, snake_case action, based on a customer input. Please provide the action below based on the input from the customer.\\n\\n### CUSTOMER: I want to cancel my concert tickets\\n### ACTION:"
+        response: ""
+    target_file_path: examples/ticketing-agent-app/mistral-cml-model.py
+    target_function_name: api_wrapper
+
+  - type: deploy_model
+    name: ticket_agent_adapter_model
+    short_summary: Deploy Sample Ticketing Agent Adapter Model
+    entity_label: ticket_agent_adapter_model
+    cpu: 2
+    memory: 4
+    gpu: 1
+  
+  - type: start_application
+    name: Sample-Ticketing-Agent-Application
+    short_summary: Start Sample Ticketing Agent Application
+    subdomain: sample-ticketing-agent
+    script: examples/ticketing-agent-app/ticketing-agent-launch.py
+    long_summary: This application launcher launches the sample ticketing streamlit application.
+    cpu: 2
+    memory: 8
+    environment_variables:
+      TASK_TYPE: START_APPLICATION
+
   - type: start_application
     name: Fine Tuning Studio
+    short_summary: Start Fine Tuning Studio
     subdomain: fine-tuning-studio
     script: bin/run-app.py
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.

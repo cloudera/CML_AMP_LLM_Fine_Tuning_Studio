@@ -485,12 +485,20 @@ class GetEvaluationJobResponse(_message.Message):
     def __init__(self, evaluation_job: _Optional[_Union[EvaluationJobMetadata, _Mapping]] = ...) -> None: ...
 
 
+class EvaluationJobModelCombination(_message.Message):
+    __slots__ = ("base_model_id", "adapter_id")
+    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    base_model_id: str
+    adapter_id: str
+    def __init__(self, base_model_id: _Optional[str] = ..., adapter_id: _Optional[str] = ...) -> None: ...
+
+
 class StartEvaluationJobRequest(_message.Message):
     __slots__ = (
         "type",
-        "base_model_id",
+        "model_adapter_combinations",
         "dataset_id",
-        "adapter_id",
         "cpu",
         "gpu",
         "memory",
@@ -502,9 +510,8 @@ class StartEvaluationJobRequest(_message.Message):
         "selected_features",
         "eval_dataset_fraction")
     TYPE_FIELD_NUMBER: _ClassVar[int]
-    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_ADAPTER_COMBINATIONS_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     CPU_FIELD_NUMBER: _ClassVar[int]
     GPU_FIELD_NUMBER: _ClassVar[int]
     MEMORY_FIELD_NUMBER: _ClassVar[int]
@@ -516,9 +523,8 @@ class StartEvaluationJobRequest(_message.Message):
     SELECTED_FEATURES_FIELD_NUMBER: _ClassVar[int]
     EVAL_DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
     type: str
-    base_model_id: str
+    model_adapter_combinations: _containers.RepeatedCompositeFieldContainer[EvaluationJobModelCombination]
     dataset_id: str
-    adapter_id: str
     cpu: int
     gpu: int
     memory: int
@@ -532,9 +538,9 @@ class StartEvaluationJobRequest(_message.Message):
 
     def __init__(self,
                  type: _Optional[str] = ...,
-                 base_model_id: _Optional[str] = ...,
+                 model_adapter_combinations: _Optional[_Iterable[_Union[EvaluationJobModelCombination,
+                                                                        _Mapping]]] = ...,
                  dataset_id: _Optional[str] = ...,
-                 adapter_id: _Optional[str] = ...,
                  cpu: _Optional[int] = ...,
                  gpu: _Optional[int] = ...,
                  memory: _Optional[int] = ...,
@@ -939,7 +945,8 @@ class EvaluationJobMetadata(_message.Message):
         "adapter_bnb_config_id",
         "generation_config_id",
         "type",
-        "prompt_id")
+        "prompt_id",
+        "parent_job_id")
     ID_FIELD_NUMBER: _ClassVar[int]
     CML_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
@@ -955,6 +962,7 @@ class EvaluationJobMetadata(_message.Message):
     GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
+    PARENT_JOB_ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     cml_job_id: str
     base_model_id: str
@@ -970,6 +978,7 @@ class EvaluationJobMetadata(_message.Message):
     generation_config_id: str
     type: str
     prompt_id: str
+    parent_job_id: str
 
     def __init__(
         self,
@@ -987,4 +996,5 @@ class EvaluationJobMetadata(_message.Message):
         adapter_bnb_config_id: _Optional[str] = ...,
         generation_config_id: _Optional[str] = ...,
         type: _Optional[str] = ...,
-        prompt_id: _Optional[str] = ...) -> None: ...
+        prompt_id: _Optional[str] = ...,
+        parent_job_id: _Optional[str] = ...) -> None: ...

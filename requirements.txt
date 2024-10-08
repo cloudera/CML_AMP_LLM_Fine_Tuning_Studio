@@ -34,3 +34,4 @@ grpcio-tools==1.65.4
 rouge_score==0.1.2
 nltk==3.9.1
 streamlit_navigation_bar==3.3.0
+exceptiongroup==1.2.2

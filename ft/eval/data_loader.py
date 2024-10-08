@@ -4,7 +4,7 @@ import pandas as pd
 from ft.client import FineTuningStudioClient
 from ft.api import *
 from ft.training.utils import map_dataset_with_prompt_template, sample_and_split_dataset
-from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
+from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, EVAL_RANDOM_SEED
 from typing import List
 import ast
 import datasets
@@ -15,12 +15,11 @@ class Dataloader:
     @staticmethod
     def fetch_evaluation_dataset(
             dataset_id: str,
-            total_examples: int = 100,
             client: FineTuningStudioClient = None,
             prompt_metadata=None,
             dataset_split: GetDatasetSplitByAdapterMetadata = None,
             selected_features: List[str] = [],
-            eval_dataset_fraction: float = 1.0):
+            eval_dataset_fraction: float = 0.1):
         dataset: DatasetMetadata = client.GetDataset(GetDatasetRequest(id=dataset_id)).dataset
         if not dataset or dataset == DatasetMetadata():
             # return this as error in UI
@@ -67,7 +66,7 @@ class Dataloader:
         except Exception as e:
             print(f"Error parsing selected_features: {e}")
             selected_features = []
-        eval_df = eval_df.sample(frac=eval_dataset_fraction)
+        eval_df = eval_df.sample(frac=eval_dataset_fraction, random_state=EVAL_RANDOM_SEED)
         selected_features.extend([EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM])
         eval_df = eval_df.loc[:, selected_features]
         print(eval_df)

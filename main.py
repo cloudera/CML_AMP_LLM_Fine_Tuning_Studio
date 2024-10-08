@@ -36,7 +36,8 @@ def setup_navigation():
         st.Page("pgs/evaluate.py", title="Local Adapter Comparison"),
         st.Page("pgs/mlflow.py", title="Run MLFlow Evaluation"),
         st.Page("pgs/mlflow_jobs.py", title="View MLflow Runs"),
-        st.Page("pgs/export.py", title="Export to CML Model Registry"),
+        st.Page("pgs/export.py", title="Export Model"),
+        st.Page("pgs/sample_ticketing_agent_app_embed.py", title="Sample Ticketing Agent App"),
         # st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),
     ], position="hidden")
     # pg.run()

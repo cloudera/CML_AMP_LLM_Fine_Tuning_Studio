@@ -1,0 +1,1 @@
+!streamlit run /home/cdsw/examples/ticketing-agent-app/ticketing-agent-app.py --server.port $CDSW_APP_PORT --server.address 127.0.0.1

@@ -162,6 +162,7 @@ class EvaluationJob(Base, MappedProtobuf, MappedDict):
     id = Column(String, primary_key=True, nullable=False)
     type = Column(String, nullable=True)
     cml_job_id = Column(String, nullable=True)
+    parent_job_id = Column(String, nullable=True)
     base_model_id = Column(String, ForeignKey('models.id'), nullable=True)
     dataset_id = Column(String, ForeignKey('datasets.id'), nullable=True)
     prompt_id = Column(String, ForeignKey('prompts.id'), nullable=True)
