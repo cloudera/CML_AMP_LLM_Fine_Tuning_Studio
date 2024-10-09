@@ -140,8 +140,8 @@ tasks:
       TASK_TYPE: START_APPLICATION
 
   - type: start_application
-    name: Fine Tuning Studio
-    short_summary: Start Fine Tuning Studio
+    name: Fine Tuning Studio - Top Nav
+    short_summary: Start Fine Tuning Studio - Top Nav Bar
     subdomain: fine-tuning-studio
     script: bin/run-app.py
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
