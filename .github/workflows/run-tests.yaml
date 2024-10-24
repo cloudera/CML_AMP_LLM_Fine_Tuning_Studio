@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip3 install --no-cache-dir -r requirements.txt && pip install -e .
           pip install pytest pytest-cov
-          pip install test/resources/cmlapi.tar.gz
+          pip install tests/resources/cmlapi.tar.gz
 
       - name: Run tests with coverage
         run: |
