@@ -10,13 +10,8 @@ from ft.consts import AXOLOTL_DATASET_FORMAT_CONFIGS_FOLDER_PATH
 
 
 class InitializeDB:
-    def __init__(self):
-        self.dao = FineTuningStudioDao(engine_args={
-            "pool_size": 5,
-            "max_overflow": 10,
-            "pool_timeout": 30,
-            "pool_recycle": 1800,
-        })
+    def __init__(self, dao: FineTuningStudioDao):
+        self.dao = dao
 
     def get_session(self):
         return self.dao.get_session()

@@ -20,8 +20,7 @@ class TestInitializeDB(unittest.TestCase):
     @patch('os.listdir', return_value=[])
     @patch('builtins.open', new_callable=mock_open, read_data='{}')
     def test_initialize_axolotl_dataset_type_configs_empty_directory(self, mock_open, mock_listdir):
-        init_db = InitializeDB()
-        init_db.dao = self.test_dao  # Use in-memory DAO
+        init_db = InitializeDB(self.test_dao)
 
         init_db.initialize_axolotl_dataset_type_configs()
 
@@ -60,8 +59,7 @@ class TestInitializeDB(unittest.TestCase):
         )
 
         with patch('ft.api.DatasetFormatsCollection', return_value=dataset_formats_collection):
-            init_db = InitializeDB()
-            init_db.dao = self.test_dao  # Use in-memory DAO
+            init_db = InitializeDB(self.test_dao)
 
             init_db.initialize_axolotl_dataset_type_configs()
 
@@ -82,8 +80,7 @@ class TestInitializeDB(unittest.TestCase):
 
         # Patch DatasetFormatsCollection's initialization to raise ValidationError
         with patch.object(DatasetFormatsCollection, '__init__', side_effect=raise_validation_error):
-            init_db = InitializeDB()
-            init_db.dao = self.test_dao  # Use in-memory DAO
+            init_db = InitializeDB(self.test_dao)
 
             init_db.initialize_axolotl_dataset_type_configs()
 
@@ -92,8 +89,7 @@ class TestInitializeDB(unittest.TestCase):
                 self.assertEqual(session.query(Config).count(), 0)
 
     def test_add_config_success(self):
-        init_db = InitializeDB()
-        init_db.dao = self.test_dao  # Use in-memory DAO
+        init_db = InitializeDB(self.test_dao)
 
         init_db._add_config(
             config_type=ConfigType.AXOLOTL_DATASET_FORMATS,
@@ -107,8 +103,7 @@ class TestInitializeDB(unittest.TestCase):
             self.assertEqual(config.config, json.dumps({"key": "value"}))
 
     def test_add_config_existing(self):
-        init_db = InitializeDB()
-        init_db.dao = self.test_dao  # Use in-memory DAO
+        init_db = InitializeDB(self.test_dao)
 
         # Add an existing config first
         with self.test_dao.get_session() as session:
@@ -134,8 +129,7 @@ class TestInitializeDB(unittest.TestCase):
             self.assertEqual(len(configs), 1)
 
     def test_add_config_error(self):
-        init_db = InitializeDB()
-        init_db.dao = self.test_dao  # Use in-memory DAO
+        init_db = InitializeDB(self.test_dao)
 
         # Simulate a SQLAlchemy error during the add operation
         with patch.object(FineTuningStudioDao, 'get_session', side_effect=SQLAlchemyError("Test SQLAlchemy error")):

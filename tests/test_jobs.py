@@ -41,6 +41,13 @@ class MockCMLListJobsResponse:
     def __init__(self, jobs: List[MockCMLCreatedJob] = []):
         self.jobs = jobs
 
+class MockPath:
+    def __init__(self, path_name: str = None):
+        self.path_name = path_name
+    
+    def mkdir(self, **kwargs):
+        return
+
 
 def test_list_fine_tuning_jobs():
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
@@ -90,11 +97,13 @@ def test_remove_fine_tuning_job_happy():
 
 
 @patch("ft.jobs.uuid4")
-def test_start_fine_tuning_job_happy(uuid4):
+@patch("ft.jobs.pathlib.Path")
+def test_start_fine_tuning_job_happy(path, uuid4):
     os.environ["CDSW_PROJECT_ID"] = "project_id"
     os.environ["HUGGINGFACE_ACCESS_TOKEN"] = "hf_tok"
 
     uuid4.return_value = "ftj1"
+    path.return_value = MockPath()
 
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
@@ -143,11 +152,13 @@ def test_start_fine_tuning_job_happy(uuid4):
 
 
 @patch("ft.jobs.uuid4")
-def test_start_fine_tuning_job_custom_config(uuid4):
+@patch("ft.jobs.pathlib.Path")
+def test_start_fine_tuning_job_custom_config(path, uuid4):
     os.environ["CDSW_PROJECT_ID"] = "project_id"
     os.environ["HUGGINGFACE_ACCESS_TOKEN"] = "hf_tok"
 
     uuid4.return_value = "usrcfg1"
+    path.return_value = MockPath()
 
     test_dao = FineTuningStudioDao(engine_url="sqlite:///:memory:", echo=False)
 
