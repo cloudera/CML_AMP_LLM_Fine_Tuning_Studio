@@ -141,15 +141,15 @@ class AddModelResponse(_message.Message):
 
 
 class ExportModelRequest(_message.Message):
-    __slots__ = ("type", "model_id", "adapter_id", "model_name", "artifact_location", "model_description")
+    __slots__ = ("type", "base_model_id", "adapter_id", "model_name", "artifact_location", "model_description")
     TYPE_FIELD_NUMBER: _ClassVar[int]
-    MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     ARTIFACT_LOCATION_FIELD_NUMBER: _ClassVar[int]
     MODEL_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
     type: str
-    model_id: str
+    base_model_id: str
     adapter_id: str
     model_name: str
     artifact_location: str
@@ -158,7 +158,7 @@ class ExportModelRequest(_message.Message):
     def __init__(
         self,
         type: _Optional[str] = ...,
-        model_id: _Optional[str] = ...,
+        base_model_id: _Optional[str] = ...,
         adapter_id: _Optional[str] = ...,
         model_name: _Optional[str] = ...,
         artifact_location: _Optional[str] = ...,
@@ -166,10 +166,12 @@ class ExportModelRequest(_message.Message):
 
 
 class ExportModelResponse(_message.Message):
-    __slots__ = ("model",)
-    MODEL_FIELD_NUMBER: _ClassVar[int]
-    model: ModelMetadata
-    def __init__(self, model: _Optional[_Union[ModelMetadata, _Mapping]] = ...) -> None: ...
+    __slots__ = ("base_model_id", "adapter_id")
+    BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
+    base_model_id: str
+    adapter_id: str
+    def __init__(self, base_model_id: _Optional[str] = ..., adapter_id: _Optional[str] = ...) -> None: ...
 
 
 class RemoveModelRequest(_message.Message):

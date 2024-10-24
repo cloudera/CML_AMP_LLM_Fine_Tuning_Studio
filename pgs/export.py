@@ -80,9 +80,10 @@ with st.container(border=True):
             with st.spinner("Exporting model to CML Model Registry..."):
                 res: ExportModelRequest = fts.ExportModel(ExportModelRequest(
                     type=MODEL_EXPORT_TYPE_MAP[model_export_type],
-                    model_id=current_models[model_idx].id,
+                    base_model_id=current_models[model_idx].id,
                     adapter_id=model_adapters[adapter_idx].id,
                     model_name=registered_model_name,
+                    model_description=model_description,
                 ))
             st.success(
                 "Model export is started. Please go to **CML Model Registry** or **Model Deployments** to view progress.",

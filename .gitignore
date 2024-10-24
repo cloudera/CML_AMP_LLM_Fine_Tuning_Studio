@@ -182,7 +182,13 @@ cython_debug/
 mlartifacts
 mlruns
 mlflow_results
-data
+data/*
+
+# To properly use CML Model exports, we need to 
+# maintain adapters outside of gitignore's scope.
+!data/adapters/
+!data/adapters/*
+
 outputs
 last_run_prepared
 .nfs*

@@ -25,8 +25,8 @@ environment_variables:
       In order to access Huggingface gated models, please create a Huggingface Access Token. Log in to Huggingface -> Settings -> Access Tokens.
 
 runtimes:
-  - editor: PBJ Workbench
-    kernel: Python 3.9
+  - editor: JupyterLab
+    kernel: Python 3.11
     edition: Nvidia GPU
 
 tasks:

@@ -38,6 +38,13 @@ project defaults JSON when initializing the AMP.
 """
 
 
+CML_MODEL_PREDICT_SCRIPT_FILEPATH = "ft/scripts/cml_model_predict_script.py"
+"""
+Filepath for the main predict functionality and generation loop of a
+deployed model+adapter as a CML Model.
+"""
+
+
 class IconPaths:
     class FineTuningStudio:
         FINE_TUNING_STUDIO = f"{BASE_DIR}/architecture.png"

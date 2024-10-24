@@ -1,7 +1,8 @@
 torch==2.3.1
 torchvision==0.18.1
 
--e git+https://github.com/axolotl-ai-cloud/axolotl@f07802f9fa9ae95f0b37ce626eaf21eca9fce738#egg=axolotl
+# Disabling axolotl until we finish implementation
+# -e git+https://github.com/axolotl-ai-cloud/axolotl@f07802f9fa9ae95f0b37ce626eaf21eca9fce738#egg=axolotl
 
 setuptools==58.1.0
 bitsandbytes==0.43.3

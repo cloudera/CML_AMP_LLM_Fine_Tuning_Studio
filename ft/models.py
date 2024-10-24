@@ -3,15 +3,13 @@ from uuid import uuid4
 from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from cmlapi import RegisteredModel, RegisteredModelVersion, ModelVersionMetadata, MLflowMetadata, CMLServiceApi
-from ft.pipeline import fetch_pipeline
-import mlflow
-from transformers import GenerationConfig
 
 from typing import List
 from sqlalchemy import delete
 
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import Model, Adapter
+from ft.db.model import Model
+from ft.export import deploy_cml_model, export_model_registry_model
 
 
 def list_models(request: ListModelsRequest, cml: CMLServiceApi = None,
@@ -129,69 +127,6 @@ def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuni
     return response
 
 
-def _export_model_registry_model(request: ExportModelRequest, cml: CMLServiceApi = None,
-                                 dao: FineTuningStudioDao = None) -> ExportModelResponse:
-    """
-    Export a model to CML model registry. For now, model registry cannot deploy huggingface models and
-    adapters to Cloudera AI Inference, so exporting a model to model registry doesn't enable
-    more features for the model.
-    """
-
-    # Right now, our response object contains a model metadata nullable object, just in case
-    # we want to automatically add other model types to the studio in the future.
-    response: ExportModelResponse = ExportModelResponse()
-
-    pipeline = None
-    with dao.get_session() as session:
-        model: Model = session.query(Model).where(Model.id == request.model_id).one()
-        assert model.type == ModelType.HUGGINGFACE
-
-        # For now, require adapter.
-        adapter: Adapter = session.query(Adapter).where(Adapter.id == request.adapter_id).one()
-        adapter_location_or_name = adapter.location if adapter.type == AdapterType.PROJECT else adapter.huggingface_name
-
-        pipeline = fetch_pipeline(
-            model_name=model.huggingface_model_name,
-            adapter_name=adapter_location_or_name)
-
-    signature = mlflow.models.infer_signature(
-        model_input="What are the three primary colors?",
-        model_output="The three primary colors are red, yellow, and blue.",
-    )
-
-    # TODO: pull out generation config to arguments
-    config = GenerationConfig(
-        do_sample=True,
-        temperature=0.8,
-        max_new_tokens=60,
-        top_p=1
-    )
-
-    with mlflow.start_run():
-        model_info = mlflow.transformers.log_model(
-            transformers_model=pipeline,
-            torch_dtype='float16',
-            artifact_path="custom-pipe",        # artifact_path can be dynamic
-            signature=signature,
-            registered_model_name=request.model_name,  # model_name can be dynamic
-            model_config=config.to_dict()
-        )
-
-    # We aren't doing any error handling at this time, and we aren't
-    # explicitly using the return metadata yet.
-    return response
-
-
-def _export_and_deploy_cml_model(request: ExportModelRequest, cml: CMLServiceApi = None,
-                                 dao: FineTuningStudioDao = None) -> ExportModelResponse:
-    """
-    Stub for exporting and deploying to CML models.
-    TODO: call application logic from here
-    """
-
-    return ExportModelResponse()
-
-
 def export_model(request: ExportModelRequest, cml: CMLServiceApi = None,
                  dao: FineTuningStudioDao = None) -> ExportModelResponse:
     """
@@ -199,9 +134,9 @@ def export_model(request: ExportModelRequest, cml: CMLServiceApi = None,
     """
 
     if request.type == ModelExportType.MODEL_REGISTRY:
-        return _export_model_registry_model(request, cml, dao)
+        return export_model_registry_model(request, cml, dao)
     elif request.type == ModelExportType.CML_MODEL:
-        return _export_and_deploy_cml_model(request, cml, dao)
+        return deploy_cml_model(request, cml, dao)
     else:
         raise ValueError(f"Model export of type '{request.type}' is not supported.")
 
