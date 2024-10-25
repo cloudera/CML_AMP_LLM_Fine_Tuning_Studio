@@ -44,8 +44,8 @@ tasks:
     script: bin/install-dependencies.py
     short_summary: Install Dependencies
     kernel: python3
-    cpu: 2
-    memory: 8
+    cpu: 4
+    memory: 16
   
   # - type: run_session
   #   name: Validate GPU CUDA Capability
@@ -117,7 +117,7 @@ tasks:
       - request:
           prompt: "You are an event ticketing customer LLM chatbot responsible for generating a one-word, snake_case action, based on a customer input. Please provide the action below based on the input from the customer.\\n\\n### CUSTOMER: I want to cancel my concert tickets\\n### ACTION:"
         response: ""
-    target_file_path: examples/ticketing-agent-app/mistral-cml-model.py
+    target_file_path: ft/scripts/cml_model_predict_script.py
     target_function_name: api_wrapper
 
   - type: deploy_model
@@ -127,6 +127,9 @@ tasks:
     cpu: 2
     memory: 4
     gpu: 1
+    environment_variables:
+      FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME: bigscience/bloom-1b1
+      FINE_TUNING_STUDIO_ADAPTER_LOCATION: data/adapters/bloom-1b-ticketing
   
   - type: start_application
     name: Sample-Ticketing-Agent-Application
