@@ -44,8 +44,8 @@ tasks:
     script: bin/install-dependencies.py
     short_summary: Install Dependencies
     kernel: python3
-    cpu: 2
-    memory: 8
+    cpu: 4
+    memory: 16
   
   # - type: run_session
   #   name: Validate GPU CUDA Capability
