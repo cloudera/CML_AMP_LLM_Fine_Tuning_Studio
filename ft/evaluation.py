@@ -106,6 +106,18 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
             raise ValueError(f"Generation Config with ID '{request.generation_config_id}' does not exist.")
 
 
+def get_comparison_adapter_id(model_adapter_combinations):
+    """
+    Given a list of ModelAdapterCombination, return the comparison adapter ID.
+    """
+    comparison_adapter_id = BASE_MODEL_ONLY_ADAPTER_ID
+    for model_adapter_combo in model_adapter_combinations:
+        if model_adapter_combo.adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
+            comparison_adapter_id = model_adapter_combo.adapter_id
+            break
+    return comparison_adapter_id
+
+
 def start_evaluation_job(request: StartEvaluationJobRequest,
                          cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> StartEvaluationJobResponse:
     """
@@ -120,6 +132,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
     # TODO: pull this and others into app state
     project_id = os.getenv("CDSW_PROJECT_ID")
     parent_job_id = str(uuid4())
+    comparison_adapter_id = get_comparison_adapter_id(request.model_adapter_combinations)
     for idx, model_adapter_combo in enumerate(request.model_adapter_combinations):
         job_id = str(uuid4())
         job_dir = f".app/mlflow_job_runs/{job_id}"
@@ -174,6 +187,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
         arg_list.append("--eval_dataset_fraction")
         arg_list.append(request.eval_dataset_fraction)
 
+        arg_list.append("--comparison_adapter_id")
+        arg_list.append(comparison_adapter_id)
+        
         cpu = request.cpu
         gpu = request.gpu
         memory = request.memory
