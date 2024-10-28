@@ -474,6 +474,9 @@ message StartEvaluationJobRequest {
   // Fraction of dataset to be used for evaluation
   float eval_dataset_fraction = 20;
 
+  // Adapter Id for to be used for figuring out data to be used
+  string comparison_adapter_id = 21;
+
 
 }
 message StartEvaluationJobResponse {

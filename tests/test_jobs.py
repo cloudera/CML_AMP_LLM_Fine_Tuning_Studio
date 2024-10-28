@@ -41,10 +41,11 @@ class MockCMLListJobsResponse:
     def __init__(self, jobs: List[MockCMLCreatedJob] = []):
         self.jobs = jobs
 
+
 class MockPath:
     def __init__(self, path_name: str = None):
         self.path_name = path_name
-    
+
     def mkdir(self, **kwargs):
         return
 

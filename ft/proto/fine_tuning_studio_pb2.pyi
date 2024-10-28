@@ -510,7 +510,8 @@ class StartEvaluationJobRequest(_message.Message):
         "prompt_id",
         "gpu_label_id",
         "selected_features",
-        "eval_dataset_fraction")
+        "eval_dataset_fraction",
+        "comparison_adapter_id")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     MODEL_ADAPTER_COMBINATIONS_FIELD_NUMBER: _ClassVar[int]
     DATASET_ID_FIELD_NUMBER: _ClassVar[int]
@@ -524,6 +525,7 @@ class StartEvaluationJobRequest(_message.Message):
     GPU_LABEL_ID_FIELD_NUMBER: _ClassVar[int]
     SELECTED_FEATURES_FIELD_NUMBER: _ClassVar[int]
     EVAL_DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
+    COMPARISON_ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     type: str
     model_adapter_combinations: _containers.RepeatedCompositeFieldContainer[EvaluationJobModelCombination]
     dataset_id: str
@@ -537,6 +539,7 @@ class StartEvaluationJobRequest(_message.Message):
     gpu_label_id: int
     selected_features: _containers.RepeatedScalarFieldContainer[str]
     eval_dataset_fraction: float
+    comparison_adapter_id: str
 
     def __init__(self,
                  type: _Optional[str] = ...,
@@ -552,7 +555,8 @@ class StartEvaluationJobRequest(_message.Message):
                  prompt_id: _Optional[str] = ...,
                  gpu_label_id: _Optional[int] = ...,
                  selected_features: _Optional[_Iterable[str]] = ...,
-                 eval_dataset_fraction: _Optional[float] = ...) -> None: ...
+                 eval_dataset_fraction: _Optional[float] = ...,
+                 comparison_adapter_id: _Optional[str] = ...) -> None: ...
 
 
 class StartEvaluationJobResponse(_message.Message):

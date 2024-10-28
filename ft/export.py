@@ -134,7 +134,7 @@ def deploy_cml_model(request: ExportModelRequest,
 
     response = ExportModelResponse()
     job_id = str(uuid4())
-    
+
     # CML model export requires a HF model and a project-specific adapter.
     base_model_hf_name = None
     adapter_location = None

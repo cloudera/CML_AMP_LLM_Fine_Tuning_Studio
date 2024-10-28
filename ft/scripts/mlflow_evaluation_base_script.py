@@ -33,6 +33,7 @@ parser.add_argument("--generation_config_id", help="ID of the generation config"
 parser.add_argument("--selected_features", help="Names of the columns to be shown in the evaluation csv", default=None)
 parser.add_argument("--eval_dataset_fraction", type=float, default=EVAL_DATASET_DEFAULT_FRACTION,
                     help="Percentage of eval dataset to be used for evaluation")
+parser.add_argument("--comparison_adapter_id", help="ID of the adapter to be compared", default=None)
 
 args = parser.parse_args(arg_string.split())
 
@@ -50,6 +51,7 @@ try:
         generation_config_id=args.generation_config_id,
         selected_features=args.selected_features,
         eval_dataset_fraction=args.eval_dataset_fraction,
+        comparison_adapter_id=args.comparison_adapter_id,
         client=client
     )
     print(response.metrics)

@@ -22,6 +22,7 @@ def driver(
         prompt_id: str = None,
         selected_features: List[str] = None,
         eval_dataset_fraction: float = None,
+        comparison_adapter_id: str = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
@@ -42,15 +43,18 @@ def driver(
     generation_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=generation_config_id)).config.config) if generation_config_id else None
     if adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
-        dataset_split: GetDatasetSplitByAdapterMetadata = client.GetDatasetSplitByAdapter(
-            GetDatasetSplitByAdapterRequest(adapter_id=adapter_id)).response
         adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
+    else:
+        adapter: AdapterMetadata = AdapterMetadata(type=AdapterType.PROJECT, location=BASE_MODEL_ONLY_ADAPTER_LOCATION)
+    # Load dataset
+    if comparison_adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
+        dataset_split: GetDatasetSplitByAdapterMetadata = client.GetDatasetSplitByAdapter(
+            GetDatasetSplitByAdapterRequest(adapter_id=comparison_adapter_id)).response
     else:
         # as this is only base model evaluation, no need to do any splitting as all data is unseen
         dataset_split = GetDatasetSplitByAdapterMetadata(
             dataset_fraction=0.2, train_test_split=0.2)  # make them variables
-        adapter: AdapterMetadata = AdapterMetadata(type=AdapterType.PROJECT, location=BASE_MODEL_ONLY_ADAPTER_LOCATION)
-    # Load dataset
+
     eval_dataset, eval_column_name = dataloader.fetch_evaluation_dataset(
         dataset_id, client=client, prompt_metadata=prompt, dataset_split=dataset_split, selected_features=selected_features, eval_dataset_fraction=eval_dataset_fraction)
     # Load Model Pipeline

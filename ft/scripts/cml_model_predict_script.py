@@ -5,7 +5,7 @@ import os
 mlt = MLFlowTransformers()
 
 # Main script used as the prediction/generation base of a deployed CML Model. This script
-# globally loads a model and an adapter onto a CUDA-compatible GPU. The model exposes 
+# globally loads a model and an adapter onto a CUDA-compatible GPU. The model exposes
 # an "api_wrapper" function that expects a dictionary payload of an input prompt, as well
 # as generation arguments.
 
