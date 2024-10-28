@@ -187,6 +187,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
         arg_list.append("--eval_dataset_fraction")
         arg_list.append(request.eval_dataset_fraction)
 
+        arg_list.append("--comparison_adapter_id")
+        arg_list.append(comparison_adapter_id)
+        
         cpu = request.cpu
         gpu = request.gpu
         memory = request.memory
@@ -244,7 +247,6 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
                 model_bnb_config_id=request.model_bnb_config_id,
                 adapter_bnb_config_id=request.adapter_bnb_config_id,
                 generation_config_id=request.generation_config_id,
-                comparison_adapter_id=comparison_adapter_id,
             )
             session.add(eval_job)
 
