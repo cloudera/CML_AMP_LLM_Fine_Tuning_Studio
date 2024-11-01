@@ -49,6 +49,7 @@ def setup_navigation():
         st.Page("pgs/export.py", title="Export Model"),
         st.Page("pgs/sample_ticketing_agent_app_embed.py", title="Sample Ticketing Agent App"),
         # st.Page("pgs/deploy.py", title="Deploy to Cloudera AI Inference"),
+        st.Page("pgs/feedback.py", title="Feedback"),
     ], position="hidden")
     pg.run()
 
@@ -87,7 +88,8 @@ def setup_sidebar():
 
         st.markdown("Examples")
         st.page_link("pgs/sample_ticketing_agent_app_embed.py", label="Ticketing Agent App", icon=":material/deployed_code:")
-
+        st.markdown("Feedback")
+        st.page_link("pgs/feedback.py", label="Feedback", icon=":material/feedback:")
         st.subheader("", divider="green")
 
         project_owner = get_env_variable('PROJECT_OWNER', 'User')
