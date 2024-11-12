@@ -161,7 +161,7 @@ with ccol1:
                             model_adapter = BASE_MODEL_ONLY_IDX
                         if {"model_idx": model_idx,
                                 "model_adapter": model_adapter} in all_model_adapter_combinations:
-                            st.warning(
+                            st.error(
                                 "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
                 if model_idx is not None and model_adapter is not None:
                     all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter": model_adapter})
