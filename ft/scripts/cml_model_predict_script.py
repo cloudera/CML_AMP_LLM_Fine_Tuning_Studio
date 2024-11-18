@@ -2,7 +2,7 @@ from ft.eval.mlflow_pyfunc import MLFlowTransformers
 import torch
 import os
 import json
-
+import re
 mlt = MLFlowTransformers()
 
 # Main script used as the prediction/generation base of a deployed CML Model. This script
@@ -38,10 +38,44 @@ class SingletonModelFetcher:
         return model, tokenizer
 
 
+def parse_json_config(env_var_name):
+    """
+    Safely parse JSON configuration from environment variable with fallback solutions
+    for common formatting issues.
+    
+    Args:
+        env_var_name (str): Name of the environment variable containing JSON string
+        
+    Returns:
+        dict: Parsed JSON configuration
+        
+    Raises:
+        ValueError: If JSON cannot be parsed after all attempts
+    """
+    try:
+        # Get the environment variable
+        json_str = os.getenv(env_var_name)
+        if not json_str:
+            raise ValueError(f"Environment variable {env_var_name} not found")
+            
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            pass
+            
+        try:
+            fixed_str = json_str.replace("'", '"')
+            return json.loads(fixed_str)
+        except json.JSONDecodeError:
+            return {}
+    except Exception as e:
+        raise ValueError(f"Error processing JSON configuration: {str(e)}")
+
 print("fetching model and adapter parameters from environment...")
 base_model_hf_name = os.getenv("FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME")
 adapter_location = os.getenv("FINE_TUNING_STUDIO_ADAPTER_LOCATION")
-gen_config_dict = json.loads(os.getenv("FINE_TUNING_STUDIO_GEN_CONFIG_STRING"))
+print(os.getenv("FINE_TUNING_STUDIO_GEN_CONFIG_STRING"))
+gen_config_dict = parse_json_config("FINE_TUNING_STUDIO_GEN_CONFIG_STRING")
 
 modelFetcher = SingletonModelFetcher()
 model, tokenizer = modelFetcher.initialize_model(base_model_hf_name, adapter_location)
