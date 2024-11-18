@@ -49,7 +49,7 @@ def call_cml_model(customer_input):
     print(ticketing_model_input)
     response = requests.post(MODEL_SERVICE_URL,
                       data='{"request":{"prompt":"%s"}}' % ticketing_model_input,
-                      headers={'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % os.getenv('CDSW_APIV2_KEY')})
+                      headers={'Content-Type': 'application/json'})
     response_dict = response.json()
     if 'success' in response_dict:
       print(response_dict)
