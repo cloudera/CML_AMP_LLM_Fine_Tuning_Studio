@@ -1,17 +1,18 @@
 import streamlit as st
 
+
 def feedback_page():
     st.title("Feedback")
     st.write(
         """
-        We value your feedback! Reach out to us via email or join the discussion on GitHub. 
+        We value your feedback! Reach out to us via email or join the discussion on GitHub.
         Your thoughts help us improve and grow.
         """
     )
     st.markdown(
         """
         <div style="padding: 15px; border-radius: 10px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1); background: linear-gradient(135deg, #f0f2f5, #e9ebee);">
-            <p style="font-size: 1.2rem; margin: 0; color: #333;">📧 
+            <p style="font-size: 1.2rem; margin: 0; color: #333;">📧
                 <a href="mailto:ai_feedback@cloudera.com" style="text-decoration: none; color: #0078d4; font-weight: bold;">
                     ai_feedback@cloudera.com
                 </a>
@@ -33,5 +34,6 @@ def feedback_page():
         """,
         unsafe_allow_html=True
     )
+
 
 feedback_page()

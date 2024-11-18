@@ -141,19 +141,28 @@ class AddModelResponse(_message.Message):
 
 
 class ExportModelRequest(_message.Message):
-    __slots__ = ("type", "base_model_id", "adapter_id", "model_name", "artifact_location", "model_description")
+    __slots__ = (
+        "type",
+        "base_model_id",
+        "adapter_id",
+        "model_name",
+        "artifact_location",
+        "model_description",
+        "generation_config")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     BASE_MODEL_ID_FIELD_NUMBER: _ClassVar[int]
     ADAPTER_ID_FIELD_NUMBER: _ClassVar[int]
     MODEL_NAME_FIELD_NUMBER: _ClassVar[int]
     ARTIFACT_LOCATION_FIELD_NUMBER: _ClassVar[int]
     MODEL_DESCRIPTION_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIG_FIELD_NUMBER: _ClassVar[int]
     type: str
     base_model_id: str
     adapter_id: str
     model_name: str
     artifact_location: str
     model_description: str
+    generation_config: str
 
     def __init__(
         self,
@@ -162,7 +171,8 @@ class ExportModelRequest(_message.Message):
         adapter_id: _Optional[str] = ...,
         model_name: _Optional[str] = ...,
         artifact_location: _Optional[str] = ...,
-        model_description: _Optional[str] = ...) -> None: ...
+        model_description: _Optional[str] = ...,
+        generation_config: _Optional[str] = ...) -> None: ...
 
 
 class ExportModelResponse(_message.Message):

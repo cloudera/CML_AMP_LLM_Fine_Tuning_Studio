@@ -1,6 +1,7 @@
 from ft.eval.mlflow_pyfunc import MLFlowTransformers
 import torch
 import os
+import json
 
 mlt = MLFlowTransformers()
 
@@ -40,6 +41,7 @@ class SingletonModelFetcher:
 print("fetching model and adapter parameters from environment...")
 base_model_hf_name = os.getenv("FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME")
 adapter_location = os.getenv("FINE_TUNING_STUDIO_ADAPTER_LOCATION")
+gen_config_dict = json.loads(os.getenv("FINE_TUNING_STUDIO_GEN_CONFIG_STRING"))
 
 modelFetcher = SingletonModelFetcher()
 model, tokenizer = modelFetcher.initialize_model(base_model_hf_name, adapter_location)
@@ -48,6 +50,8 @@ model, tokenizer = modelFetcher.initialize_model(base_model_hf_name, adapter_loc
 def opt_args_value(args, arg_name, default):
     if arg_name in args.keys():
         return args[arg_name]
+    elif arg_name in gen_config_dict.keys():
+        return gen_config_dict[arg_name]
     else:
         return default
 
@@ -69,7 +73,7 @@ def generate(prompt, max_new_tokens=128, temperature=0.7, repetition_penalty=1.0
 def api_wrapper(args):
     # Pick up args from model api
     prompt = args["prompt"]
-    temperature = float(opt_args_value(args, "temperature", 70))
+    temperature = float(opt_args_value(args, "temperature", 0.5))
     max_new_tokens = float(opt_args_value(args, "max_new_tokens", 50))
     top_p = float(opt_args_value(args, "top_p", 1.0))
     top_k = int(opt_args_value(args, "top_k", 0))

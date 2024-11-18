@@ -189,7 +189,7 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
 
         arg_list.append("--comparison_adapter_id")
         arg_list.append(comparison_adapter_id)
-        
+
         cpu = request.cpu
         gpu = request.gpu
         memory = request.memory

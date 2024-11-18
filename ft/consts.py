@@ -44,6 +44,16 @@ Filepath for the main predict functionality and generation loop of a
 deployed model+adapter as a CML Model.
 """
 
+DEFAULT_GENERATIONAL_CONFIG = {
+    "do_sample": True,
+    "temperature": 0.8,
+    "max_new_tokens": 60,
+    "top_p": 1,
+    "top_k": 50,
+    "num_beams": 1,
+    "repetition_penalty": 1.1
+}
+
 
 class IconPaths:
     class FineTuningStudio:

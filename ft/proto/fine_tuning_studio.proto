@@ -189,6 +189,10 @@ message ExportModelRequest {
   // types that allow for descriptions.
   string model_description = 6;
 
+  // Generation config for those model exported
+  // For example, GPT-4o model requires a gen config
+  string generation_config = 7;
+
 }
 message ExportModelResponse {
   string base_model_id = 2;

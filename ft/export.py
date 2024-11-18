@@ -3,14 +3,14 @@ import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
 import os
-
+import json
 from transformers import GenerationConfig
 import mlflow
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import Adapter, Model
 from ft.pipeline import fetch_pipeline
-from ft.consts import CML_MODEL_PREDICT_SCRIPT_FILEPATH
+from ft.consts import CML_MODEL_PREDICT_SCRIPT_FILEPATH, DEFAULT_GENERATIONAL_CONFIG
 
 
 def get_cml_model_inference_runtime_identifier(cml: CMLServiceApi) -> str:
@@ -85,6 +85,11 @@ def export_model_registry_model(request: ExportModelRequest, cml: CMLServiceApi 
     response: ExportModelResponse = ExportModelResponse()
 
     pipeline = None
+    if not getattr(request, "generation_config"):
+        config = GenerationConfig(**DEFAULT_GENERATIONAL_CONFIG)
+    else:
+        gen_config = json.loads(request.generation_config)
+        config = GenerationConfig(**gen_config)
     with dao.get_session() as session:
         model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
         assert model.type == ModelType.HUGGINGFACE
@@ -95,19 +100,12 @@ def export_model_registry_model(request: ExportModelRequest, cml: CMLServiceApi 
 
         pipeline = fetch_pipeline(
             model_name=model.huggingface_model_name,
-            adapter_name=adapter_location_or_name)
+            adapter_name=adapter_location_or_name,
+            gen_config_dict=config.to_dict())
 
     signature = mlflow.models.infer_signature(
         model_input="What are the three primary colors?",
         model_output="The three primary colors are red, yellow, and blue.",
-    )
-
-    # TODO: pull out generation config to arguments
-    config = GenerationConfig(
-        do_sample=True,
-        temperature=0.8,
-        max_new_tokens=60,
-        top_p=1
     )
 
     with mlflow.start_run():
@@ -138,6 +136,10 @@ def deploy_cml_model(request: ExportModelRequest,
     # CML model export requires a HF model and a project-specific adapter.
     base_model_hf_name = None
     adapter_location = None
+    gen_config_str = json.dumps(DEFAULT_GENERATIONAL_CONFIG)
+    if getattr(request, "generation_config"):
+        gen_config_str = request.generation_config
+
     with dao.get_session() as session:
         model: Model = session.query(Model).where(Model.id == request.base_model_id).one()
         adapter: Adapter = session.query(Adapter).where(Adapter.id == request.adapter_id).one()
@@ -161,7 +163,8 @@ def deploy_cml_model(request: ExportModelRequest,
         nvidia_gpus=1,
         environment={
             "FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME": base_model_hf_name,
-            "FINE_TUNING_STUDIO_ADAPTER_LOCATION": adapter_location
+            "FINE_TUNING_STUDIO_ADAPTER_LOCATION": adapter_location,
+            "FINE_TUNING_STUDIO_GEN_CONFIG_STRING": gen_config_str
         }
     )
     model_build_body = cmlapi.CreateModelBuildRequest(
