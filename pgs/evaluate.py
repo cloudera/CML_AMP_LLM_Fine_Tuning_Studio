@@ -213,24 +213,27 @@ def evaluate_fragment():
     try:
         cont = st.container()
 
+        if 'ft_generation_config_text' not in st.session_state:
+            st.session_state['ft_generation_config_text'] = json.dumps(
+                json.loads(
+                    fts.ListConfigs(
+                        ListConfigsRequest(
+                            type=ConfigType.GENERATION_CONFIG,
+                            model_id=st.session_state.current_model_metadata.id
+                        )
+                    ).configs[0].config
+                ),
+                indent=2
+            )
+
         if st.session_state.current_model_metadata:
             with cont.expander("Generation Config"):
                 try:
-                    generation_config_text = st.text_area(
+                    st.text_area(
                         "",
-                        json.dumps(
-                            json.loads(
-                                fts.ListConfigs(
-                                    ListConfigsRequest(
-                                        type=ConfigType.GENERATION_CONFIG,
-                                        model_id=st.session_state.current_model_metadata.id
-                                    )
-                                ).configs[0].config
-                            ),
-                            indent=2
-                        ),
+                        value=st.session_state['ft_generation_config_text'],
                         height=220,
-                        key='generation_config_text'
+                        key='ft_generation_config_text'
                     )
                 except Exception as e:
                     st.error(f"Failed to load generation configuration: {str(e)}", icon=":material/error:")

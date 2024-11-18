@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit as st
 from ft.api import *
 from typing import List
 from pgs.streamlit_utils import get_fine_tuning_studio_client
@@ -13,6 +12,25 @@ MODEL_EXPORT_TYPE_MAP = {
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
+
+# Initialize session state variables
+if "mr_registered_model_name" not in st.session_state:
+    st.session_state["mr_registered_model_name"] = ""
+
+if "ft_deployed_model_name" not in st.session_state:
+    st.session_state["ft_deployed_model_name"] = ""
+
+if "mr_model_description" not in st.session_state:
+    st.session_state["mr_model_description"] = ""
+
+if "ft_model_description" not in st.session_state:
+    st.session_state["ft_model_description"] = ""
+
+if "mr_gen_config_text" not in st.session_state:
+    st.session_state["mr_gen_config_text"] = json.dumps(DEFAULT_GENERATIONAL_CONFIG, indent=2)
+
+if "ft_gen_config_text_cml_deploy" not in st.session_state:
+    st.session_state["ft_gen_config_text_cml_deploy"] = json.dumps(DEFAULT_GENERATIONAL_CONFIG, indent=2)
 
 
 def create_header():
@@ -46,7 +64,10 @@ def display_mr_tab():
                 registered_model_name = st.text_input(
                     "Model Name",
                     placeholder="human-friendly name in model registry",
-                    key="registered_model_name")
+                    value=st.session_state["mr_registered_model_name"],
+                    key="registered_model_name"
+                )
+                st.session_state["mr_registered_model_name"] = registered_model_name
 
             with col2:
                 current_models = fts.get_models()
@@ -63,10 +84,13 @@ def display_mr_tab():
             col1, col2 = st.columns(2)
 
             with col1:
-                model_description = st.text_input(
+                model_description_mr = st.text_input(
                     "Model Description",
                     placeholder="description of the model",
-                    key="model_description_mr")
+                    value=st.session_state["mr_model_description"],
+                    key="model_description_mr"
+                )
+                st.session_state["mr_model_description"] = model_description_mr
 
             with col2:
                 model_adapters = fts.get_adapters()
@@ -86,15 +110,15 @@ def display_mr_tab():
                     key="adapter_idx_mr")
 
         # Start job button
-        button_enabled = model_idx is not None and adapter_idx is not None and registered_model_name != ""
+        button_enabled = model_idx is not None and adapter_idx is not None and registered_model_name.strip() != ""
         if button_enabled:
-            gen_config_text = st.text_area(
+            gen_config_text_mr = st.text_area(
                 "Generational Config",
-                json.dumps(
-                    DEFAULT_GENERATIONAL_CONFIG,
-                    indent=2),
+                value=st.session_state["mr_gen_config_text"],
                 height=200,
-                key="gen_config_text_mr")
+                key="gen_config_text_mr"
+            )
+            st.session_state["mr_gen_config_text"] = gen_config_text_mr
         start_job_button = st.button(
             "Export Model",
             type="primary",
@@ -110,8 +134,8 @@ def display_mr_tab():
                         base_model_id=current_models[model_idx].id,
                         adapter_id=model_adapters[adapter_idx].id,
                         model_name=registered_model_name,
-                        model_description=model_description,
-                        generation_config=gen_config_text,
+                        model_description=model_description_mr,
+                        generation_config=gen_config_text_mr,
                     ))
                 st.success(
                     "Model export is started. Please go to **CML Model Registry** to view progress.",
@@ -134,7 +158,10 @@ def display_model_deployment_tab():
                 deployed_model_name = st.text_input(
                     "Model Name",
                     placeholder="human-friendly name for deployment",
-                    key="deployed_model_name")
+                    value=st.session_state["ft_deployed_model_name"],
+                    key="deployed_model_name"
+                )
+                st.session_state["ft_deployed_model_name"] = deployed_model_name
 
             with col2:
                 current_models = fts.get_models()
@@ -154,7 +181,10 @@ def display_model_deployment_tab():
                 model_description = st.text_input(
                     "Model Description",
                     placeholder="description of the model",
-                    key="model_description")
+                    value=st.session_state["ft_model_description"],
+                    key="model_description"
+                )
+                st.session_state["ft_model_description"] = model_description
 
             with col2:
                 model_adapters = fts.get_adapters()
@@ -174,15 +204,14 @@ def display_model_deployment_tab():
                     key="adapter_idx_cml_deploy")
 
         # Start job button
-        button_enabled = model_idx is not None and adapter_idx is not None and deployed_model_name != ""
+        button_enabled = model_idx is not None and adapter_idx is not None and deployed_model_name.strip() != ""
         if button_enabled:
             gen_config_text = st.text_area(
                 "Generational Config",
-                json.dumps(
-                    DEFAULT_GENERATIONAL_CONFIG,
-                    indent=2),
+                value=st.session_state["ft_gen_config_text_cml_deploy"],
                 height=200,
-                key="gen_config_text_cml_deploy")
+                key="gen_config_text")
+            st.session_state["ft_gen_config_text_cml_deploy"] = gen_config_text
         start_job_button = st.button(
             "Deploy Model",
             type="primary",

@@ -25,6 +25,25 @@ if 'selected_features' not in st.session_state:
 
 if 'eval_dataset_fraction' not in st.session_state:
     st.session_state['eval_dataset_fraction'] = 1.0
+
+if 'mlflow_dataset_idx' not in st.session_state:
+    st.session_state['mlflow_dataset_idx'] = None
+
+if 'mlflow_model_idx' not in st.session_state:
+    st.session_state['mlflow_model_idx'] = None
+
+if 'mlflow_prompt_idx' not in st.session_state:
+    st.session_state['mlflow_prompt_idx'] = None
+
+if 'gpu_label' not in st.session_state:
+    st.session_state['gpu_label'] = None
+
+if 'mlflow_cpu' not in st.session_state:
+    st.session_state['mlflow_cpu'] = "2"
+
+if 'mlflow_memory' not in st.session_state:
+    st.session_state['mlflow_memory'] = "8"
+
 # Container for header
 with st.container(border=True):
     col1, col2 = st.columns([1, 17])
@@ -44,22 +63,23 @@ with ccol1:
         # Container for dataset and prompt selection
         col1, col2 = st.columns(2)
         current_datasets = fts.get_datasets()
-        dataset_idx = st.selectbox(
+        mlflow_dataset_idx = st.selectbox(
             "Datasets",
             range(len(current_datasets)),
             format_func=lambda x: current_datasets[x].name,
-            index=None
+            index=st.session_state['mlflow_dataset_idx']
         )
 
-        if dataset_idx is not None:
-            dataset = current_datasets[dataset_idx]
+        if mlflow_dataset_idx is not None:
+            st.session_state['mlflow_dataset_idx'] = mlflow_dataset_idx
+            dataset = current_datasets[mlflow_dataset_idx]
             current_prompts = fts.get_prompts()
             current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
-            prompt_idx = st.selectbox(
+            mlflow_prompt_idx = st.selectbox(
                 "Prompts",
                 range(len(current_prompts)),
                 format_func=lambda x: current_prompts[x].name,
-                index=None,
+                index=st.session_state['mlflow_prompt_idx'],
                 key="prompt_selectbox",
                 help="Select the prompt to use with the selected dataset. This field is required."
             )
@@ -69,12 +89,13 @@ with ccol1:
                     "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
                     icon=":material/error:")
 
-            if prompt_idx is not None:
+            if mlflow_prompt_idx is not None:
+                st.session_state['mlflow_prompt_idx'] = mlflow_prompt_idx
                 subcol1, subcol2 = st.columns(2)
                 subcol1.caption("Prompt Template")
-                subcol1.code(current_prompts[prompt_idx].input_template)
+                subcol1.code(current_prompts[mlflow_prompt_idx].input_template)
                 subcol2.caption("Completion Template")
-                subcol2.code(current_prompts[prompt_idx].completion_template)
+                subcol2.code(current_prompts[mlflow_prompt_idx].completion_template)
 
             eval_dataset_fraction = st.slider(
                 "Evaluation Dataset Fraction",
@@ -98,10 +119,10 @@ with ccol1:
                 dataset_features,
                 help="These extra columns will be included in the evaluation CSV along with the model input, expected output and the model output columns. Leave it blank for default behaviour.",
                 key="selected_dataset_features",
-                default=st.session_state.selected_features,
+                default=st.session_state['selected_features'],
             )
 
-            st.session_state.selected_features = selected_features or []
+            st.session_state['selected_features'] = selected_features or []
 
         st.divider()
         st.caption("**Choose Models for Evaluation**")
@@ -113,19 +134,20 @@ with ccol1:
             for i in range(NUM_GPUS):
                 with st.container(border=True):
                     current_models = fts.get_models()
-                    model_idx = st.selectbox(
+                    mlflow_model_idx = st.selectbox(
                         "Base Model",
                         range(len(current_models)),
                         format_func=lambda x: current_models[x].name,
-                        index=None,
+                        index=st.session_state['mlflow_model_idx'],
                         key=f"current_model_index_{i}"
                     )
 
                     model_adapter_idx = None
                     model_adapter = None
                     # TODO: this currently assumes HF model for local eval, but should not have to be in the future
-                    if model_idx is not None:
-                        current_model_metadata = current_models[model_idx]
+                    if mlflow_model_idx is not None:
+                        st.session_state['mlflow_model_idx'] = mlflow_model_idx
+                        current_model_metadata = current_models[mlflow_model_idx]
 
                         model_adapters: List[AdapterMetadata] = fts.get_adapters()
                         model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
@@ -159,12 +181,14 @@ with ccol1:
                                 model_adapter = model_adapters[model_adapter_idx]
                         else:
                             model_adapter = BASE_MODEL_ONLY_IDX
-                        if {"model_idx": model_idx,
+                        st.session_state['model_adapter'] = model_adapter
+                        if {"mlflow_model_idx": mlflow_model_idx,
                                 "model_adapter": model_adapter} in all_model_adapter_combinations:
                             st.error(
                                 "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
-                if model_idx is not None and model_adapter is not None:
-                    all_model_adapter_combinations.append({"model_idx": model_idx, "model_adapter": model_adapter})
+                if mlflow_model_idx is not None and model_adapter is not None:
+                    all_model_adapter_combinations.append(
+                        {"mlflow_model_idx": mlflow_model_idx, "model_adapter": model_adapter})
                 if i == NUM_GPUS - 1:
                     continue
                 add = st.toggle(label="Add", key=f"add_additional_model_{i}")
@@ -172,14 +196,13 @@ with ccol1:
                     continue
                 else:
                     break
-
         # Advanced options
         st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
         with c1:
-            cpu = st.text_input("CPU(vCPU)", value="2", key="cpu")
+            mlflow_cpu = st.text_input("CPU(vCPU)", value=st.session_state['mlflow_cpu'], key="mlflow_cpu")
         with c2:
-            memory = st.text_input("Memory(GiB)", value="8", key="memory")
+            mlflow_memory = st.text_input("Memory(GiB)", value=st.session_state['mlflow_memory'], key="mlflow_memory")
 
         gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
         accelerator_labels = []
@@ -204,12 +227,12 @@ with ccol1:
         st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
         gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
 
-        button_enabled = dataset_idx is not None and model_idx is not None and model_adapter is not None and prompt_idx is not None
+        button_enabled = mlflow_dataset_idx is not None and mlflow_model_idx is not None and model_adapter is not None and mlflow_prompt_idx is not None
 
         if button_enabled:
             with st.expander("Configs"):
                 cc1, cc2 = st.columns([1, 1])
-                model_idx = all_model_adapter_combinations[0]["model_idx"]
+                mlflow_model_idx = all_model_adapter_combinations[0]["mlflow_model_idx"]
                 model_adapter = all_model_adapter_combinations[0]["model_adapter"]
                 if model_adapter is not BASE_MODEL_ONLY_IDX:
                     adapter_id = model_adapter.id
@@ -227,7 +250,7 @@ with ccol1:
                             fts.ListConfigs(
                                 ListConfigsRequest(
                                     type=ConfigType.BITSANDBYTES_CONFIG,
-                                    model_id=current_models[model_idx].id,
+                                    model_id=current_models[mlflow_model_idx].id,
                                     adapter_id=adapter_id
                                 )
                             ).configs[0].config
@@ -243,7 +266,7 @@ with ccol1:
                             fts.ListConfigs(
                                 ListConfigsRequest(
                                     type=ConfigType.GENERATION_CONFIG,
-                                    model_id=current_models[model_idx].id,
+                                    model_id=current_models[mlflow_model_idx].id,
                                     adapter_id=adapter_id
                                 )
                             ).configs[0].config
@@ -266,12 +289,12 @@ with ccol1:
             else:
                 try:
                     model_adapter_combo: List[EvaluationJobModelCombination] = []
-                    first_model = current_models[all_model_adapter_combinations[0]['model_idx']]
-                    prompt = current_prompts[prompt_idx]
-                    dataset = current_datasets[dataset_idx]
+                    first_model = current_models[all_model_adapter_combinations[0]['mlflow_model_idx']]
+                    prompt = current_prompts[mlflow_prompt_idx]
+                    dataset = current_datasets[mlflow_dataset_idx]
                     for combo in all_model_adapter_combinations:
-                        model_idx, model_adapter = combo['model_idx'], combo['model_adapter']
-                        model = current_models[model_idx]
+                        mlflow_model_idx, model_adapter = combo['mlflow_model_idx'], combo['model_adapter']
+                        model = current_models[mlflow_model_idx]
                         if model_adapter == BASE_MODEL_ONLY_IDX:
                             adapter = AdapterMetadata()
                             adapter.id = BASE_MODEL_ONLY_ADAPTER_ID
@@ -305,14 +328,14 @@ with ccol1:
                             model_adapter_combinations=model_adapter_combo,
                             dataset_id=dataset.id,
                             prompt_id=prompt.id,
-                            cpu=int(cpu),
+                            cpu=int(st.session_state['mlflow_cpu']),
                             gpu=gpu,
-                            gpu_label_id=int(gpu_label_id),
-                            memory=int(memory),
+                            gpu_label_id=gpu_label_id,
+                            memory=int(st.session_state['mlflow_memory']),
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,
                             generation_config_id=generation_config_md.id,
-                            selected_features=st.session_state.selected_features,
+                            selected_features=st.session_state['selected_features'],
                             eval_dataset_fraction=st.session_state['eval_dataset_fraction']
                         )
                     )

@@ -2,7 +2,6 @@ from ft.eval.mlflow_pyfunc import MLFlowTransformers
 import torch
 import os
 import json
-import re
 mlt = MLFlowTransformers()
 
 # Main script used as the prediction/generation base of a deployed CML Model. This script
@@ -42,13 +41,13 @@ def parse_json_config(env_var_name):
     """
     Safely parse JSON configuration from environment variable with fallback solutions
     for common formatting issues.
-    
+
     Args:
         env_var_name (str): Name of the environment variable containing JSON string
-        
+
     Returns:
         dict: Parsed JSON configuration
-        
+
     Raises:
         ValueError: If JSON cannot be parsed after all attempts
     """
@@ -57,12 +56,12 @@ def parse_json_config(env_var_name):
         json_str = os.getenv(env_var_name)
         if not json_str:
             raise ValueError(f"Environment variable {env_var_name} not found")
-            
+
         try:
             return json.loads(json_str)
         except json.JSONDecodeError:
             pass
-            
+
         try:
             fixed_str = json_str.replace("'", '"')
             return json.loads(fixed_str)
@@ -70,6 +69,7 @@ def parse_json_config(env_var_name):
             return {}
     except Exception as e:
         raise ValueError(f"Error processing JSON configuration: {str(e)}")
+
 
 print("fetching model and adapter parameters from environment...")
 base_model_hf_name = os.getenv("FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME")

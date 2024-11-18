@@ -91,28 +91,39 @@ def create_train_adapter_page_with_proprietary():
 
             with col1:
                 current_datasets = fts.get_datasets()
-                dataset_idx = st.selectbox(
-                    "Dataset",
-                    range(len(current_datasets)),
-                    format_func=lambda x: current_datasets[x].name,
-                    index=st.session_state['ft_dataset'],
-                    key="proprietary_dataset_selectbox",
-                    help="Select the dataset to use for training. This field is required."
-                )
-                st.session_state['ft_dataset'] = dataset_idx
-                if dataset_idx is not None:
-                    dataset = current_datasets[dataset_idx]
-                    current_prompts = fts.get_prompts()
-                    current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
-                    prompt_idx = st.selectbox(
-                        "Prompts",
-                        range(len(current_prompts)),
-                        format_func=lambda x: current_prompts[x].name,
-                        index=st.session_state['ft_prompt'],
-                        key="proprietary_prompt_selectbox",
-                        help="Select the prompt to use with the selected dataset. This field is required."
+                if len(current_datasets) == 0:
+                    dataset_idx = None
+                else:
+                    dataset_idx = st.selectbox(
+                        "Dataset",
+                        range(len(current_datasets)),
+                        format_func=lambda x: current_datasets[x].name,
+                        index=st.session_state.get('ft_dataset', 0) if len(
+                            current_datasets) > 0 else 0,  # Use 0 as default index
+                        key="proprietary_dataset_selectbox",
+                        help="Select the dataset to use for training. This field is required."
                     )
-                    st.session_state['ft_prompt'] = prompt_idx
+                    # Update session state only if dataset_idx is valid
+                    if dataset_idx is not None:
+                        st.session_state['ft_dataset'] = dataset_idx
+                        dataset = current_datasets[dataset_idx]
+                        current_prompts = fts.get_prompts()
+                        current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
+                        if len(current_prompts) == 0:
+                            prompt_idx = None  # No prompts available
+                        else:
+                            prompt_idx = st.selectbox(
+                                "Prompts",
+                                range(len(current_prompts)),
+                                format_func=lambda x: current_prompts[x].name,
+                                index=st.session_state.get('ft_prompt', 0) if len(
+                                    current_prompts) > 0 else 0,  # Use 0 as default index
+                                key="proprietary_prompt_selectbox",
+                                help="Select the prompt to use with the selected dataset. This field is required."
+                            )
+                            # Update session state only if prompt_idx is valid
+                            if prompt_idx is not None:
+                                st.session_state['ft_prompt'] = prompt_idx
 
             with col2:
                 current_models = fts.get_models()
@@ -137,12 +148,13 @@ def create_train_adapter_page_with_proprietary():
             # Resource Options
             if 'ft_multi_node' not in st.session_state:
                 st.session_state['ft_multi_node'] = False
+            ft_type_name = "Multi Node" if st.session_state['ft_multi_node'] else "Single Node"
             c1, c2 = st.columns([1, 1])
             with c1:
                 ft_type_name = st.selectbox(
                     "Finetuning Type",
                     options=["Single Node", "Multi Node"],
-                    index=0,
+                    index=0 if ft_type_name == "Single Node" else 1,
                     key="ft_type",
                     help="Select whether finetuning runs in standalone mode or distributed across  many processes"
                 )
@@ -161,7 +173,7 @@ def create_train_adapter_page_with_proprietary():
                             max_value=100,
                             value=st.session_state['ft_resource_num_workers'],
                             help="Specify the number of machines that will launched in CML to perform training.")
-                        st.session_state['num_workers'] = num_workers
+                        st.session_state['ft_resource_num_workers'] = num_workers
                     with c2:
                         tc_arch = "Distribution - Multi Node"
                         tc_descrip = "**Distributed Finetuning Units** may be provisioned across multiple physical nodes in the CML Workspace."
@@ -312,7 +324,7 @@ def create_train_adapter_page_with_proprietary():
                             value=st.session_state['ft_config_bnb'],
                             height=200,
                             help="BitsAndBytes configuration for optimizing model training.")
-
+                        st.session_state['ft_config_bnb'] = bnb_config_text
                 with st.expander("Advanced Training Options"):
                     st.info("""
                             NOTE: the following fields in the below JSON will be overridden by the values set in the UI above:
@@ -334,7 +346,7 @@ def create_train_adapter_page_with_proprietary():
                         value=st.session_state['ft_config_trainer'],
                         height=400,
                         help="Advanced training arguments in JSON format.")
-
+                    st.session_state['ft_config_trainer'] = training_args_text
             # Start job button
             button_enabled = dataset_idx is not None and model_idx is not None and prompt_idx is not None and adapter_name != ""
             start_job_button = st.button(
