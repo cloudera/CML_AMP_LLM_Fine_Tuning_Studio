@@ -38,11 +38,6 @@ if 'mlflow_prompt_idx' not in st.session_state:
 if 'gpu_label' not in st.session_state:
     st.session_state['gpu_label'] = None
 
-if 'mlflow_cpu' not in st.session_state:
-    st.session_state['mlflow_cpu'] = "2"
-
-if 'mlflow_memory' not in st.session_state:
-    st.session_state['mlflow_memory'] = "8"
 
 # Container for header
 with st.container(border=True):
@@ -67,35 +62,47 @@ with ccol1:
             "Datasets",
             range(len(current_datasets)),
             format_func=lambda x: current_datasets[x].name,
-            index=st.session_state['mlflow_dataset_idx']
+            index=st.session_state['mlflow_dataset_idx'],
+            key="dataset_selectbox",
         )
+        if 'prev_dataset_idx' not in st.session_state or st.session_state['prev_dataset_idx'] != mlflow_dataset_idx:
+            st.session_state['mlflow_prompt_idx'] = None
+            st.session_state['selected_features'] = []
+            st.session_state['eval_dataset_fraction'] = 1.0
+            st.session_state['mlflow_model_idx'] = None
+            st.session_state['model_adapter'] = None
+            st.session_state['prev_dataset_idx'] = mlflow_dataset_idx
+
+        st.session_state['mlflow_dataset_idx'] = mlflow_dataset_idx
 
         if mlflow_dataset_idx is not None:
             st.session_state['mlflow_dataset_idx'] = mlflow_dataset_idx
             dataset = current_datasets[mlflow_dataset_idx]
             current_prompts = fts.get_prompts()
             current_prompts = list(filter(lambda x: x.dataset_id == dataset.id, current_prompts))
-            mlflow_prompt_idx = st.selectbox(
-                "Prompts",
-                range(len(current_prompts)),
-                format_func=lambda x: current_prompts[x].name,
-                index=st.session_state['mlflow_prompt_idx'],
-                key="prompt_selectbox",
-                help="Select the prompt to use with the selected dataset. This field is required."
-            )
+            if len(current_prompts) > 0:
+                valid_index = 0
+                if st.session_state['mlflow_prompt_idx'] is not None:
+                    valid_index = min(len(current_prompts) - 1, max(0, st.session_state['mlflow_prompt_idx']))
 
-            if len(current_prompts) == 0:
-                st.error(
-                    "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
-                    icon=":material/error:")
-
-            if mlflow_prompt_idx is not None:
+                mlflow_prompt_idx = st.selectbox(
+                    "Prompts",
+                    range(len(current_prompts)),
+                    format_func=lambda x: current_prompts[x].name,
+                    index=valid_index,
+                    key="prompt_selectbox",
+                    help="Select the prompt to use with the selected dataset. This field is required."
+                )
                 st.session_state['mlflow_prompt_idx'] = mlflow_prompt_idx
                 subcol1, subcol2 = st.columns(2)
                 subcol1.caption("Prompt Template")
                 subcol1.code(current_prompts[mlflow_prompt_idx].input_template)
                 subcol2.caption("Completion Template")
                 subcol2.code(current_prompts[mlflow_prompt_idx].completion_template)
+            else:
+                st.error(
+                    "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
+                    icon=":material/error:")
 
             eval_dataset_fraction = st.slider(
                 "Evaluation Dataset Fraction",
@@ -114,7 +121,7 @@ with ccol1:
                     id=dataset.id
                 )
             ).dataset.features)
-            selected_features = st.multiselect(
+            selected_dataset_features = st.multiselect(
                 "Choose Extra Columns That You Need In The Evaluation CSV",
                 dataset_features,
                 help="These extra columns will be included in the evaluation CSV along with the model input, expected output and the model output columns. Leave it blank for default behaviour.",
@@ -122,7 +129,7 @@ with ccol1:
                 default=st.session_state['selected_features'],
             )
 
-            st.session_state['selected_features'] = selected_features or []
+            st.session_state['selected_features'] = selected_dataset_features or []
 
         st.divider()
         st.caption("**Choose Models for Evaluation**")
@@ -200,9 +207,9 @@ with ccol1:
         st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
         with c1:
-            mlflow_cpu = st.text_input("CPU(vCPU)", value=st.session_state['mlflow_cpu'], key="mlflow_cpu")
+            mlflow_cpu = st.text_input("CPU(vCPU)", value="2", key="mlflow_cpu")
         with c2:
-            mlflow_memory = st.text_input("Memory(GiB)", value=st.session_state['mlflow_memory'], key="mlflow_memory")
+            mlflow_memory = st.text_input("Memory(GiB)", value="8", key="mlflow_memory")
 
         gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
         accelerator_labels = []
@@ -328,10 +335,10 @@ with ccol1:
                             model_adapter_combinations=model_adapter_combo,
                             dataset_id=dataset.id,
                             prompt_id=prompt.id,
-                            cpu=int(st.session_state['mlflow_cpu']),
+                            cpu=int(cpu),
                             gpu=gpu,
-                            gpu_label_id=gpu_label_id,
-                            memory=int(st.session_state['mlflow_memory']),
+                            gpu_label_id=int(gpu_label_id),
+                            memory=int(memory),
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,
                             generation_config_id=generation_config_md.id,

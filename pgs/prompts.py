@@ -9,6 +9,7 @@ import json
 from ft.utils import generate_templates
 from ft.consts import IconPaths, DIVIDER_COLOR
 
+# Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
 
 if "prompt_template" not in st.session_state:
@@ -71,20 +72,20 @@ def display_create_prompt():
 
                 subcol1, subcol2 = st.columns(2)
                 prompt_template = subcol1.text_area(
-                    "Prompt Template", value=st.session_state.prompt_template, height=260)
-                st.session_state.prompt_template = prompt_template
+                    "Prompt Template", value=st.session_state['prompt_template'], height=260)
+                st.session_state['prompt_template'] = prompt_template
                 completion_template = subcol2.text_area(
-                    "Completion Template", value=st.session_state.completion_template, height=260)
-                st.session_state.completion_template = completion_template
+                    "Completion Template", value=st.session_state['completion_template'], height=260)
+                st.session_state['completion_template'] = completion_template
+                training_prompt_template = prompt_template or ""
 
-                training_prompt_template = prompt_template.rstrip("\n") + completion_template.strip()
-                st.session_state.training_prompt_template = training_prompt_template
+                if training_prompt_template.endswith("\n"):
+                    training_prompt_template = training_prompt_template.rstrip("\n")
 
-                # Move "Generate Prompt Example" button back to its original position
+                training_prompt_template = training_prompt_template + (completion_template or "").strip()
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)
 
-                # Example prompt generation using session state
                 subcol1, subcol2 = st.columns(2)
                 example_training_prompt, example_input_prompt, example_completion_prompt = "", "", ""
                 if generate_example_button:
