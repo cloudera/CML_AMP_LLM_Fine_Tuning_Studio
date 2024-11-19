@@ -1,11 +1,10 @@
 import streamlit as st
-import os
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, fetch_cml_site_config
 from typing import List
 from ft.api import *
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import json
-from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_IDX, BASE_MODEL_ONLY_ADAPTER_ID
+from ft.consts import IconPaths, DIVIDER_COLOR, DEFAULT_BNB_CONFIG, DEFAULT_GENERATIONAL_CONFIG
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -35,8 +34,23 @@ if 'mlflow_model_idx' not in st.session_state:
 if 'mlflow_prompt_idx' not in st.session_state:
     st.session_state['mlflow_prompt_idx'] = None
 
-if 'gpu_label' not in st.session_state:
-    st.session_state['gpu_label'] = None
+# New session state, list of dicts representing model selection
+if 'mlflow_model_adapters' not in st.session_state:
+
+    # Fill in a blank session state to start with no models
+    # and no adapters selected
+    st.session_state['mlflow_model_adapters'] = [
+        {
+            "base_model_id": None,
+            "adapter_id": None
+        }
+    ]
+
+if 'bnb_config' not in st.session_state:
+    st.session_state['bnb_config'] = DEFAULT_BNB_CONFIG
+
+if 'generation_config' not in st.session_state:
+    st.session_state['generation_config'] = DEFAULT_GENERATIONAL_CONFIG
 
 
 # Container for header
@@ -134,75 +148,92 @@ with ccol1:
         st.divider()
         st.caption("**Choose Models for Evaluation**")
         all_model_adapter_combinations = []
-        CURRENT_MODEL = None
-        NUM_GPUS = 5  # let's make it dynamic via API call to cdp
-        # currently let's try to take at max 3 model + adapter combination and dispatch them to cml jobs
-        with st.container(border=True):
-            for i in range(NUM_GPUS):
-                with st.container(border=True):
-                    current_models = fts.get_models()
-                    mlflow_model_idx = st.selectbox(
-                        "Base Model",
-                        range(len(current_models)),
-                        format_func=lambda x: current_models[x].name,
-                        index=st.session_state['mlflow_model_idx'],
-                        key=f"current_model_index_{i}"
-                    )
+        # For every item in the session state for list of model adapter combos, see
+        # what is selected and allow for changes dynamically.
+        for i in range(len(st.session_state.mlflow_model_adapters)):
 
-                    model_adapter_idx = None
-                    model_adapter = None
-                    # TODO: this currently assumes HF model for local eval, but should not have to be in the future
-                    if mlflow_model_idx is not None:
-                        st.session_state['mlflow_model_idx'] = mlflow_model_idx
-                        current_model_metadata = current_models[mlflow_model_idx]
+            with st.container(border=True):
+                current_models = fts.get_models()
+                current_model_id = st.session_state.mlflow_model_adapters[i].get("base_model_id", None)
 
-                        model_adapters: List[AdapterMetadata] = fts.get_adapters()
-                        model_adapters = list(filter(lambda x: x.model_id == current_model_metadata.id, model_adapters))
+                # Get the index from the list of models based on the model ID that is in
+                # the session state for this model adapter pair.
+                def get_model_index_based_on_id(id: str, models: List[ModelMetadata]) -> int:
+                    for idx, model in enumerate(models):
+                        if model.id == id:
+                            return idx
+                    return None
 
-                        # Filter adapters based on their presence in the /data/adapter directory
-                        model_adapters = list(filter(lambda x: os.path.isdir(os.path.join(x.location)), model_adapters))
+                # Define a callback function to update the session state accordingly. Note that
+                # this code runs *before* a streamlit refresh.
+                def update_model_selection():
+                    current_model_index = st.session_state[f"current_model_index_{i}"]
+                    selected_model = current_models[current_model_index]
+                    if not selected_model.id == st.session_state.mlflow_model_adapters[i]["base_model_id"]:
+                        st.session_state.mlflow_model_adapters[i]["adapter_id"] = None
+                    st.session_state.mlflow_model_adapters[i]["base_model_id"] = selected_model.id
 
-                        # TODO: We should not have to load the adapters every run, this is overkill
-                        with st.spinner("Loading Adapters..."):
-                            for adapter in model_adapters:
-                                loc = os.path.join(adapter.location)
-                                if not loc.endswith("/"):
-                                    loc += "/"
+                # Get a list of all of the models
+                # link the current selection based on the model ID if it's not none on this current pair
+                mlflow_model_idx = st.selectbox(
+                    "Base Model",
+                    range(
+                        len(current_models)),
+                    format_func=lambda x: current_models[x].name,
+                    index=get_model_index_based_on_id(
+                        current_model_id,
+                        current_models) if current_model_id is not None else None,
+                    key=f"current_model_index_{i}",
+                    on_change=update_model_selection)
 
-                        only = st.toggle("Base Model Only", key=f"base_model_evaluation_only_key_{i}")
-                        if not only:
-                            model_adapter_idx = st.selectbox(
-                                "Choose an Adapter",
-                                range(len(model_adapters)),
-                                format_func=lambda x: model_adapters[x].name,
-                                index=None,
-                                key=f"current_adapter_index_{i}"
-                            )
+                current_adapters = list(
+                    filter(
+                        lambda x: x.model_id == current_model_id,
+                        fts.get_adapters())) if current_model_id is not None else []
+                current_adapter_id = st.session_state.mlflow_model_adapters[i].get("adapter_id", None)
 
-                            if len(model_adapters) == 0:
-                                st.error(
-                                    "No adapters available. Please create a fine tuning job for the selected base model to create an adapter. Or run evaluation on base model only!",
-                                    icon=":material/error:")
+                def get_adapter_index_based_on_id(id: str, adapters: List[AdapterMetadata]) -> int:
+                    for idx, adapter in enumerate(adapters):
+                        if adapter.id == id:
+                            return idx
+                    return None
 
-                            if model_adapter_idx is not None:
-                                model_adapter = model_adapters[model_adapter_idx]
-                        else:
-                            model_adapter = BASE_MODEL_ONLY_IDX
-                        st.session_state['model_adapter'] = model_adapter
-                        if {"mlflow_model_idx": mlflow_model_idx,
-                                "model_adapter": model_adapter} in all_model_adapter_combinations:
-                            st.error(
-                                "This Model Adapter combination is already selected. This will lead to duplicate evaluation results.")
-                if mlflow_model_idx is not None and model_adapter is not None:
-                    all_model_adapter_combinations.append(
-                        {"mlflow_model_idx": mlflow_model_idx, "model_adapter": model_adapter})
-                if i == NUM_GPUS - 1:
-                    continue
-                add = st.toggle(label="Add", key=f"add_additional_model_{i}")
-                if add:
-                    continue
-                else:
-                    break
+                model_adapter_idx = st.selectbox(
+                    "(optional) Choose an Adapter",
+                    range(
+                        len(current_adapters)),
+                    format_func=lambda x: current_adapters[x].name,
+                    index=get_adapter_index_based_on_id(
+                        current_adapter_id,
+                        current_adapters) if current_adapter_id is not None else None,
+                    key=f"current_adapter_index_{i}")
+                if model_adapter_idx is not None:
+                    selected_adapter: AdapterMetadata = current_adapters[model_adapter_idx]
+                    st.session_state.mlflow_model_adapters[i]["adapter_id"] = selected_adapter.id
+
+                # Add a remove button per combo button
+                def remove_model_adapter_pair(idx: int):
+                    del st.session_state.mlflow_model_adapters[idx]
+                st.button(
+                    label="Remove", key=f"remove_adapter_{i}", disabled=(
+                        i == 0 and st.session_state.mlflow_model_adapters[i]["base_model_id"] is None and st.session_state.mlflow_model_adapters[i]["adapter_id"] is None) or len(
+                        st.session_state.mlflow_model_adapters) <= 1, on_click=remove_model_adapter_pair, args=(
+                        i,))
+
+        # Add a model adapter pair
+        def add_model_adapter_pair():
+            st.session_state.mlflow_model_adapters.append(
+                {
+                    "base_model_id": None,
+                    "adapter_id": None
+                }
+            )
+        st.button(
+            label="Add another model & adapter",
+            on_click=add_model_adapter_pair,
+            disabled=st.session_state.mlflow_model_adapters[-1]["base_model_id"] is None and st.session_state.mlflow_model_adapters[-1]["adapter_id"] is None
+        )
+
         # Advanced options
         st.caption("**Advanced Options**")
         c1, c2 = st.columns([1, 1])
@@ -234,54 +265,27 @@ with ccol1:
         st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
         gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
 
-        button_enabled = mlflow_dataset_idx is not None and mlflow_model_idx is not None and model_adapter is not None and mlflow_prompt_idx is not None
+        with st.expander("Configs"):
+            cc1, cc2 = st.columns([1, 1])
 
-        if button_enabled:
-            with st.expander("Configs"):
-                cc1, cc2 = st.columns([1, 1])
-                mlflow_model_idx = all_model_adapter_combinations[0]["mlflow_model_idx"]
-                model_adapter = all_model_adapter_combinations[0]["model_adapter"]
-                if model_adapter is not BASE_MODEL_ONLY_IDX:
-                    adapter_id = model_adapter.id
-                else:
-                    adapter_id = BASE_MODEL_ONLY_ADAPTER_ID
-                # Extract out a BnB config and a generation config that will be used for
-                # this specific mlflow evaluation run. Right now there is no selection logic on
-                # these configs for a specific model type, but there may be in the future. For now,
-                # just use the first selected configuration for each.
-                # Just picking up the first models configuration.
-                bnb_config_text = cc1.text_area(
-                    "Quantization Config",
-                    json.dumps(
-                        json.loads(
-                            fts.ListConfigs(
-                                ListConfigsRequest(
-                                    type=ConfigType.BITSANDBYTES_CONFIG,
-                                    model_id=current_models[mlflow_model_idx].id,
-                                    adapter_id=adapter_id
-                                )
-                            ).configs[0].config
-                        ),
-                        indent=2
-                    ),
-                    height=200
-                )
-                generation_config_text = cc2.text_area(
-                    "Generation Config",
-                    json.dumps(
-                        json.loads(
-                            fts.ListConfigs(
-                                ListConfigsRequest(
-                                    type=ConfigType.GENERATION_CONFIG,
-                                    model_id=current_models[mlflow_model_idx].id,
-                                    adapter_id=adapter_id
-                                )
-                            ).configs[0].config
-                        ),
-                        indent=2
-                    ),
-                    height=200
-                )
+            bnb_config_text = cc1.text_area(
+                "Quantization Config",
+                value=json.dumps(
+                    st.session_state.bnb_config,
+                    indent=2
+                ),
+                height=200
+            )
+            generation_config_text = cc2.text_area(
+                "Generation Config",
+                json.dumps(
+                    st.session_state.generation_config,
+                    indent=2
+                ),
+                height=200
+            )
+            st.session_state.bnb_config = json.loads(bnb_config_text)
+            st.session_state.generation_config = json.loads(generation_config_text)
 
         start_job_button = st.button(
             "Start MLflow Evaluation Job",
@@ -289,43 +293,62 @@ with ccol1:
             use_container_width=True)
 
         if start_job_button:
-            if not button_enabled:
+
+            def empty_model_field_present():
+                for pair in st.session_state.mlflow_model_adapters:
+                    if pair["base_model_id"] is None and pair["adapter_id"] is None:
+                        return True
+                return False
+
+            def repeated_model_adapter_pair():
+                for i, pair1 in enumerate(st.session_state.mlflow_model_adapters):
+                    for j, pair2 in enumerate(st.session_state.mlflow_model_adapters):
+                        if (not i == j) and (pair1 == pair2):
+                            return True
+                return False
+
+            def missing_dataset_selection():
+                return mlflow_dataset_idx is None
+
+            def missing_prompt_selection():
+                return mlflow_prompt_idx is None
+
+            if empty_model_field_present():
                 st.warning(
-                    "Please complete the fields: Adapter, Dataset, Prompt, and Base Model before starting the job.",
+                    "One of the selected model/adapter pairs is missing a base model. Make sure there is at least a base model in all model/adapter pairs to evaluate.",
+                    icon=":material/error:")
+            elif repeated_model_adapter_pair():
+                st.warning(
+                    "Two of the selected model/adapter pairs are the same model & adapter. Remove all duplicates from the list of model/adapters to evaluate.",
+                    icon=":material/error:")
+            elif missing_dataset_selection():
+                st.warning(
+                    "Please select a dataset to evaluate on.",
+                    icon=":material/error:")
+            elif missing_prompt_selection():
+                st.warning(
+                    "Please select a prompt template to evaluate on.",
                     icon=":material/error:")
             else:
                 try:
                     model_adapter_combo: List[EvaluationJobModelCombination] = []
-                    first_model = current_models[all_model_adapter_combinations[0]['mlflow_model_idx']]
                     prompt = current_prompts[mlflow_prompt_idx]
                     dataset = current_datasets[mlflow_dataset_idx]
-                    for combo in all_model_adapter_combinations:
-                        mlflow_model_idx, model_adapter = combo['mlflow_model_idx'], combo['model_adapter']
-                        model = current_models[mlflow_model_idx]
-                        if model_adapter == BASE_MODEL_ONLY_IDX:
-                            adapter = AdapterMetadata()
-                            adapter.id = BASE_MODEL_ONLY_ADAPTER_ID
-                        else:
-                            adapter = model_adapter
-
-                        model_adapter_combo.append(EvaluationJobModelCombination(
-                            base_model_id=model.id,
-                            adapter_id=adapter.id))
+                    for combo in st.session_state.mlflow_model_adapters:
+                        model_adapter_combo.append(EvaluationJobModelCombination(**combo))
 
                     # If there were any changes made to the generation or bnb config,
                     # add these new configs to the config store.
                     bnb_config_md: ConfigMetadata = fts.AddConfig(
                         AddConfigRequest(
                             type=ConfigType.BITSANDBYTES_CONFIG,
-                            config=bnb_config_text,
-                            description=model.huggingface_model_name
+                            config=bnb_config_text
                         )
                     ).config
                     generation_config_md: ConfigMetadata = fts.AddConfig(
                         AddConfigRequest(
                             type=ConfigType.GENERATION_CONFIG,
-                            config=generation_config_text,
-                            description=model.huggingface_model_name
+                            config=generation_config_text
                         )
                     ).config
 
@@ -335,10 +358,10 @@ with ccol1:
                             model_adapter_combinations=model_adapter_combo,
                             dataset_id=dataset.id,
                             prompt_id=prompt.id,
-                            cpu=int(cpu),
+                            cpu=int(st.session_state.mlflow_cpu),
                             gpu=gpu,
-                            gpu_label_id=int(gpu_label_id),
-                            memory=int(memory),
+                            gpu_label_id=int(st.session_state['ft_resource_gpu_label']),
+                            memory=int(st.session_state.mlflow_memory),
                             model_bnb_config_id=bnb_config_md.id,
                             adapter_bnb_config_id=bnb_config_md.id,
                             generation_config_id=generation_config_md.id,

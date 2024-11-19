@@ -63,10 +63,6 @@ def _validate_export_model_request(request: ExportModelRequest, dao: FineTuningS
             raise ValueError(f"Model with ID '{base_model_id}' does not exist.")
         # Check if the referenced adapter_id exists in the database or is the default base model
         if not session.query(Adapter).filter_by(id=adapter_id.strip()).first():
-            # if adapter_id == BASE_MODEL_ONLY_ADAPTER_ID:
-            #     pass
-            # else:
-            # this is done because we shouldn't alow only base model exports.
             raise ValueError(f"Adapter with ID '{adapter_id}' does not exist.")
 
 

@@ -1,7 +1,6 @@
 import mlflow
 from transformers import GenerationConfig
 from mlflow.models import infer_signature
-from uuid import uuid4
 from ft.config.model_configs.config_loader import ModelMetadataFinder
 
 
@@ -47,7 +46,7 @@ class ModelLogger():
             gen_config = GenerationConfig(**gen_config)
         full_name = f"{base_model_name}&{adapter_name}"
         # truncate artifact path to last 49 charactere
-        artifact_path = full_name[-49:] 
+        artifact_path = full_name[-49:]
         registered_model = "ft-model-" + str(artifact_path[-40:])
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
@@ -57,11 +56,17 @@ class ModelLogger():
                 signature=self.signature,
                 registered_model_name=registered_model,  # model_name can be dynamic
                 model_config=gen_config.to_dict(),
-                metadata={"model_full_name":full_name}
+                metadata={"model_full_name": full_name}
             )
         return model_info
 
-    def log_model_multi_gpu(self, transformer_model, tokenizer_no_pad, gen_config=None, base_model_name: str = None, adapter_name: str = None):
+    def log_model_multi_gpu(
+            self,
+            transformer_model,
+            tokenizer_no_pad,
+            gen_config=None,
+            base_model_name: str = None,
+            adapter_name: str = None):
         if gen_config is None:
             gen_config = self.default_config
         else:
@@ -75,7 +80,7 @@ class ModelLogger():
             gen_config = GenerationConfig(**gen_config)
         full_name = f"{base_model_name}&{adapter_name}"
         # truncate artifact path to last 49 charactere
-        artifact_path = full_name[-49:] 
+        artifact_path = full_name[-49:]
         registered_model = "ft-model-" + str(artifact_path[-40:])
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
@@ -85,7 +90,7 @@ class ModelLogger():
                 signature=self.signature,
                 registered_model_name=registered_model,  # model_name can be dynamic
                 model_config=gen_config.to_dict(),
-                metadata={"model_full_name":full_name}
+                metadata={"model_full_name": full_name}
             )
 
         return model_info

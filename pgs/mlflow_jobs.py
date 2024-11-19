@@ -5,7 +5,7 @@ import requests
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from ft.utils import format_status_with_icon
-from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_ADAPTER_ID, USER_DEFINED_IDENTIFIER, EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
+from ft.consts import IconPaths, DIVIDER_COLOR, USER_DEFINED_IDENTIFIER, EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
 from cmlapi import models as cml_api_models
 
 # Instantiate the client to the FTS gRPC app server.
@@ -14,6 +14,8 @@ cml = get_cml_client()
 
 # Note this is a duplicate code.from jobs.py. Problem with importing function from other page is that the page gets rendered too.
 # total weird due to streamlit
+
+
 def fetch_cml_experiments():
     try:
         cml_project = os.getenv("CDSW_PROJECT_ID")
@@ -54,6 +56,7 @@ def fetch_cml_experiments():
     except Exception as e:
         st.error(f"Error fetching CML experiments: {e}", icon=":material/error:")
         return pd.DataFrame()
+
 
 def display_page_header():
     with st.container(border=True):
@@ -273,7 +276,7 @@ def display_mlflow_runs():
             csv_file_path = os.path.join(selected_job.evaluation_dir, 'result_evaluation.csv')
             all_aggreated_paths.append({"aggregated_csv": aggregated_file_path, "row_wise_csv": csv_file_path,
                                         "model_name": model_dict[selected_job.base_model_id],
-                                        "adapter_name": adapter_dict[selected_job.adapter_id] if selected_job.adapter_id != BASE_MODEL_ONLY_ADAPTER_ID else ""})
+                                        "adapter_name": adapter_dict[selected_job.adapter_id] if 'adapter_id' in [x[0].name for x in selected_job.ListFields()] is not None else ""})
         final_df = None
         for idx, all_aggreated_path in enumerate(all_aggreated_paths):
             evaluation_name = f"{all_aggreated_path['model_name']}"

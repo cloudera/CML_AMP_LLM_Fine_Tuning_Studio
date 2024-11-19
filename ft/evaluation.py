@@ -1,11 +1,9 @@
 from uuid import uuid4
 import pathlib
-from ft.consts import BASE_MODEL_ONLY_ADAPTER_ID
 import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
 import os
-import time
 from typing import List
 
 from sqlalchemy import delete
@@ -83,11 +81,9 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
             if not session.query(Model).filter_by(id=base_model_id.strip()).first():
                 raise ValueError(f"Model with ID '{base_model_id}' does not exist.")
             # Check if the referenced adapter_id exists in the database or is the default base model
-            if not session.query(Adapter).filter_by(id=adapter_id.strip()).first():
-                if adapter_id == BASE_MODEL_ONLY_ADAPTER_ID:
-                    pass
-                else:
-                    raise ValueError(f"Adapter with ID '{adapter_id}' does not exist.")
+            if 'adapter_id' in [x[0].name for x in request.ListFields()] and not session.query(
+                    Adapter).filter_by(id=adapter_id.strip()).first():
+                raise ValueError(f"Adapter with ID '{adapter_id}' does not exist.")
 
         # Check if the referenced prompt_id exists in the database
         if not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
@@ -110,9 +106,9 @@ def get_comparison_adapter_id(model_adapter_combinations):
     """
     Given a list of ModelAdapterCombination, return the comparison adapter ID.
     """
-    comparison_adapter_id = BASE_MODEL_ONLY_ADAPTER_ID
+    comparison_adapter_id = None
     for model_adapter_combo in model_adapter_combinations:
-        if model_adapter_combo.adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
+        if 'adapter_id' in [x[0].name for x in model_adapter_combo.ListFields()]:
             comparison_adapter_id = model_adapter_combo.adapter_id
             break
     return comparison_adapter_id
@@ -161,8 +157,9 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
         arg_list.append("--base_model_id")
         arg_list.append(model_adapter_combo.base_model_id)
 
-        arg_list.append("--adapter_id")
-        arg_list.append(model_adapter_combo.adapter_id)
+        if 'adapter_id' in [x[0].name for x in model_adapter_combo.ListFields()]:
+            arg_list.append("--adapter_id")
+            arg_list.append(model_adapter_combo.adapter_id)
 
         arg_list.append("--prompt_id")
         arg_list.append(request.prompt_id)

@@ -19,9 +19,6 @@ EVAL_RANDOM_SEED = 420
 # Evaluation constants
 EVAL_INPUT_COLUMN = "model_input"
 EVAL_OUTPUT_COLUM = "expected_output"
-BASE_MODEL_ONLY_IDX = "base-model-only-idx"
-BASE_MODEL_ONLY_ADAPTER_ID = "idx-no-adapt"
-BASE_MODEL_ONLY_ADAPTER_LOCATION = "no-adapter-location"
 USER_DEFINED_IDENTIFIER = "_$useradded$"
 # Database constants
 DEFAULT_SQLITE_DB_LOCATION = ".app/state.db"
@@ -51,7 +48,16 @@ DEFAULT_GENERATIONAL_CONFIG = {
     "top_p": 1,
     "top_k": 50,
     "num_beams": 1,
-    "repetition_penalty": 1.1
+    "repetition_penalty": 1.1,
+    "max_length": None,
+}
+
+DEFAULT_BNB_CONFIG = {
+    "load_in_4bit": True,
+    "bnb_4bit_quant_type": "nf4",
+    "bnb_4bit_compute_dtype": "float16",
+    "bnb_4bit_use_double_quant": True,
+    "quant_method": "bitsandbytes"
 }
 
 

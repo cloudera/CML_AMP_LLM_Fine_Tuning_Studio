@@ -77,5 +77,3 @@ response.csv.to_csv(file_name, encoding='utf-8', index=False)
 
 aggregated_file_name = os.path.join(result_dir, "aggregregated_results.csv")
 aggregated_results.to_csv(aggregated_file_name, encoding='utf-8', index=False)
-
-

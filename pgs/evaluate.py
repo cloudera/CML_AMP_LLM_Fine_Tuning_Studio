@@ -10,7 +10,7 @@ from ft.utils import get_device
 from ft.utils import attempt_hf_login
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
-from ft.consts import IconPaths, DIVIDER_COLOR
+from ft.consts import IconPaths, DIVIDER_COLOR, DEFAULT_GENERATIONAL_CONFIG
 
 # Instantiate (or get the pre-existing) client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -24,7 +24,7 @@ default_session_state = {
     'adapter_outputs': {},
     'current_model': None,
     'loaded_adapters': [],
-    'generation_config_text': "",
+    'local_compare_generation_config': DEFAULT_GENERATIONAL_CONFIG,
     'input_prompt': "",
     'input_prompt_template': None,
     'completion_template': None,
@@ -213,28 +213,16 @@ def evaluate_fragment():
     try:
         cont = st.container()
 
-        if 'ft_generation_config_text' not in st.session_state:
-            st.session_state['ft_generation_config_text'] = json.dumps(
-                json.loads(
-                    fts.ListConfigs(
-                        ListConfigsRequest(
-                            type=ConfigType.GENERATION_CONFIG,
-                            model_id=st.session_state.current_model_metadata.id
-                        )
-                    ).configs[0].config
-                ),
-                indent=2
-            )
-
         if st.session_state.current_model_metadata:
             with cont.expander("Generation Config"):
                 try:
-                    st.text_area(
-                        "",
-                        value=st.session_state['ft_generation_config_text'],
+                    generation_config_text = st.text_area(
+                        label="",
+                        label_visibility="collapsed",
+                        value=json.dumps(st.session_state['local_compare_generation_config'], indent=2),
                         height=220,
-                        key='ft_generation_config_text'
                     )
+                    st.session_state['local_compare_generation_config'] = json.loads(generation_config_text)
                 except Exception as e:
                     st.error(f"Failed to load generation configuration: {str(e)}", icon=":material/error:")
 
@@ -294,7 +282,7 @@ def evaluate_fragment():
                     input_tokens = tokenizer(st.session_state.input_prompt, return_tensors="pt").to(get_device())
 
                     st.session_state.current_model.disable_adapters()
-                    generation_config_dict = json.loads(st.session_state.generation_config_text or "{}")
+                    generation_config_dict = st.session_state.local_compare_generation_config
 
                     with torch.amp.autocast('cuda'):
                         model_out = st.session_state.current_model.generate(**input_tokens, **generation_config_dict)

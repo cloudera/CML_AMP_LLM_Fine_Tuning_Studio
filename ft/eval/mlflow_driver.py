@@ -11,7 +11,7 @@ import json
 import time
 import torch
 from typing import List
-from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, BASE_MODEL_ONLY_ADAPTER_ID, BASE_MODEL_ONLY_ADAPTER_LOCATION
+from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
 
 
 def table_fetcher(results):
@@ -46,7 +46,6 @@ def driver(
     logger = ModelLogger(job_id)
     evaluator = ModelEvaluator()
 
-
     # Get the model and adapter metadata.
     # given that this is a script that runs on a remote worker (not the same host
     # as the application), need to make gRPC calls to the app server.
@@ -57,12 +56,16 @@ def driver(
         id=bnb_config_id)).config.config) if bnb_config_id else None
     generation_config_dict = json.loads(client.GetConfig(GetConfigRequest(
         id=generation_config_id)).config.config) if generation_config_id else None
-    if adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
+
+    # Load in the adapter, if present
+    if adapter_id is not None:
         adapter: AdapterMetadata = client.GetAdapter(GetAdapterRequest(id=adapter_id)).adapter
+        assert adapter.type == AdapterType.PROJECT  # Currently can only evaluate on project adapters
     else:
-        adapter: AdapterMetadata = AdapterMetadata(type=AdapterType.PROJECT, location=BASE_MODEL_ONLY_ADAPTER_LOCATION)
-    # Load dataset
-    if comparison_adapter_id != BASE_MODEL_ONLY_ADAPTER_ID:
+        adapter = None
+
+    # Load dataset split based on adapters that have already been trained
+    if comparison_adapter_id is not None:
         dataset_split: GetDatasetSplitByAdapterMetadata = client.GetDatasetSplitByAdapter(
             GetDatasetSplitByAdapterRequest(adapter_id=comparison_adapter_id)).response
     else:
@@ -77,19 +80,23 @@ def driver(
     # is available in the project files location, and that the base model is available
     # on huggingface.
     assert base_model.type == ModelType.HUGGINGFACE
-    assert adapter.type == AdapterType.PROJECT
+
     model_info = None
     if num_gpu_devices == 1:
         pipeline = fetch_pipeline(
             base_model.huggingface_model_name,
-            adapter.location,
+            adapter.location if adapter is not None else None,
             device=device,
             bnb_config_dict=bnb_config_dict,
             gen_config_dict=generation_config_dict
         )
 
         # Log model to MLFlow
-        model_info = logger.log_model_pipeline(pipeline, base_model.huggingface_model_name, generation_config_dict,adapter.name)
+        model_info = logger.log_model_pipeline(
+            pipeline,
+            base_model.huggingface_model_name,
+            generation_config_dict,
+            adapter.name if adapter is not None else None)
     elif num_gpu_devices > 1:
         mlt = MLFlowTransformers()
         try:
@@ -100,7 +107,7 @@ def driver(
                 peft_model,
                 tokenizer,
                 generation_config_dict,
-                base_model.huggingface_model_name, adapter.name)
+                base_model.huggingface_model_name, adapter.name if adapter is not None else None)
         except BaseException:
             # need to improve logic for this. Not sure if this is desired behavior
             raise ValueError("Failed to load peft model. Can run eval on only base model.")
