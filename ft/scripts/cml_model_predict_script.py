@@ -2,6 +2,7 @@ from ft.eval.mlflow_pyfunc import MLFlowTransformers
 import torch
 import os
 import json
+from ft.consts import DEFAULT_GENERATIONAL_CONFIG
 mlt = MLFlowTransformers()
 
 # Main script used as the prediction/generation base of a deployed CML Model. This script
@@ -55,8 +56,8 @@ def parse_json_config(env_var_name):
         # Get the environment variable
         json_str = os.getenv(env_var_name)
         if not json_str:
-            raise ValueError(f"Environment variable {env_var_name} not found")
-
+            print(f"Environment variable {env_var_name} not found hence returning default")
+            return DEFAULT_GENERATIONAL_CONFIG
         try:
             return json.loads(json_str)
         except json.JSONDecodeError:
@@ -66,9 +67,10 @@ def parse_json_config(env_var_name):
             fixed_str = json_str.replace("'", '"')
             return json.loads(fixed_str)
         except json.JSONDecodeError:
-            return {}
+            return DEFAULT_GENERATIONAL_CONFIG
     except Exception as e:
-        raise ValueError(f"Error processing JSON configuration: {str(e)}")
+        print(f"Failed to parse JSON configuration from environment variable {env_var_name}. Error: {str(e)}")
+        return DEFAULT_GENERATIONAL_CONFIG
 
 
 print("fetching model and adapter parameters from environment...")
