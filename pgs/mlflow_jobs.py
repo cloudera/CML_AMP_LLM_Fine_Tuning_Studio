@@ -3,13 +3,57 @@ import pandas as pd
 import os
 import requests
 from google.protobuf.json_format import MessageToDict
-from pgs.streamlit_utils import get_fine_tuning_studio_client
+from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 from ft.utils import format_status_with_icon
 from ft.consts import IconPaths, DIVIDER_COLOR, BASE_MODEL_ONLY_ADAPTER_ID, USER_DEFINED_IDENTIFIER, EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM
+from cmlapi import models as cml_api_models
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
+cml = get_cml_client()
 
+# Note this is a duplicate code.from jobs.py. Problem with importing function from other page is that the page gets rendered too.
+# total weird due to streamlit
+def fetch_cml_experiments():
+    try:
+        cml_project = os.getenv("CDSW_PROJECT_ID")
+        if not cml_project:
+            st.error("CDSW_PROJECT_ID environment variable is missing.", icon=":material/error:")
+            return pd.DataFrame()
+
+        all_experiments = []
+        page_token = None
+        page_size = 10
+
+        while True:
+            kwargs = {'page_size': page_size}
+            if page_token:
+                kwargs['page_token'] = page_token
+
+            response = cml.list_experiments(cml_project, **kwargs).to_dict()
+            all_experiments.extend(response.get('experiments', []))
+
+            page_token = response.get('next_page_token')
+            if not page_token:
+                break
+
+        if not all_experiments or len(all_experiments) == 0:
+            return pd.DataFrame(columns=cml_api_models.Experiment().to_dict().keys())[
+                ['id', 'name', 'artifact_location']].add_prefix('exp_')
+
+        cml_experiments_df = pd.DataFrame(all_experiments)
+
+        cml_experiments_df = cml_experiments_df[['id', 'name', 'artifact_location']].add_prefix('exp_')
+        proj_url = os.getenv('CDSW_PROJECT_URL', '').replace("/api/v1/projects", "")
+        if not proj_url:
+            st.error("CDSW_PROJECT_URL environment variable is missing or invalid.", icon=":material/error:")
+            return pd.DataFrame()
+
+        cml_experiments_df['exp_id'] = cml_experiments_df['exp_id'].apply(lambda x: proj_url + "/cmlflow/" + x)
+        return cml_experiments_df
+    except Exception as e:
+        st.error(f"Error fetching CML experiments: {e}", icon=":material/error:")
+        return pd.DataFrame()
 
 def display_page_header():
     with st.container(border=True):
@@ -88,7 +132,8 @@ def display_jobs_list():
     if 'public_identifier' not in cml_jobs_list_df.columns:
         st.error("Column 'public_identifier' not found in API job list.")
         return
-
+    cml_experiments_df = fetch_cml_experiments()
+    cml_experiments_df["parent_job_id"] = cml_experiments_df["exp_name"].apply(lambda x: x.split()[-1])
     display_df = pd.merge(
         jobs_df,
         cml_jobs_list_df,
@@ -96,6 +141,11 @@ def display_jobs_list():
         right_on='public_identifier',
         suffixes=('', '_cml')
     )
+    display_df = pd.merge(
+        display_df,
+        cml_experiments_df,
+        how="left",
+        on='parent_job_id')
 
     display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
@@ -111,7 +161,8 @@ def display_jobs_list():
         'dataset_name',
         'adapter_name',
         'prompt_name',
-        'created_at'
+        'created_at',
+        'exp_id'
     ]
 
     for column in columns_we_care_about:
@@ -127,7 +178,8 @@ def display_jobs_list():
         'dataset_name': 'Dataset Name',
         'adapter_name': 'Adapter Name',
         'prompt_name': 'Prompt Name',
-        'latest': 'Status'
+        'latest': 'Status',
+        'exp_id': 'Experiment Url'
     }, inplace=True)
 
     display_df['Status'] = display_df['Status'].apply(
@@ -143,7 +195,7 @@ def display_jobs_list():
     # Data editor for job table
     edited_df = st.data_editor(
         display_df[["Parent Job ID", "Job ID", "status_with_icon", "created_at",
-                    "html_url", "Model Name", "Adapter Name", "Dataset Name", "Prompt Name"]],
+                    "html_url", "Experiment Url", "Model Name", "Adapter Name", "Dataset Name", "Prompt Name"]],
         column_config={
             "Parent Job ID": st.column_config.TextColumn("Parent Job ID"),
             "Job ID": st.column_config.TextColumn("Job ID"),
@@ -153,6 +205,9 @@ def display_jobs_list():
             ),
             "html_url": st.column_config.LinkColumn(
                 "CML Job Link", display_text="Open CML Job"
+            ),
+            "Experiment Url": st.column_config.LinkColumn(
+                "Experiment Link", display_text="Open Experiment"
             ),
             "Model Name": st.column_config.TextColumn("Model Name"),
             "Dataset Name": st.column_config.TextColumn("Dataset Name"),

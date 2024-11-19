@@ -7,7 +7,7 @@ class ModelMetadataFinder:
 
     def fetch_model_family_from_config(self):
         config = AutoConfig.from_pretrained(self.model_name_or_path)
-        print(f"The config for model {self.model_name_or_path} is \n {config} \n")
+        # print(f"The config for model {self.model_name_or_path} is \n {config} \n")
         try:
             model_family = config.architectures[0]
             return model_family

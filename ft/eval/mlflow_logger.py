@@ -7,13 +7,9 @@ from ft.config.model_configs.config_loader import ModelMetadataFinder
 
 class ModelLogger():
 
-    def __init__(self) -> None:
+    def __init__(self, job_id) -> None:
 
-        # this doesn't works somehow. Hence we need to start local mlflow server by running "mlflow server"
-        MLFLOW_TRACKING_URI = "cml://localhost"
-        mlflow.set_tracking_uri("http://localhost:5000")  # when running local mlflow server
-        # Name of MLFLOW experiment, this should be parameterized
-        mlflow.set_experiment(f"Evaluate MLFLOW {str(uuid4())}")
+        mlflow.set_experiment(f"Run: {job_id}")
         # Paramterize them
         self.default_config = GenerationConfig(
             do_sample=True,
@@ -37,7 +33,7 @@ class ModelLogger():
                 "return_full_text": False})
         return signature
 
-    def log_model_pipeline(self, pipeline, base_model_name, gen_config=None):
+    def log_model_pipeline(self, pipeline, base_model_name, gen_config=None, adapter_name: str = None):
         if gen_config is None:
             gen_config = self.default_config
         else:
@@ -49,18 +45,23 @@ class ModelLogger():
             # and truncation under the hood
             gen_config["max_length"] = None
             gen_config = GenerationConfig(**gen_config)
+        full_name = f"{base_model_name}&{adapter_name}"
+        # truncate artifact path to last 49 charactere
+        artifact_path = full_name[-49:] 
+        registered_model = "ft-model-" + str(artifact_path[-40:])
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
                 transformers_model=pipeline,
                 torch_dtype='float16',
-                artifact_path="custom-pipe",        # artifact_path can be dynamic
+                artifact_path=artifact_path,        # artifact_path can be dynamic
                 signature=self.signature,
-                registered_model_name="custom-pipe-chat",  # model_name can be dynamic
-                model_config=gen_config.to_dict()
+                registered_model_name=registered_model,  # model_name can be dynamic
+                model_config=gen_config.to_dict(),
+                metadata={"model_full_name":full_name}
             )
         return model_info
 
-    def log_model_multi_gpu(self, transformer_model, tokenizer_no_pad, gen_config=None, base_model_name: str = None):
+    def log_model_multi_gpu(self, transformer_model, tokenizer_no_pad, gen_config=None, base_model_name: str = None, adapter_name: str = None):
         if gen_config is None:
             gen_config = self.default_config
         else:
@@ -72,14 +73,19 @@ class ModelLogger():
             # and truncation under the hood
             gen_config["max_length"] = None
             gen_config = GenerationConfig(**gen_config)
+        full_name = f"{base_model_name}&{adapter_name}"
+        # truncate artifact path to last 49 charactere
+        artifact_path = full_name[-49:] 
+        registered_model = "ft-model-" + str(artifact_path[-40:])
         with mlflow.start_run():
             model_info = mlflow.transformers.log_model(
                 transformers_model={"model": transformer_model, "tokenizer": tokenizer_no_pad},
                 torch_dtype='float16',
-                artifact_path="custom-pipe",        # artifact_path can be dynamic
+                artifact_path=artifact_path,        # artifact_path can be dynamic
                 signature=self.signature,
-                registered_model_name="custom-pipe-chat",  # model_name can be dynamic
-                model_config=gen_config.to_dict()
+                registered_model_name=registered_model,  # model_name can be dynamic
+                model_config=gen_config.to_dict(),
+                metadata={"model_full_name":full_name}
             )
 
         return model_info

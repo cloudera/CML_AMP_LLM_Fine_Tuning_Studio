@@ -1,6 +1,8 @@
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, mock_open
 from sqlalchemy.exc import NoResultFound
+import json
+import pandas as pd
 
 from ft.evaluation import (
     list_evaluation_jobs,
@@ -12,6 +14,7 @@ from ft.evaluation import (
 from ft.api import *
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import EvaluationJob, Dataset
+from ft.eval.mlflow_driver import table_fetcher
 
 
 class MockCMLCreatedJob:
@@ -142,3 +145,49 @@ def test_remove_evaluation_job_happy():
         jobs = session.query(EvaluationJob).all()
         assert len(jobs) == 1
         assert jobs[0].id == "job2"
+
+# Test: Fetching table from evaluation Job
+
+
+@pytest.fixture
+def mock_results():
+    class MockArtifact:
+        def __init__(self, uri):
+            self.uri = uri
+
+    class MockResults:
+        artifacts = {
+            'eval_results_table': MockArtifact('path/to/eval_results_table.json')
+        }
+
+    return MockResults()
+
+
+@pytest.fixture
+def mock_json_data():
+    return {
+        "columns": ["col1", "col2", "col3"],
+        "data": [
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]
+        ]
+    }
+
+
+def test_table_fetcher_with_mock_results(mock_results, mock_json_data):
+    with patch("builtins.open", mock_open(read_data=json.dumps(mock_json_data))):
+        df = table_fetcher(mock_results)
+
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == (3, 3)
+    assert list(df.columns) == ["col1", "col2", "col3"]
+    assert df.iloc[0, 0] == 1
+    assert df.iloc[1, 1] == 5
+    assert df.iloc[2, 2] == 9
+
+
+def test_table_fetcher_with_invalid_json(mock_results):
+    with patch("builtins.open", mock_open(read_data="invalid json")), \
+            pytest.raises(json.JSONDecodeError):
+        table_fetcher(mock_results)

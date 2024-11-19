@@ -481,6 +481,9 @@ message StartEvaluationJobRequest {
   // Adapter Id for to be used for figuring out data to be used
   string comparison_adapter_id = 21;
 
+  string job_id = 22;
+
+  int32 run_number = 23;
 
 }
 message StartEvaluationJobResponse {

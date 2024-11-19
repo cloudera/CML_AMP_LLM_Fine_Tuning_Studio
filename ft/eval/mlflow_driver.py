@@ -8,9 +8,19 @@ from ft.eval.eval_job import EvaluationResponse
 from ft.client import FineTuningStudioClient
 from ft.api import *
 import json
+import time
 import torch
 from typing import List
 from ft.consts import EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM, BASE_MODEL_ONLY_ADAPTER_ID, BASE_MODEL_ONLY_ADAPTER_LOCATION
+
+
+def table_fetcher(results):
+    json_uri = results.artifacts['eval_results_table'].uri
+    json_obj = json.load(open(json_uri))
+    columns = json_obj["columns"]
+    data = json_obj["data"]
+    df = pd.DataFrame(data, columns=columns)
+    return df
 
 
 def driver(
@@ -23,14 +33,19 @@ def driver(
         selected_features: List[str] = None,
         eval_dataset_fraction: float = None,
         comparison_adapter_id: str = None,
+        job_id: str = None,
+        run_number: int = None,
         client: FineTuningStudioClient = None):
 
     # TODO: remove hard-coded dependencies on GPU driver for evals
+    if run_number != 0:
+        time.sleep(20)
     device = "cuda"
     num_gpu_devices = torch.cuda.device_count()
     dataloader = Dataloader()
-    logger = ModelLogger()
+    logger = ModelLogger(job_id)
     evaluator = ModelEvaluator()
+
 
     # Get the model and adapter metadata.
     # given that this is a script that runs on a remote worker (not the same host
@@ -74,7 +89,7 @@ def driver(
         )
 
         # Log model to MLFlow
-        model_info = logger.log_model_pipeline(pipeline, base_model.huggingface_model_name, generation_config_dict)
+        model_info = logger.log_model_pipeline(pipeline, base_model.huggingface_model_name, generation_config_dict,adapter.name)
     elif num_gpu_devices > 1:
         mlt = MLFlowTransformers()
         try:
@@ -85,7 +100,7 @@ def driver(
                 peft_model,
                 tokenizer,
                 generation_config_dict,
-                base_model.huggingface_model_name)
+                base_model.huggingface_model_name, adapter.name)
         except BaseException:
             # need to improve logic for this. Not sure if this is desired behavior
             raise ValueError("Failed to load peft model. Can run eval on only base model.")
@@ -99,7 +114,7 @@ def driver(
     necessary_eval_dataset = eval_dataset.loc[:, [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
     results = evaluator.evaluate_model(model_info, necessary_eval_dataset, eval_column_name)
 
-    results_df = pd.DataFrame(results.tables['eval_results_table'])
+    results_df = table_fetcher(results=results)  # pd.DataFrame(results.tables['eval_results_table'])
     merged_results_df = eval_dataset.merge(results_df, on=[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM], how='inner')
     response = EvaluationResponse(metrics=results.metrics, csv=merged_results_df)
     return response

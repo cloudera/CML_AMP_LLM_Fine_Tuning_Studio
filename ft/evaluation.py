@@ -5,7 +5,7 @@ import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
 import os
-
+import time
 from typing import List
 
 from sqlalchemy import delete
@@ -189,6 +189,12 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
 
         arg_list.append("--comparison_adapter_id")
         arg_list.append(comparison_adapter_id)
+
+        arg_list.append("--job_id")
+        arg_list.append(parent_job_id)
+
+        arg_list.append("--run_number")
+        arg_list.append(idx)
 
         cpu = request.cpu
         gpu = request.gpu
