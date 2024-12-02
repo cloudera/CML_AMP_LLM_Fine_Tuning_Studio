@@ -8,7 +8,7 @@ echo Current FINE_TUNING_SERVICE_IP: $FINE_TUNING_SERVICE_IP
 
 { # Try to start up the server
   echo "Starting up the gRPC server..."
-  nohup python bin/start-grpc-server.py & 
+  python -u bin/start-grpc-server.py & 
 } || {
   echo "gRPC server initialization script failed. Is there already a local server running in the pod?"
 }

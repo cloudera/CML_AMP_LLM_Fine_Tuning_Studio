@@ -59,7 +59,7 @@ def display_datasets(
 
 display_header()
 datasets: List[DatasetMetadata] = fts.get_datasets()
-tab1, tab2 = st.tabs(["**Huggingface Datasets**", "**CSV Datasets**"])
+tab1, tab2, tab3 = st.tabs(["**Huggingface Datasets**", "**CSV Datasets**", "**JSON Datasets**"])
 with tab1:
     display_datasets(
         datasets,
@@ -71,5 +71,12 @@ with tab2:
     display_datasets(
         datasets,
         DatasetType.PROJECT_CSV,
+        IconPaths.AIToolkit.VIEW_DATASETS,
+        "No custom datasets available.")
+
+with tab3:
+    display_datasets(
+        datasets,
+        DatasetType.PROJECT_JSON,
         IconPaths.AIToolkit.VIEW_DATASETS,
         "No custom datasets available.")

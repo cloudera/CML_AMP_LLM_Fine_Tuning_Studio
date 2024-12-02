@@ -118,27 +118,6 @@ def _validate_fine_tuning_request(request: StartFineTuningJobRequest, dao: FineT
             if request.prompt_id and not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
                 raise ValueError(f"Prompt with ID '{request.prompt_id}' does not exist.")
 
-            # Check if the referenced training_arguments_config_id exists in the database
-            if request.training_arguments_config_id and not session.query(
-                    Config).filter_by(id=request.training_arguments_config_id.strip()).first():
-                raise ValueError(
-                    f"Training Arguments Config with ID '{request.training_arguments_config_id}' does not exist.")
-
-            # Check if the referenced model_bnb_config_id exists in the database
-            if request.model_bnb_config_id and not session.query(
-                    Config).filter_by(id=request.model_bnb_config_id.strip()).first():
-                raise ValueError(f"Model BnB Config with ID '{request.model_bnb_config_id}' does not exist.")
-
-            # Check if the referenced adapter_bnb_config_id exists in the database
-            if request.adapter_bnb_config_id and not session.query(
-                    Config).filter_by(id=request.adapter_bnb_config_id.strip()).first():
-                raise ValueError(f"Adapter BnB Config with ID '{request.adapter_bnb_config_id}' does not exist.")
-
-            # Check if the referenced lora_config_id exists in the database
-            if request.lora_config_id and not session.query(
-                    Config).filter_by(id=request.lora_config_id.strip()).first():
-                raise ValueError(f"Lora Config with ID '{request.lora_config_id}' does not exist.")
-
         if request.framework_type == FineTuningFrameworkType.AXOLOTL:
             # Check if the referenced axolotl_config_id exists in the database
             if request.axolotl_config_id and not session.query(
@@ -159,12 +138,12 @@ def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> Lis
 
     if request.prompt_id:
         arg_list.extend(["--prompt_id", request.prompt_id])
-    if request.adapter_bnb_config_id:
-        arg_list.extend(["--bnb_config_id", request.adapter_bnb_config_id])
-    if request.lora_config_id:
-        arg_list.extend(["--lora_config_id", request.lora_config_id])
-    if request.training_arguments_config_id:
-        arg_list.extend(["--training_arguments_config_id", request.training_arguments_config_id])
+    if request.adapter_bnb_config:
+        arg_list.extend(["--bnb_config", json.dumps(json.loads(request.adapter_bnb_config))])
+    if request.lora_config:
+        arg_list.extend(["--lora_config", json.dumps(json.loads(request.lora_config))])
+    if request.training_arguments_config:
+        arg_list.extend(["--training_arguments_config", json.dumps(json.loads(request.training_arguments_config))])
     if request.auto_add_adapter:
         arg_list.append("--auto_add_adapter")
     if request.train_test_split != StartFineTuningJobRequest().train_test_split:
@@ -391,10 +370,10 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         num_cpu=request.cpu,
         num_gpu=request.gpu,
         num_memory=request.memory,
-        training_arguments_config_id=request.training_arguments_config_id,
-        lora_config_id=request.lora_config_id,
-        model_bnb_config_id=request.model_bnb_config_id,
-        adapter_bnb_config_id=request.adapter_bnb_config_id,
+        training_arguments_config=json.dumps(json.loads(request.training_arguments_config)) if request.training_arguments_config else None,
+        lora_config=json.dumps(json.loads(request.lora_config)) if request.lora_config else None,
+        model_bnb_config=json.dumps(json.loads(request.model_bnb_config)) if request.model_bnb_config else None,
+        adapter_bnb_config=json.dumps(json.loads(request.adapter_bnb_config)) if request.adapter_bnb_config else None,
         user_script=request.user_script,
         user_config_id=user_config_id,
         axolotl_config_id=request.axolotl_config_id,

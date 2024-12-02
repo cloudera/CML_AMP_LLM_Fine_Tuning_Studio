@@ -21,6 +21,11 @@ class DatasetType(str, Enum):
     row in the csv represents the dataset features
     """
 
+    PROJECT_JSON = 'project_json'
+    """JSON File containing a list of dicts where each key in each
+    dict represents a dataset feature. Assumes features are homogoneous
+    across entire list."""
+
 
 class ConfigType(str, Enum):
     """

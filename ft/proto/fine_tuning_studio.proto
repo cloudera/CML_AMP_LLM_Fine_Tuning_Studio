@@ -346,18 +346,18 @@ message StartFineTuningJobRequest {
   float train_test_split = 13;
 
   // Bits and bytes config used for the model layers.
-  string model_bnb_config_id = 14;
+  string model_bnb_config = 14;
 
   // Bits and bytes config used for the adapter. For 
   // most use cases, this should be the same id as 
   // for the model, but technically a model can have
   // a different quantization config for training 
   // than an adapter.
-  string adapter_bnb_config_id = 15;
+  string adapter_bnb_config = 15;
 
-  string training_arguments_config_id = 16;
+  string training_arguments_config = 16;
 
-  string lora_config_id = 17;
+  string lora_config = 17;
 
   // Output directory of the final adapter.
   string output_dir = 18;
@@ -454,17 +454,17 @@ message StartEvaluationJobRequest {
   int32 memory = 7;
 
   // Bits and bytes config used for the model layers.
-  string model_bnb_config_id = 14;
+  string model_bnb_config = 14;
 
   // Bits and bytes config used for the adapter. For 
   // most use cases, this should be the same id as 
   // for the model, but technically a model can have
   // a different quantization config for training 
   // than an adapter.
-  string adapter_bnb_config_id = 15;
+  string adapter_bnb_config = 15;
 
   // Id for the generation args config.
-  string generation_config_id = 16;
+  string generation_config = 16;
 
   // ID of the prompt to use for evals
   string prompt_id = 17;
@@ -751,20 +751,20 @@ message FineTuningJobMetadata {
   string out_dir = 13;
 
   // Training arguments for the run.
-  string training_arguments_config_id = 14;
+  string training_arguments_config = 14;
 
   // Bits and bytes config used for the model layers.
-  string model_bnb_config_id = 15;
+  string model_bnb_config = 15;
 
   // Bits and bytes config used for the adapter. For 
   // most use cases, this should be the same id as 
   // for the model, but technically a model can have
   // a different quantization config for training 
   // than an adapter.
-  string adapter_bnb_config_id = 16;
+  string adapter_bnb_config = 16;
 
   // PEFT config.
-  string lora_config_id = 17;
+  string lora_config = 17;
 
   float dataset_fraction = 18;
   float train_test_split = 19;
@@ -855,13 +855,13 @@ message EvaluationJobMetadata {
   string evaluation_dir = 10;
 
   // BnB config of the model
-  string model_bnb_config_id = 11;
+  string model_bnb_config = 11;
 
   // BnB config of the adapter
-  string adapter_bnb_config_id = 12;
+  string adapter_bnb_config = 12;
 
   // Generation argument configs. 
-  string generation_config_id = 13;
+  string generation_config = 13;
 
   // type of evaluation job.
   string type = 14;
@@ -871,5 +871,4 @@ message EvaluationJobMetadata {
 
   // Parent job id of the run
   string parent_job_id = 16;
-
 }

@@ -337,21 +337,6 @@ with ccol1:
                     for combo in st.session_state.mlflow_model_adapters:
                         model_adapter_combo.append(EvaluationJobModelCombination(**combo))
 
-                    # If there were any changes made to the generation or bnb config,
-                    # add these new configs to the config store.
-                    bnb_config_md: ConfigMetadata = fts.AddConfig(
-                        AddConfigRequest(
-                            type=ConfigType.BITSANDBYTES_CONFIG,
-                            config=bnb_config_text
-                        )
-                    ).config
-                    generation_config_md: ConfigMetadata = fts.AddConfig(
-                        AddConfigRequest(
-                            type=ConfigType.GENERATION_CONFIG,
-                            config=generation_config_text
-                        )
-                    ).config
-
                     fts.StartEvaluationJob(
                         StartEvaluationJobRequest(
                             type=EvaluationJobType.MFLOW,
@@ -362,9 +347,9 @@ with ccol1:
                             gpu=gpu,
                             gpu_label_id=int(st.session_state['ft_resource_gpu_label']),
                             memory=int(st.session_state.mlflow_memory),
-                            model_bnb_config_id=bnb_config_md.id,
-                            adapter_bnb_config_id=bnb_config_md.id,
-                            generation_config_id=generation_config_md.id,
+                            model_bnb_config=json.dumps(json.loads(bnb_config_text)),
+                            adapter_bnb_config=json.dumps(json.loads(bnb_config_text)),
+                            generation_config=json.dumps(json.loads(generation_config_text)),
                             selected_features=st.session_state['selected_features'],
                             eval_dataset_fraction=st.session_state['eval_dataset_fraction']
                         )

@@ -60,6 +60,30 @@ DEFAULT_BNB_CONFIG = {
     "quant_method": "bitsandbytes"
 }
 
+DEFAULT_LORA_CONFIG = {
+    "r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+}
+
+DEFAULT_TRAINING_ARGUMENTS = {
+    "num_train_epochs": 1,
+    "optim": "paged_adamw_32bit",
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "warmup_ratio": 0.03,
+    "max_grad_norm": 0.3,
+    "learning_rate": 0.0002,
+    "fp16": True,
+    "logging_steps": 1,
+    "lr_scheduler_type": "constant",
+    "disable_tqdm": True,
+    "report_to": "mlflow",
+    "ddp_find_unused_parameters": False
+}
+
 
 class IconPaths:
     class FineTuningStudio:

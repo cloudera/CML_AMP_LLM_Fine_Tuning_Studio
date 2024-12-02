@@ -20,7 +20,10 @@ from ft.api import *
 from ft.consts import (
     TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
     TRAINING_DEFAULT_DATASET_FRACTION,
-    TRAINING_DATA_TEXT_FIELD
+    TRAINING_DATA_TEXT_FIELD,
+    DEFAULT_BNB_CONFIG,
+    DEFAULT_LORA_CONFIG,
+    DEFAULT_TRAINING_ARGUMENTS
 )
 from ft.datasets import load_dataset_into_memory
 from ft.training.utils import (
@@ -55,9 +58,11 @@ parser.add_argument("--train_test_split", type=float, default=TRAINING_DEFAULT_T
                     help="Split of the existing dataset between training and testing.")
 parser.add_argument("--dataset_fraction", type=float, default=TRAINING_DEFAULT_DATASET_FRACTION,
                     help="Fraction of the dataset to downsample to.")
-parser.add_argument("--bnb_config_id", default=None, help="ID of the BnB config in FT Studio's config store.")
-parser.add_argument("--lora_config_id", default=None, help="ID of the Lora config in FT Studio's config store.")
-parser.add_argument("--training_arguments_config_id", default=None,
+parser.add_argument("--bnb_config", default=json.dumps(DEFAULT_BNB_CONFIG),
+                    help="ID of the BnB config in FT Studio's config store.")
+parser.add_argument("--lora_config", default=json.dumps(DEFAULT_LORA_CONFIG),
+                    help="ID of the Lora config in FT Studio's config store.")
+parser.add_argument("--training_arguments_config", default=json.dumps(DEFAULT_TRAINING_ARGUMENTS),
                     help="ID of the training arguments in FT Studio's config store.")
 parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
 parser.add_argument("--adapter_name", help="Human friendly name of the adapter to train", default=None)
@@ -114,29 +119,9 @@ fts: FineTuningStudioClient = FineTuningStudioClient()
 attempt_hf_login(args.hf_token)
 
 # Get the configurations.
-lora_config_dict = json.loads(
-    fts.GetConfig(
-        GetConfigRequest(
-            id=args.lora_config_id
-        )
-    ).config.config
-)
-
-bnb_config_dict = json.loads(
-    fts.GetConfig(
-        GetConfigRequest(
-            id=args.bnb_config_id
-        )
-    ).config.config
-)
-
-training_args_dict = json.loads(
-    fts.GetConfig(
-        GetConfigRequest(
-            id=args.training_arguments_config_id
-        )
-    ).config.config
-)
+lora_config_dict = json.loads(args.lora_config)
+bnb_config_dict = json.loads(args.bnb_config)
+training_args_dict = json.loads(args.training_arguments_config)
 
 
 # Call the FTS server

@@ -82,9 +82,6 @@ def test_start_evaluation_job_missing_required_fields():
         ],
         dataset_id="dataset-id",
         prompt_id="",  # Required field is empty
-        adapter_bnb_config_id="",  # Required field is empty
-        model_bnb_config_id="model_bnb_config_id",
-        generation_config_id="generation_config_id",
         cpu=4,
         gpu=1,
         memory=16
@@ -116,9 +113,6 @@ def test_start_evaluation_job_missing_references(uuid4_mock):
         ],
         dataset_id="dataset-id",
         prompt_id="prompt-id",
-        adapter_bnb_config_id="adapter_bnb_config_id",
-        model_bnb_config_id="model_bnb_config_id",
-        generation_config_id="generation_config_id",
         cpu=4,
         gpu=1,
         memory=16

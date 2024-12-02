@@ -119,9 +119,6 @@ def test_start_fine_tuning_job_happy(path, uuid4):
         axolotl_config = Config(id="axolotl_cfg_id", config="test config", description="Axolotl config")
         session.add(axolotl_config)
 
-        training_args_config = Config(id="training_args_cfg_id", config="training arguments config")
-        session.add(training_args_config)
-
         session.commit()
 
     mock_cml = MagicMock(spec=CMLServiceApi)
@@ -141,7 +138,6 @@ def test_start_fine_tuning_job_happy(path, uuid4):
         learning_rate=0.001,  # Ensure valid learning rate
         dataset_fraction=0.9,
         train_test_split=0.9,
-        training_arguments_config_id="training_args_cfg_id"
     ), cml=mock_cml, dao=test_dao)
     ftjob: FineTuningJobMetadata = res.fine_tuning_job
 

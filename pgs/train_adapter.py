@@ -4,7 +4,7 @@ import json
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str, fetch_cml_site_config
 from pgs.streamlit_utils import get_fine_tuning_studio_client, get_cml_client
 import yaml
-from ft.consts import IconPaths, DIVIDER_COLOR
+from ft.consts import IconPaths, DIVIDER_COLOR, DEFAULT_BNB_CONFIG, DEFAULT_LORA_CONFIG, DEFAULT_TRAINING_ARGUMENTS
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -44,6 +44,12 @@ if 'ft_num_epochs' not in st.session_state:
     st.session_state['ft_num_epochs'] = 10
 if 'ft_learning_rate' not in st.session_state:
     st.session_state['ft_learning_rate'] = "2e-4"
+if 'ft_config_lora' not in st.session_state:
+    st.session_state['ft_config_lora'] = json.dumps(DEFAULT_LORA_CONFIG, indent=2)
+if 'ft_config_bnb' not in st.session_state:
+    st.session_state['ft_config_bnb'] = json.dumps(DEFAULT_BNB_CONFIG, indent=2)
+if 'ft_config_trainer' not in st.session_state:
+    st.session_state['ft_config_trainer'] = json.dumps(DEFAULT_TRAINING_ARGUMENTS, indent=2)
 
 # Container for header
 
@@ -291,36 +297,18 @@ def create_train_adapter_page_with_proprietary():
                 # showing that to the user.
                 with c1:
                     with st.expander("LoRA Config"):
-                        if 'ft_config_lora' not in st.session_state:
-                            st.session_state['ft_config_lora'] = json.dumps(
-                                json.loads(
-                                    fts.ListConfigs(
-                                        ListConfigsRequest(
-                                            type=ConfigType.LORA_CONFIG,
-                                            model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
-                                            type=ConfigType.LORA_CONFIG)).configs[0].config),
-                                indent=2)
-
                         lora_config_text = st.text_area(
                             "",
+                            label_visibility="collapsed",
                             value=st.session_state['ft_config_lora'],
                             height=200,
                             help="LoRA configuration for fine-tuning the model.")
                         st.session_state['ft_config_lora'] = lora_config_text
                 with c2:
                     with st.expander("BitsAndBytes Config"):
-                        if 'ft_config_bnb' not in st.session_state:
-                            st.session_state['ft_config_bnb'] = json.dumps(
-                                json.loads(
-                                    fts.ListConfigs(
-                                        ListConfigsRequest(
-                                            type=ConfigType.BITSANDBYTES_CONFIG,
-                                            model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
-                                            type=ConfigType.BITSANDBYTES_CONFIG)).configs[0].config),
-                                indent=2)
-
                         bnb_config_text = st.text_area(
                             "",
+                            label_visibility="collapsed",
                             value=st.session_state['ft_config_bnb'],
                             height=200,
                             help="BitsAndBytes configuration for optimizing model training.")
@@ -332,15 +320,6 @@ def create_train_adapter_page_with_proprietary():
                             * Number of Epochs (TrainingArguments.num_train_epochs)
                             * Learning Rate (TrainingArguments.learning_rate)
                             """)
-                    if 'ft_config_trainer' not in st.session_state:
-                        st.session_state['ft_config_trainer'] = json.dumps(
-                            json.loads(
-                                fts.ListConfigs(
-                                    ListConfigsRequest(
-                                        type=ConfigType.TRAINING_ARGUMENTS,
-                                        model_id=current_models[model_idx].id) if model_idx else ListConfigsRequest(
-                                        type=ConfigType.TRAINING_ARGUMENTS)).configs[0].config),
-                            indent=2)
                     training_args_text = st.text_area(
                         "Training Arguments",
                         value=st.session_state['ft_config_trainer'],
@@ -369,25 +348,6 @@ def create_train_adapter_page_with_proprietary():
                         dataset = current_datasets[dataset_idx]
                         prompt = current_prompts[prompt_idx]
 
-                        # If we've made changes to our configs, let's update them with FTS so other
-                        # components of FTS can access the configs. Note: if a pre-existing config
-                        # exactly matches these configs, the metadata (id) of the pre-existing config
-                        # will be returned.
-                        lora_config: ConfigMetadata = fts.AddConfig(
-                            AddConfigRequest(
-                                type=ConfigType.LORA_CONFIG,
-                                config=lora_config_text,
-                                description=model.huggingface_model_name
-                            )
-                        ).config
-                        bnb_config: ConfigMetadata = fts.AddConfig(
-                            AddConfigRequest(
-                                type=ConfigType.BITSANDBYTES_CONFIG,
-                                config=bnb_config_text,
-                                description=model.huggingface_model_name
-                            )
-                        ).config
-
                         # Override the fields that were set in the UI. Note that the
                         # output dir passed to the training job should only become
                         # available when we have a UUID, which becomes available
@@ -397,14 +357,6 @@ def create_train_adapter_page_with_proprietary():
                         training_args_config_dict = json.loads(training_args_text)
                         training_args_config_dict["learning_rate"] = float(learning_rate)
                         training_args_config_dict["num_train_epochs"] = int(num_epochs)
-
-                        training_args_config: ConfigMetadata = fts.AddConfig(
-                            AddConfigRequest(
-                                type=ConfigType.TRAINING_ARGUMENTS,
-                                config=json.dumps(training_args_config_dict),
-                                description=model.huggingface_model_name
-                            )
-                        ).config
 
                         fts.StartFineTuningJob(
                             StartFineTuningJobRequest(
@@ -420,10 +372,10 @@ def create_train_adapter_page_with_proprietary():
                                 gpu=gpu,
                                 gpu_label_id=int(gpu_label_id),
                                 memory=int(memory),
-                                model_bnb_config_id=bnb_config.id,
-                                adapter_bnb_config_id=bnb_config.id,
-                                lora_config_id=lora_config.id,
-                                training_arguments_config_id=training_args_config.id,
+                                model_bnb_config=st.session_state['ft_config_bnb'],
+                                adapter_bnb_config=st.session_state['ft_config_bnb'],
+                                lora_config=st.session_state['ft_config_lora'],
+                                training_arguments_config=json.dumps(training_args_config_dict),
                                 output_dir=adapter_output_dir,
                                 dataset_fraction=dataset_fraction,
                                 train_test_split=dataset_train_test_split

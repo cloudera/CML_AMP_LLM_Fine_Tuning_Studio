@@ -5,7 +5,8 @@ import ast
 from ft.client import FineTuningStudioClient
 import pandas as pd
 from copy import deepcopy
-from ft.consts import EVAL_DATASET_DEFAULT_FRACTION, USER_DEFINED_IDENTIFIER
+import json
+from ft.consts import EVAL_DATASET_DEFAULT_FRACTION, USER_DEFINED_IDENTIFIER, DEFAULT_BNB_CONFIG, DEFAULT_GENERATIONAL_CONFIG
 
 
 # Parse arguments from environment variable
@@ -18,9 +19,9 @@ parser.add_argument("--base_model_id", help="Base model ID to use.", default=Non
 parser.add_argument("--adapter_id", help="Adapter ID to use", default=None)
 parser.add_argument("--prompt_id", help="Prompt ID to use", default=None)
 parser.add_argument("--result_dir", help="Path of result dir", required=True)
-parser.add_argument("--adapter_bnb_config_id", help="ID of the adapter quantization config", default=None)
-parser.add_argument("--model_bnb_config_id", help="ID of the model quantization config", default=None)
-parser.add_argument("--generation_config_id", help="ID of the generation config", default=None)
+parser.add_argument("--adapter_bnb_config", help="adapter quantization config", default=json.dumps(DEFAULT_BNB_CONFIG))
+parser.add_argument("--model_bnb_config", help="model quantization config", default=json.dumps(DEFAULT_BNB_CONFIG))
+parser.add_argument("--generation_config", help="generation config", default=json.dumps(DEFAULT_GENERATIONAL_CONFIG))
 parser.add_argument("--selected_features", help="Names of the columns to be shown in the evaluation csv", default=None)
 parser.add_argument("--eval_dataset_fraction", type=float, default=EVAL_DATASET_DEFAULT_FRACTION,
                     help="Percentage of eval dataset to be used for evaluation")
@@ -39,8 +40,8 @@ response = driver(
     base_model_id=args.base_model_id,
     adapter_id=args.adapter_id,
     prompt_id=args.prompt_id,
-    bnb_config_id=args.adapter_bnb_config_id,  # only use bnb config of the adapter for all model layers, for now
-    generation_config_id=args.generation_config_id,
+    bnb_config=args.adapter_bnb_config,  # only use bnb config of the adapter for all model layers, for now
+    generation_config=args.generation_config,
     selected_features=args.selected_features,
     eval_dataset_fraction=args.eval_dataset_fraction,
     comparison_adapter_id=args.comparison_adapter_id,
