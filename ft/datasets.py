@@ -97,13 +97,11 @@ def _validate_local_dataset_request(request: AddDatasetRequest, dao: FineTuningS
 
     require_proto_field(request, 'location')
     dataset_name = request.name
-    dataset_name = request.name
     _validate_non_empty_field(dataset_name)
 
     # Check if the dataset already exists
     with dao.get_session() as session:
         existing_datasets: List[Dataset] = session.query(Dataset).all()
-        if any(ds.name == dataset_name for ds in existing_datasets):
         if any(ds.name == dataset_name for ds in existing_datasets):
             raise ValueError(f"Dataset with name '{dataset_name}' of type {request.type} already exists.")
 
@@ -132,16 +130,6 @@ def _validate_local_jsonl_dataset_request(request: AddDatasetRequest, dao: FineT
     """
     _validate_dataset_ends_with(request.location, '.jsonl')
     _validate_local_dataset_request(request, dao)
-    _validate_local_dataset_request(request, dao)
-
-
-def _validate_local_json_dataset_request(request: AddDatasetRequest, dao: FineTuningStudioDao) -> None:
-    """
-    Validate all fields on a local JSON dataset request.
-    """
-
-    _validate_dataset_ends_with(request.location, '.json')
-    _validate_local_dataset_request(request, dao)
 
 
 def _validate_add_dataset_request(request: AddDatasetRequest, dao: FineTuningStudioDao) -> None:
@@ -158,10 +146,6 @@ def _validate_add_dataset_request(request: AddDatasetRequest, dao: FineTuningStu
         _validate_local_json_dataset_request(request, dao)
     elif request.type == DatasetType.PROJECT_JSONL:
         _validate_local_jsonl_dataset_request(request, dao)
-    else:
-        raise ValueError(f"Dataset of type '{request.type}' is not supported.")
-    elif request.type == DatasetType.PROJECT_JSON:
-        _validate_local_json_dataset_request(request, dao)
     else:
         raise ValueError(f"Dataset of type '{request.type}' is not supported.")
 
@@ -203,19 +187,6 @@ def extract_features_from_jsonl(location: str) -> List[str]:
     with open(location, mode='r') as f:
         first_line = json.loads(f.readline().strip())
         features = list(first_line.keys())
-    return features
-
-
-def extract_features_from_json(location: str) -> List[str]:
-    """
-    Extract dataset features from a dataset. Studio requires
-    the first row to be the dataset "features", which are just
-    the names of the columns.
-    """
-
-    # Load in the dataset to extract features
-    with open(location, mode='r') as f:
-        features = list(next(iter(json.load(f))).keys())
     return features
 
 
@@ -309,24 +280,6 @@ def add_dataset(request: AddDatasetRequest, cml: CMLServiceApi = None,
             metadata: DatasetMetadata = dataset.to_protobuf(DatasetMetadata)
             response = AddDatasetResponse(dataset=metadata)
 
-    elif request.type == DatasetType.PROJECT_JSON:
-
-        features = extract_features_from_json(request.location)
-
-        with dao.get_session() as session:
-            dataset = Dataset(
-                id=str(uuid4()),
-                type=request.type,
-                features=json.dumps(features),
-                name=request.name,
-                location=request.location.strip(),
-                description=request.location.strip(),  # TODO: add description support
-            )
-            session.add(dataset)
-
-            metadata: DatasetMetadata = dataset.to_protobuf(DatasetMetadata)
-            response = AddDatasetResponse(dataset=metadata)
-
     else:
         raise ValueError(f"Dataset type [{request.type}] is not yet supported.")
 
@@ -370,8 +323,6 @@ def load_dataset_into_memory(dataset: DatasetMetadata) -> datasets.DatasetDict:
     elif dataset.type == DatasetType.PROJECT_JSON:
         ds = datasets.Dataset.from_json(dataset.location)
     elif dataset.type == DatasetType.PROJECT_JSONL:
-        ds = datasets.Dataset.from_json(dataset.location)
-    elif dataset.type == DatasetType.PROJECT_JSON:
         ds = datasets.Dataset.from_json(dataset.location)
     else:
         raise ValueError(f"Dataset type '{dataset.type}' not supported for this method.")
