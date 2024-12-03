@@ -21,7 +21,7 @@ def create_header():
 def handle_database_import():
     with st.container():
         import_hf_tab, csv_tab, json_tab = st.tabs(
-            ["**Import Huggingface Dataset**", "**Import CSV Dataset**", "**Import JSON Dataset**"])
+            ["**Import Huggingface Dataset**", "**Import CSV Dataset**", "**Import JSON/JSONL Dataset**"])
 
         with import_hf_tab:
             display_huggingface_import_tab()
@@ -82,7 +82,7 @@ def display_huggingface_import_tab():
 
 
 def display_csv_import_tab():
-    c1, c2, c3 = st.columns([2, 4, 1])
+    c1, c2 = st.columns([2, 4])
     import_dataset_name = c1.text_input(
         'Dataset Name',
         placeholder="My dataset",
@@ -90,7 +90,9 @@ def display_csv_import_tab():
     import_dataset_location = c2.text_input(
         'CSV Location',
         placeholder="path/to/dataset.csv")
-    import_dataset = c3.button("Import", type="primary", use_container_width=True, key="csv_import_location")
+    c3 = st.container()
+    with c3:
+        import_dataset = c3.button("Import", type="primary", use_container_width=True, key="csv_import_location")
 
     if import_dataset:
         with st.spinner("Loading Dataset..."):
@@ -140,23 +142,31 @@ def display_csv_import_tab():
 
 
 def display_json_import_tab():
-    c1, c2, c3 = st.columns([2, 4, 1])
+    c1, c2 = st.columns([2, 4])
     import_dataset_name = c1.text_input(
         'Dataset Name',
         placeholder="My dataset",
         key="json_import_name")
     import_dataset_location = c2.text_input(
-        'JSON File Location',
-        placeholder="path/to/dataset.json")
-    import_dataset = c3.button("Import", type="primary", use_container_width=True, key="json_import_location")
-
+        'JSON/JSONL File Location',
+        placeholder="path/to/dataset.json or dataset.jsonl")
+    c3 = st.container()
+    with c3:
+        import_dataset = c3.button("Import", type="primary", use_container_width=True, key="json_import_button")
     if import_dataset:
         with st.spinner("Loading Dataset..."):
             if import_dataset_name and import_dataset_location:
                 try:
+                    if import_dataset_location.endswith('.json'):
+                        dataset_type = DatasetType.PROJECT_JSON
+                    elif import_dataset_location.endswith('.jsonl'):
+                        dataset_type = DatasetType.PROJECT_JSONL
+                    else:
+                        st.error("Unsupported file format! Please upload a `.json` or `.jsonl` file.")
+                        return
                     fts.AddDataset(
                         AddDatasetRequest(
-                            type=DatasetType.PROJECT_JSON,
+                            type=dataset_type,
                             name=import_dataset_name,
                             location=import_dataset_location
                         )
@@ -167,33 +177,50 @@ def display_json_import_tab():
                     st.error(f"Failed to load dataset: **{str(e)}**", icon=":material/error:")
                     st.toast(f"Failed to load dataset: **{str(e)}**", icon=":material/error:")
             else:
-                st.error("Dataset name cannot be empty!")
+                st.error("Dataset name and location cannot be empty!")
 
     st.write("\n")
     st.info("""
-        **JSON Dataset**
-
-        The Fine Tuning Studio allows for users to import custom JSON datasets from a project file.
-
+        **JSON and JSON Lines Dataset**
+        The Fine Tuning Studio allows users to import custom JSON or JSON Lines (JSONL) datasets from a project file.
         **How to Prepare Data for Import:**
-        - Studio currently supports importing a singular dataset JSON file that ends in *.json.
-        - The JSON file format should be a singular list of dicts.
-        - Each dict key represents a dataset feature name, and these features should not have any whitespace in the names.
-        - All data is assumed to be consistent (able to be cast into a `Dataset` format from the `datasets` directory)
-        - Right now only "single split" datasets are supported. (i.e., you cannot import a train *and* test split with one dataset file).
+        Studio supports importing datasets in either **JSON** or **JSON Lines (JSONL)** format. The file must have the following structure:
+
+        **For JSON Files (`*.json`):**
+        - The file should contain a single JSON object or an array of JSON objects (list of dictionaries).
+        - Each dictionary represents a dataset entry, with keys representing feature names. Feature names must not contain whitespace.
+        Example:
+        ```json
+        [
+            {"feature1": "value1", "feature2": "value2"},
+            {"feature1": "value3", "feature2": "value4"}
+        ]
+        ```
+
+        **For JSON Lines Files (`*.jsonl`):**
+        - The file should contain one JSON object per line, with each object representing a dataset entry.
+        - Each object must follow the same structure, and feature names must not contain whitespace.
+        Example:
+        ```json
+        {"feature1": "value1", "feature2": "value2"}
+        {"feature1": "value3", "feature2": "value4"}
+        ```
+
+        **Data Consistency:** All entries are expected to be consistent and can be converted into a dataset format supported by the `datasets` directory.
+
+        **Single Split Datasets Only:** Currently, only "single split" datasets are supported. You cannot import separate train and test splits within the same file.
 
         **How to Import:**
         - Enter the dataset name in the input field.
-        - Enter the dataset JSON location in the location field.
+        - Enter the file location in the location field.
         - Click the "Import" button.
         - The dataset will be loaded and can be used for training an adapter on a foundational model.
 
         **Usage:**
-        - Once imported, these datasets can be utilized to:
-          - fine-tune adapters on foundational models,
-          - create prompts for these datasets, and
-          - run evaluations against the dataset.
-
+        Once imported, these datasets can be utilized to:
+        - fine-tune adapters on foundational models,
+        - create prompts for these datasets, and
+        - run evaluations against the dataset.
     """, icon=":material/info:")
     return
 
