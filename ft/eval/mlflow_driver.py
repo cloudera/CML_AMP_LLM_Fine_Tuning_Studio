@@ -90,7 +90,7 @@ def driver(
         )
 
         # Log model to MLFlow
-        model_info = logger.log_model_pipeline(
+        model_info, experiment_id, run_id = logger.log_model_pipeline(
             pipeline,
             base_model.huggingface_model_name,
             generation_config_dict,
@@ -101,7 +101,7 @@ def driver(
             # Inside try cache to avoid failures with wrong adapters
             peft_model, tokenizer = mlt.get_peft_model_and_tokenizer(
                 base_model.huggingface_model_name, adapter.location, bnb_config_dict)
-            model_info = logger.log_model_multi_gpu(
+            model_info, experiment_id, run_id = logger.log_model_multi_gpu(
                 peft_model,
                 tokenizer,
                 generation_config_dict,
@@ -117,7 +117,7 @@ def driver(
 
     # Evaluate model
     necessary_eval_dataset = eval_dataset.loc[:, [EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM]]
-    results = evaluator.evaluate_model(model_info, necessary_eval_dataset, eval_column_name)
+    results = evaluator.evaluate_model(model_info, necessary_eval_dataset, experiment_id, run_id, eval_column_name)
 
     results_df = table_fetcher(results=results)  # pd.DataFrame(results.tables['eval_results_table'])
     merged_results_df = eval_dataset.merge(results_df, on=[EVAL_INPUT_COLUMN, EVAL_OUTPUT_COLUM], how='inner')
