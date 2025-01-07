@@ -45,7 +45,7 @@ class ModelLogger():
             gen_config["max_length"] = None
             gen_config = GenerationConfig(**gen_config)
         full_name = f"{base_model_name}-{adapter_name}"
-        full_name = full_name.replace("/","-")
+        full_name = full_name.replace("/", "-")
         # truncate artifact path to last 49 charactere
         artifact_path = full_name[-49:]
         registered_model = "ft-model-" + str(artifact_path[-40:])
@@ -60,7 +60,10 @@ class ModelLogger():
                 model_config=gen_config.to_dict(),
                 metadata={"model_full_name": full_name}
             )
-        run_id =mlflow.search_runs(experiment_ids=[self.experiment_artifacts.experiment_id], filter_string=f"tags.mlflow.runName = '{full_name}'").run_id[0]
+        run_id = mlflow.search_runs(
+            experiment_ids=[
+                self.experiment_artifacts.experiment_id],
+            filter_string=f"tags.mlflow.runName = '{full_name}'").run_id[0]
         return model_info, self.experiment_artifacts.experiment_id, run_id
 
     def log_model_multi_gpu(
@@ -82,7 +85,7 @@ class ModelLogger():
             gen_config["max_length"] = None
             gen_config = GenerationConfig(**gen_config)
         full_name = f"{base_model_name}-{adapter_name}"
-        full_name = full_name.replace("/","-")
+        full_name = full_name.replace("/", "-")
         # truncate artifact path to last 49 charactere
         artifact_path = full_name[-49:]
         registered_model = "ft-model-" + str(artifact_path[-40:])
@@ -96,7 +99,10 @@ class ModelLogger():
                 model_config=gen_config.to_dict(),
                 metadata={"model_full_name": full_name}
             )
-        run_id =mlflow.search_runs(experiment_ids=[self.experiment_artifacts.experiment_id], filter_string=f"tags.mlflow.runName = '{full_name}'").run_id[0]
+        run_id = mlflow.search_runs(
+            experiment_ids=[
+                self.experiment_artifacts.experiment_id],
+            filter_string=f"tags.mlflow.runName = '{full_name}'").run_id[0]
         return model_info, self.experiment_artifacts.experiment_id, run_id
 
 

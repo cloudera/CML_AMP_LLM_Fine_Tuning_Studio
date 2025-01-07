@@ -237,9 +237,15 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
                 cml_job_id=created_job.id,
                 parent_job_id=parent_job_id,
                 evaluation_dir=result_dir,
-                model_bnb_config=json.dumps(json.loads(request.model_bnb_config)) if request.model_bnb_config else None,
-                adapter_bnb_config=json.dumps(json.loads(request.adapter_bnb_config)) if request.adapter_bnb_config else None,
-                generation_config=json.dumps(json.loads(request.generation_config)) if request.generation_config else None,
+                model_bnb_config=json.dumps(
+                    json.loads(
+                        request.model_bnb_config)) if request.model_bnb_config else None,
+                adapter_bnb_config=json.dumps(
+                    json.loads(
+                        request.adapter_bnb_config)) if request.adapter_bnb_config else None,
+                generation_config=json.dumps(
+                    json.loads(
+                        request.generation_config)) if request.generation_config else None,
             )
             session.add(eval_job)
 

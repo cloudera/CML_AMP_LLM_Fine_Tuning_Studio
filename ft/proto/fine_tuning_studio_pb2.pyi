@@ -11,6 +11,30 @@ class ListDatasetsRequest(_message.Message):
     def __init__(self) -> None: ...
 
 
+class ExportDatabaseRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ExportDatabaseResponse(_message.Message):
+    __slots__ = ("exported_json",)
+    EXPORTED_JSON_FIELD_NUMBER: _ClassVar[int]
+    exported_json: str
+    def __init__(self, exported_json: _Optional[str] = ...) -> None: ...
+
+
+class ImportDatabaseRequest(_message.Message):
+    __slots__ = ("imported_json_path",)
+    IMPORTED_JSON_PATH_FIELD_NUMBER: _ClassVar[int]
+    imported_json_path: str
+    def __init__(self, imported_json_path: _Optional[str] = ...) -> None: ...
+
+
+class ImportDatabaseResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
 class ListDatasetsResponse(_message.Message):
     __slots__ = ("datasets",)
     DATASETS_FIELD_NUMBER: _ClassVar[int]

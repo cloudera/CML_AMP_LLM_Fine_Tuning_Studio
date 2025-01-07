@@ -35,6 +35,7 @@ def apply_custom_css():
 def setup_navigation():
     pg = st.navigation([
         st.Page("pgs/home.py", title="Home"),
+        st.Page("pgs/database.py", title="Database Import and Export"),
         st.Page("pgs/datasets.py", title="Import Datasets"),
         st.Page("pgs/view_datasets.py", title="View Datasets"),
         st.Page("pgs/models.py", title="Import Base Models"),
@@ -61,6 +62,7 @@ def setup_sidebar():
         st.subheader("")
         st.markdown("Navigation")
         st.page_link("pgs/home.py", label="Home", icon=":material/home:")
+        st.page_link("pgs/database.py", label="Database Import and Export", icon=":material/database:")
         st.write("\n")
 
         st.markdown("AI Toolkit")

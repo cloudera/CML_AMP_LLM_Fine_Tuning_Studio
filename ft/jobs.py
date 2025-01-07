@@ -370,16 +370,23 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         num_cpu=request.cpu,
         num_gpu=request.gpu,
         num_memory=request.memory,
-        training_arguments_config=json.dumps(json.loads(request.training_arguments_config)) if request.training_arguments_config else None,
-        lora_config=json.dumps(json.loads(request.lora_config)) if request.lora_config else None,
-        model_bnb_config=json.dumps(json.loads(request.model_bnb_config)) if request.model_bnb_config else None,
-        adapter_bnb_config=json.dumps(json.loads(request.adapter_bnb_config)) if request.adapter_bnb_config else None,
+        training_arguments_config=json.dumps(
+            json.loads(
+                request.training_arguments_config)) if request.training_arguments_config else None,
+        lora_config=json.dumps(
+            json.loads(
+                request.lora_config)) if request.lora_config else None,
+        model_bnb_config=json.dumps(
+            json.loads(
+                request.model_bnb_config)) if request.model_bnb_config else None,
+        adapter_bnb_config=json.dumps(
+            json.loads(
+                request.adapter_bnb_config)) if request.adapter_bnb_config else None,
         user_script=request.user_script,
         user_config_id=user_config_id,
         axolotl_config_id=request.axolotl_config_id,
         gpu_label_id=request.gpu_label_id,
-        adapter_name=request.adapter_name
-    )
+        adapter_name=request.adapter_name)
 
     response = StartFineTuningJobResponse()
     with dao.get_session() as session:
