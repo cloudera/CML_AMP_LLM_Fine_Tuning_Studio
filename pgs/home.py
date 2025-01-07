@@ -10,6 +10,8 @@ from ft.utils import format_status_with_icon, get_current_git_hash, get_latest_g
 import json
 from ft.consts import IconPaths, DIVIDER_COLOR
 import subprocess
+from ft.upgrade.upgrader import run_git_pull, run_alembic_upgrade
+from ft.upgrade.restarter import restart_application_function
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -38,6 +40,7 @@ def create_tile(container, image_path: str, button_text: str, page_path: str, de
         c2.caption(description)
 
 
+
 def check_amp_update_status():
     """Check if the AMP is up-to-date."""
     try:
@@ -52,13 +55,38 @@ def check_amp_update_status():
             if current_hash != latest_hash:
                 _, behind = check_if_ahead_or_behind(current_hash, current_branch)
                 if behind > 0:
-                    st.toast(
-                        f"Your AMP is out of date. Please update to the latest version.",
-                        icon=":material/error:")
-                    st.warning(
-                        f"Your AMP is out of date. Please update Studio following these guidelines: "
-                        "[Upgrading Fine Tuning Studio](https://github.com/cloudera/CML_AMP_LLM_Fine_Tuning_Studio/docs/upgrading_finetuning_studio.md).",
-                        icon=":material/error:")
+                    warning_text = f"Your AMP is out of date. Please update Studio by clicking this button: "
+                    col1, col2 = st.columns([0.6, 0.4])  
+                    with col1:
+                        st.toast(
+                            f"Your AMP is out of date. Please update to the latest version.",
+                            icon=":material/error:")
+                        st.warning(warning_text, icon=":material/error:")
+                    with col2:
+                        if st.button("🔄 Perform Upgrade"):
+                            with st.spinner('Upgrading application...'):
+                                upgrade_steps = [
+                                    ("Git Pull", run_git_pull),
+                                    ("Database Migration", run_alembic_upgrade),
+                                    ("Restarting Application", restart_application_function)
+                                ]
+                                all_steps_successful = True
+
+                                for step_name, step_func in upgrade_steps:
+                                    st.write(f"Performing {step_name}...")
+                                    step_result = step_func()
+                                    
+                                    if not step_result:
+                                        st.error(f"{step_name} failed. Stopping upgrade process.")
+                                        all_steps_successful = False
+                                        break
+                                
+                                # Final status
+                                if all_steps_successful:
+                                    st.balloons()
+                                    st.success("🎉 Upgrade Completed Successfully!")
+                                else:
+                                    st.error("Upgrade process encountered errors. Please check logs.")
         else:
             st.toast("Unable to check AMP update status.", icon=":material/error:")
     except ValueError as e:
