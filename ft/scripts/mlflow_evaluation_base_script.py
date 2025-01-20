@@ -1,3 +1,6 @@
+from ft.venv_utils import activate_venv
+activate_venv(".venv")
+
 from ft.eval.mlflow_driver import driver
 import argparse
 import os

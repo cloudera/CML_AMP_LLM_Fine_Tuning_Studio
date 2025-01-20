@@ -1,3 +1,5 @@
+from ft.venv_utils import activate_venv
+activate_venv(".venv")
 from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
 from accelerate.utils import (
     PrepareForLaunch,
@@ -5,13 +7,13 @@ from accelerate.utils import (
     is_torch_version,
     patch_environment,
 )
+from pathlib import Path
 from peft import prepare_model_for_kbit_training
 import torch
 import argparse
 import sys
 import json
 import os
-
 import datasets
 from accelerate import Accelerator, notebook_launcher
 from ft.utils import attempt_hf_login
@@ -362,19 +364,19 @@ if IS_MASTER:
             worker_envs['CML_FTS_JOB_MASTER_IP'] = JOB_MASTER_IP
             worker_envs['JOB_ARGUMENTS'] = os.environ.get('JOB_ARGUMENTS', '')
             worker_envs['CML_FTS_JOB_NODE_RANK'] = str(i)
-
+            cur_path = Path.cwd()
             # This is to support compatibility with old workspaces without heterogeneous gpu support
             if args.gpu_label_id != -1:
                 launch_workers(n=1, cpu=args.dist_cpu, memory=args.dist_mem,
                                nvidia_gpu=args.dist_gpu,
-                               script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
+                               script=f"{cur_path}/ft/scripts/accel_fine_tune_base_script.py",
                                env=worker_envs,
                                accelerator_label_id=args.gpu_label_id
                                )
             else:
                 launch_workers(n=1, cpu=args.dist_cpu, memory=args.dist_mem,
                                nvidia_gpu=args.dist_gpu,
-                               script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
+                               script=f"{cur_path}/ft/scripts/accel_fine_tune_base_script.py",
                                env=worker_envs,
                                )
             print("Launched woker for rank %d" % i)
