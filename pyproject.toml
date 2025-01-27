@@ -38,6 +38,7 @@ dependencies = [
     "setuptools==74.1.0",
     "streamlit==1.37.0",
     "streamlit-aggrid==1.0.5",
+    "streamlit-navigation-bar==3.3.0",
     "textstat==0.7.4",
     "tiktoken==0.7.0",
     "torch==2.3.1",
