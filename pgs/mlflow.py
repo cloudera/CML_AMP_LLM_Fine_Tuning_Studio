@@ -345,7 +345,7 @@ with ccol1:
                             prompt_id=prompt.id,
                             cpu=int(st.session_state.mlflow_cpu),
                             gpu=gpu,
-                            gpu_label_id=int(st.session_state['ft_resource_gpu_label']),
+                            gpu_label_id=int(gpu_label_id),
                             memory=int(st.session_state.mlflow_memory),
                             model_bnb_config=json.dumps(json.loads(bnb_config_text)),
                             adapter_bnb_config=json.dumps(json.loads(bnb_config_text)),
