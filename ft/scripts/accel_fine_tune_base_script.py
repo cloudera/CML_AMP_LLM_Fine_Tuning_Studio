@@ -1,3 +1,6 @@
+import os
+if os.getenv("IS_COMPOSABLE", "") != "":
+  os.chdir("/home/cdsw/fine-tuning-studio")
 from ft.venv_utils import activate_venv
 activate_venv(".venv")
 from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
