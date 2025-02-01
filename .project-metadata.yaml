@@ -39,13 +39,24 @@ tasks:
   #   cpu: 2
   #   memory: 4
 
-  - type: run_session
+  - type: create_job
     name: Install Dependencies
     script: bin/install-dependencies.py
+    entity_label: install_deps
+    arguments: None
     short_summary: Install Dependencies
     kernel: python3
     cpu: 4
     memory: 16
+    environment:
+      TASK_TYPE: CREATE/RUN_JOB
+
+  - type: run_job
+    entity_label: install_deps
+    arguments: None
+    short_summary: Running Install Dependencies
+    long_summary: >-
+      Running the job to install dependencies.
   
   # - type: run_session
   #   name: Validate GPU CUDA Capability
