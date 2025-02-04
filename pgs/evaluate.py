@@ -10,7 +10,7 @@ from ft.utils import get_device
 from ft.utils import attempt_hf_login
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 import json
-from ft.consts import IconPaths, DIVIDER_COLOR, DEFAULT_GENERATIONAL_CONFIG
+from ft.consts import IconPaths, DIVIDER_COLOR, DEFAULT_GENERATIONAL_CONFIG, DEFAULT_BNB_CONFIG
 
 # Instantiate (or get the pre-existing) client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -238,13 +238,7 @@ def evaluate_fragment():
                     return
 
                 with st.spinner("Loading model..."):
-                    bnb_config_dict = fts.ListConfigs(
-                        ListConfigsRequest(
-                            type=ConfigType.BITSANDBYTES_CONFIG,
-                            model_id=current_model_metadata.id
-                        )
-                    ).configs[0].config
-                    bnb_config: BitsAndBytesConfig = BitsAndBytesConfig(**json.loads(bnb_config_dict))
+                    bnb_config: BitsAndBytesConfig = BitsAndBytesConfig(**DEFAULT_BNB_CONFIG)
 
                     if st.session_state.prv_model_metadata != st.session_state.current_model_metadata:
                         st.session_state.current_model = AutoModelForCausalLM.from_pretrained(
@@ -287,8 +281,8 @@ def evaluate_fragment():
                     with torch.amp.autocast('cuda'):
                         model_out = st.session_state.current_model.generate(**input_tokens, **generation_config_dict)
 
-                    tok_out = tokenizer.decode(model_out[0], skip_special_tokens=True)[
-                        len(st.session_state.input_prompt):]
+                    tok_out = tokenizer.decode(
+                        model_out[0][len(input_tokens["input_ids"][0]):], skip_special_tokens=True)
                     st.session_state.base_output = tok_out
 
                     # Generate outputs for each selected adapter
@@ -301,8 +295,8 @@ def evaluate_fragment():
                             with torch.amp.autocast('cuda'):
                                 model_out = st.session_state.current_model.generate(
                                     **input_tokens, **generation_config_dict)
-                            tok_out_adapter = tokenizer.decode(model_out[0], skip_special_tokens=True)[
-                                len(st.session_state.input_prompt):]
+                            tok_out_adapter = tokenizer.decode(
+                                model_out[0][len(input_tokens["input_ids"][0]):], skip_special_tokens=True)
                             st.session_state.adapter_outputs[adapter.name] = tok_out_adapter
                     else:
                         st.warning("No adapters selected for text generation.", icon=":material/error:")

@@ -55,7 +55,16 @@ def display_create_prompt():
                 range(len(datasets)),
                 format_func=lambda x: datasets[x].name,
                 index=st.session_state.dataset_idx)
-            st.session_state.dataset_idx = dataset_idx
+
+            # Check if the dataset index has changed
+            if dataset_idx != st.session_state.dataset_idx:
+                # Reset templates when the dataset changes
+                st.session_state["prompt_template"] = None
+                st.session_state["completion_template"] = None
+                st.session_state["example_training_prompt"] = None
+                st.session_state["example_input_prompt"] = None
+                st.session_state["example_completion_prompt"] = None
+                st.session_state.dataset_idx = dataset_idx
 
             if dataset_idx is not None:
                 dataset = datasets[dataset_idx]
@@ -65,10 +74,10 @@ def display_create_prompt():
                 default_prompt_template, default_completion_template = generate_templates(columns)
 
                 # Set up session states for templates
-                if "prompt_template" not in st.session_state:
-                    st.session_state.prompt_template = default_prompt_template
-                if "completion_template" not in st.session_state:
-                    st.session_state.completion_template = default_completion_template
+                if st.session_state["prompt_template"] is None:
+                    st.session_state["prompt_template"] = default_prompt_template or ""
+                if st.session_state["completion_template"] is None:
+                    st.session_state["completion_template"] = default_completion_template or ""
 
                 subcol1, subcol2 = st.columns(2)
                 prompt_template = subcol1.text_area(
@@ -77,12 +86,12 @@ def display_create_prompt():
                 completion_template = subcol2.text_area(
                     "Completion Template", value=st.session_state['completion_template'], height=260)
                 st.session_state['completion_template'] = completion_template
-                training_prompt_template = prompt_template or ""
+                training_prompt_template = prompt_template
 
-                if training_prompt_template.endswith("\n"):
-                    training_prompt_template = training_prompt_template.rstrip("\n")
+                if prompt_template.endswith("\n"):
+                    training_prompt_template = prompt_template.rstrip("\n")
 
-                training_prompt_template = training_prompt_template + (completion_template or "").strip()
+                training_prompt_template = training_prompt_template + completion_template.strip()
                 generate_example_button = st.button(
                     "Generate Prompt Example", type="secondary", use_container_width=True)
 

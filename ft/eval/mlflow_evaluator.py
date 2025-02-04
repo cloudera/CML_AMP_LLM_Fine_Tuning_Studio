@@ -9,8 +9,9 @@ class ModelEvaluator():
         pass
 
     @staticmethod
-    def evaluate_model(model_info, eval_df, eval_target_column_name=EVAL_OUTPUT_COLUM):
-        with mlflow.start_run():
+    def evaluate_model(model_info, eval_df, experiment_id, run_id, eval_target_column_name=EVAL_OUTPUT_COLUM):
+
+        with mlflow.start_run(experiment_id=experiment_id, run_id=run_id):
             results = mlflow.evaluate(
                 model_info.model_uri,
                 eval_df,

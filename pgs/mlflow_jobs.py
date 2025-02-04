@@ -149,8 +149,8 @@ def display_jobs_list():
         cml_experiments_df,
         how="left",
         on='parent_job_id')
-
-    display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict)
+    df_cols = display_df.columns.to_list()
+    display_df['adapter_name'] = display_df['adapter_id'].map(adapter_dict) if "adapter_id" in df_cols else None
     display_df['base_model_name'] = display_df['base_model_id'].map(model_dict)
     display_df['dataset_name'] = display_df['dataset_id'].map(dataset_dict)
     display_df['prompt_name'] = display_df['prompt_id'].map(prompt_dict)

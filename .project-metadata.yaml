@@ -26,7 +26,7 @@ environment_variables:
 
 runtimes:
   - editor: JupyterLab
-    kernel: Python 3.11
+    kernel: Python 3.10
     edition: Nvidia GPU
 
 tasks:
@@ -41,7 +41,7 @@ tasks:
 
   - type: create_job
     name: Install Dependencies
-    script: bin/install-dependencies.py
+    script: bin/install-dependencies-uv.py
     entity_label: install_deps
     arguments: None
     short_summary: Install Dependencies
@@ -50,6 +50,7 @@ tasks:
     memory: 16
     environment:
       TASK_TYPE: CREATE/RUN_JOB
+      
 
   - type: run_job
     entity_label: install_deps
@@ -98,7 +99,7 @@ tasks:
 
   - type: run_session
     name: Initialize Project Defaults
-    script: bin/initialize-project-defaults.py
+    script: bin/initialize-project-defaults-uv.py
     short_summary: Initialize Project Defaults
     long_summary: Initialize default datasets, prompts, models, adapters, etc., shipped with this version of the Studio.
     kernel: python3
@@ -150,6 +151,7 @@ tasks:
     long_summary: This application launcher launches the sample ticketing streamlit application.
     cpu: 2
     memory: 8
+    is_embedded: true
     environment_variables:
       TASK_TYPE: START_APPLICATION
 
@@ -162,5 +164,6 @@ tasks:
     cpu: 2
     memory: 8
     gpu: 1
+    is_embedded: true
     environment_variables:
       TASK_TYPE: START_APPLICATION

@@ -49,6 +49,14 @@ def display_prompt(prompt: PromptMetadata, container):
             )
         ).dataset.name)
 
+        c2.button(
+            label="X",
+            key=f"remove_prompt_{prompt.id}",
+            on_click=fts.RemovePrompt,
+            args=(RemovePromptRequest(id=prompt.id),),
+            type="primary"
+        )
+
         # if remove:
         #     fts.RemovePrompt(
         #         RemovePromptRequest(

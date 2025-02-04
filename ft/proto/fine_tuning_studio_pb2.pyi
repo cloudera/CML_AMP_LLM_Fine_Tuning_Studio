@@ -11,6 +11,30 @@ class ListDatasetsRequest(_message.Message):
     def __init__(self) -> None: ...
 
 
+class ExportDatabaseRequest(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
+class ExportDatabaseResponse(_message.Message):
+    __slots__ = ("exported_json",)
+    EXPORTED_JSON_FIELD_NUMBER: _ClassVar[int]
+    exported_json: str
+    def __init__(self, exported_json: _Optional[str] = ...) -> None: ...
+
+
+class ImportDatabaseRequest(_message.Message):
+    __slots__ = ("imported_json_path",)
+    IMPORTED_JSON_PATH_FIELD_NUMBER: _ClassVar[int]
+    imported_json_path: str
+    def __init__(self, imported_json_path: _Optional[str] = ...) -> None: ...
+
+
+class ImportDatabaseResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+
 class ListDatasetsResponse(_message.Message):
     __slots__ = ("datasets",)
     DATASETS_FIELD_NUMBER: _ClassVar[int]
@@ -362,10 +386,10 @@ class StartFineTuningJobRequest(_message.Message):
         "gpu",
         "memory",
         "train_test_split",
-        "model_bnb_config_id",
-        "adapter_bnb_config_id",
-        "training_arguments_config_id",
-        "lora_config_id",
+        "model_bnb_config",
+        "adapter_bnb_config",
+        "training_arguments_config",
+        "lora_config",
         "output_dir",
         "dataset_fraction",
         "user_script",
@@ -386,10 +410,10 @@ class StartFineTuningJobRequest(_message.Message):
     GPU_FIELD_NUMBER: _ClassVar[int]
     MEMORY_FIELD_NUMBER: _ClassVar[int]
     TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
-    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    TRAINING_ARGUMENTS_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    LORA_CONFIG_FIELD_NUMBER: _ClassVar[int]
     OUTPUT_DIR_FIELD_NUMBER: _ClassVar[int]
     DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
@@ -410,10 +434,10 @@ class StartFineTuningJobRequest(_message.Message):
     gpu: int
     memory: int
     train_test_split: float
-    model_bnb_config_id: str
-    adapter_bnb_config_id: str
-    training_arguments_config_id: str
-    lora_config_id: str
+    model_bnb_config: str
+    adapter_bnb_config: str
+    training_arguments_config: str
+    lora_config: str
     output_dir: str
     dataset_fraction: float
     user_script: str
@@ -437,10 +461,10 @@ class StartFineTuningJobRequest(_message.Message):
         gpu: _Optional[int] = ...,
         memory: _Optional[int] = ...,
         train_test_split: _Optional[float] = ...,
-        model_bnb_config_id: _Optional[str] = ...,
-        adapter_bnb_config_id: _Optional[str] = ...,
-        training_arguments_config_id: _Optional[str] = ...,
-        lora_config_id: _Optional[str] = ...,
+        model_bnb_config: _Optional[str] = ...,
+        adapter_bnb_config: _Optional[str] = ...,
+        training_arguments_config: _Optional[str] = ...,
+        lora_config: _Optional[str] = ...,
         output_dir: _Optional[str] = ...,
         dataset_fraction: _Optional[float] = ...,
         user_script: _Optional[str] = ...,
@@ -514,9 +538,9 @@ class StartEvaluationJobRequest(_message.Message):
         "cpu",
         "gpu",
         "memory",
-        "model_bnb_config_id",
-        "adapter_bnb_config_id",
-        "generation_config_id",
+        "model_bnb_config",
+        "adapter_bnb_config",
+        "generation_config",
         "prompt_id",
         "gpu_label_id",
         "selected_features",
@@ -530,9 +554,9 @@ class StartEvaluationJobRequest(_message.Message):
     CPU_FIELD_NUMBER: _ClassVar[int]
     GPU_FIELD_NUMBER: _ClassVar[int]
     MEMORY_FIELD_NUMBER: _ClassVar[int]
-    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIG_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     GPU_LABEL_ID_FIELD_NUMBER: _ClassVar[int]
     SELECTED_FEATURES_FIELD_NUMBER: _ClassVar[int]
@@ -546,9 +570,9 @@ class StartEvaluationJobRequest(_message.Message):
     cpu: int
     gpu: int
     memory: int
-    model_bnb_config_id: str
-    adapter_bnb_config_id: str
-    generation_config_id: str
+    model_bnb_config: str
+    adapter_bnb_config: str
+    generation_config: str
     prompt_id: str
     gpu_label_id: int
     selected_features: _containers.RepeatedScalarFieldContainer[str]
@@ -565,9 +589,9 @@ class StartEvaluationJobRequest(_message.Message):
                  cpu: _Optional[int] = ...,
                  gpu: _Optional[int] = ...,
                  memory: _Optional[int] = ...,
-                 model_bnb_config_id: _Optional[str] = ...,
-                 adapter_bnb_config_id: _Optional[str] = ...,
-                 generation_config_id: _Optional[str] = ...,
+                 model_bnb_config: _Optional[str] = ...,
+                 adapter_bnb_config: _Optional[str] = ...,
+                 generation_config: _Optional[str] = ...,
                  prompt_id: _Optional[str] = ...,
                  gpu_label_id: _Optional[int] = ...,
                  selected_features: _Optional[_Iterable[str]] = ...,
@@ -832,10 +856,10 @@ class FineTuningJobMetadata(_message.Message):
         "num_epochs",
         "learning_rate",
         "out_dir",
-        "training_arguments_config_id",
-        "model_bnb_config_id",
-        "adapter_bnb_config_id",
-        "lora_config_id",
+        "training_arguments_config",
+        "model_bnb_config",
+        "adapter_bnb_config",
+        "lora_config",
         "dataset_fraction",
         "train_test_split",
         "user_script",
@@ -858,10 +882,10 @@ class FineTuningJobMetadata(_message.Message):
     NUM_EPOCHS_FIELD_NUMBER: _ClassVar[int]
     LEARNING_RATE_FIELD_NUMBER: _ClassVar[int]
     OUT_DIR_FIELD_NUMBER: _ClassVar[int]
-    TRAINING_ARGUMENTS_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    LORA_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    TRAINING_ARGUMENTS_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    LORA_CONFIG_FIELD_NUMBER: _ClassVar[int]
     DATASET_FRACTION_FIELD_NUMBER: _ClassVar[int]
     TRAIN_TEST_SPLIT_FIELD_NUMBER: _ClassVar[int]
     USER_SCRIPT_FIELD_NUMBER: _ClassVar[int]
@@ -884,10 +908,10 @@ class FineTuningJobMetadata(_message.Message):
     num_epochs: int
     learning_rate: float
     out_dir: str
-    training_arguments_config_id: str
-    model_bnb_config_id: str
-    adapter_bnb_config_id: str
-    lora_config_id: str
+    training_arguments_config: str
+    model_bnb_config: str
+    adapter_bnb_config: str
+    lora_config: str
     dataset_fraction: float
     train_test_split: float
     user_script: str
@@ -913,10 +937,10 @@ class FineTuningJobMetadata(_message.Message):
         num_epochs: _Optional[int] = ...,
         learning_rate: _Optional[float] = ...,
         out_dir: _Optional[str] = ...,
-        training_arguments_config_id: _Optional[str] = ...,
-        model_bnb_config_id: _Optional[str] = ...,
-        adapter_bnb_config_id: _Optional[str] = ...,
-        lora_config_id: _Optional[str] = ...,
+        training_arguments_config: _Optional[str] = ...,
+        model_bnb_config: _Optional[str] = ...,
+        adapter_bnb_config: _Optional[str] = ...,
+        lora_config: _Optional[str] = ...,
         dataset_fraction: _Optional[float] = ...,
         train_test_split: _Optional[float] = ...,
         user_script: _Optional[str] = ...,
@@ -965,9 +989,9 @@ class EvaluationJobMetadata(_message.Message):
         "num_memory",
         "num_gpu",
         "evaluation_dir",
-        "model_bnb_config_id",
-        "adapter_bnb_config_id",
-        "generation_config_id",
+        "model_bnb_config",
+        "adapter_bnb_config",
+        "generation_config",
         "type",
         "prompt_id",
         "parent_job_id")
@@ -981,9 +1005,9 @@ class EvaluationJobMetadata(_message.Message):
     NUM_MEMORY_FIELD_NUMBER: _ClassVar[int]
     NUM_GPU_FIELD_NUMBER: _ClassVar[int]
     EVALUATION_DIR_FIELD_NUMBER: _ClassVar[int]
-    MODEL_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    ADAPTER_BNB_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
-    GENERATION_CONFIG_ID_FIELD_NUMBER: _ClassVar[int]
+    MODEL_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    ADAPTER_BNB_CONFIG_FIELD_NUMBER: _ClassVar[int]
+    GENERATION_CONFIG_FIELD_NUMBER: _ClassVar[int]
     TYPE_FIELD_NUMBER: _ClassVar[int]
     PROMPT_ID_FIELD_NUMBER: _ClassVar[int]
     PARENT_JOB_ID_FIELD_NUMBER: _ClassVar[int]
@@ -997,9 +1021,9 @@ class EvaluationJobMetadata(_message.Message):
     num_memory: int
     num_gpu: int
     evaluation_dir: str
-    model_bnb_config_id: str
-    adapter_bnb_config_id: str
-    generation_config_id: str
+    model_bnb_config: str
+    adapter_bnb_config: str
+    generation_config: str
     type: str
     prompt_id: str
     parent_job_id: str
@@ -1016,9 +1040,9 @@ class EvaluationJobMetadata(_message.Message):
         num_memory: _Optional[int] = ...,
         num_gpu: _Optional[int] = ...,
         evaluation_dir: _Optional[str] = ...,
-        model_bnb_config_id: _Optional[str] = ...,
-        adapter_bnb_config_id: _Optional[str] = ...,
-        generation_config_id: _Optional[str] = ...,
+        model_bnb_config: _Optional[str] = ...,
+        adapter_bnb_config: _Optional[str] = ...,
+        generation_config: _Optional[str] = ...,
         type: _Optional[str] = ...,
         prompt_id: _Optional[str] = ...,
         parent_job_id: _Optional[str] = ...) -> None: ...

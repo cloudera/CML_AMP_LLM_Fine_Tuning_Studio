@@ -35,7 +35,12 @@ project defaults JSON when initializing the AMP.
 """
 
 
-CML_MODEL_PREDICT_SCRIPT_FILEPATH = "ft/scripts/cml_model_predict_script.py"
+import os
+
+if os.getenv("IS_COMPOSABLE", "") != "":
+  CML_MODEL_PREDICT_SCRIPT_FILEPATH = "fine-tuning-studio/ft/scripts/cml_model_predict_script.py"
+else:
+  CML_MODEL_PREDICT_SCRIPT_FILEPATH = "ft/scripts/cml_model_predict_script.py"
 """
 Filepath for the main predict functionality and generation loop of a
 deployed model+adapter as a CML Model.
@@ -58,6 +63,30 @@ DEFAULT_BNB_CONFIG = {
     "bnb_4bit_compute_dtype": "float16",
     "bnb_4bit_use_double_quant": True,
     "quant_method": "bitsandbytes"
+}
+
+DEFAULT_LORA_CONFIG = {
+    "r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+}
+
+DEFAULT_TRAINING_ARGUMENTS = {
+    "num_train_epochs": 1,
+    "optim": "paged_adamw_32bit",
+    "per_device_train_batch_size": 1,
+    "gradient_accumulation_steps": 4,
+    "warmup_ratio": 0.03,
+    "max_grad_norm": 0.3,
+    "learning_rate": 0.0002,
+    "fp16": True,
+    "logging_steps": 1,
+    "lr_scheduler_type": "constant",
+    "disable_tqdm": True,
+    "report_to": "mlflow",
+    "ddp_find_unused_parameters": False
 }
 
 

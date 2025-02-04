@@ -540,25 +540,14 @@ def display_training_metrics():
 
             if selected_job.framework_type == FineTuningFrameworkType.LEGACY:
                 with col2.expander("Training Configurations", expanded=False):
-                    try:
-                        train_config = fts.GetConfig(GetConfigRequest(id=selected_job.training_arguments_config_id))
-                        st.code(json.dumps(json.loads(train_config.config.config), indent=2), "json")
-                    except Exception as e:
-                        st.error(f"Error fetching Training Config: {e}", icon=":material/error:")
-
+                    config = selected_job.training_arguments_config
+                    st.code("" if not config else json.dumps(json.loads(config), indent=2), "json")
                 with col2.expander("Lora Configurations", expanded=False):
-                    try:
-                        lora_config = fts.GetConfig(GetConfigRequest(id=selected_job.lora_config_id))
-                        st.code(json.dumps(json.loads(lora_config.config.config), indent=2), "json")
-                    except Exception as e:
-                        st.error(f"Error fetching Lora Config: {e}", icon=":material/error:")
-
+                    config = selected_job.lora_config
+                    st.code("" if not config else json.dumps(json.loads(config), indent=2), "json")
                 with col2.expander("BitsAndBytes Configurations", expanded=False):
-                    try:
-                        bnb_config = fts.GetConfig(GetConfigRequest(id=selected_job.adapter_bnb_config_id))
-                        st.code(json.dumps(json.loads(bnb_config.config.config), indent=2), "json")
-                    except Exception as e:
-                        st.error(f"Error fetching BnB Config: {e}", icon=":material/error:")
+                    config = selected_job.adapter_bnb_config
+                    st.code("" if not config else json.dumps(json.loads(config), indent=2), "json")
 
             elif selected_job.framework_type == FineTuningFrameworkType.AXOLOTL:
                 with col2.expander("Axolotl Train Configurations", expanded=False):

@@ -147,6 +147,10 @@ class FineTuningJob(Base, MappedProtobuf, MappedDict):
     model_bnb_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     adapter_bnb_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     lora_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
+    training_arguments_config = Column(String, nullable=True)
+    model_bnb_config = Column(String, nullable=True)
+    adapter_bnb_config = Column(String, nullable=True)
+    lora_config = Column(String, nullable=True)
     dataset_fraction = Column(Double, nullable=True)
     train_test_split = Column(Double, nullable=True)
     user_script = Column(String, nullable=True)
@@ -175,6 +179,9 @@ class EvaluationJob(Base, MappedProtobuf, MappedDict):
     model_bnb_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     adapter_bnb_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
     generation_config_id = Column(String, ForeignKey('configs.id'), nullable=True)
+    model_bnb_config = Column(String, nullable=True)
+    adapter_bnb_config = Column(String, nullable=True)
+    generation_config = Column(String, nullable=True)
 
 
 class Config(Base, MappedProtobuf, MappedDict):

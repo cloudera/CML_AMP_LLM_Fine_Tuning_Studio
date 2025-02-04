@@ -1,3 +1,8 @@
+import os
+if os.getenv("IS_COMPOSABLE", "") != "":
+  os.chdir("/home/cdsw/fine-tuning-studio")
+from ft.venv_utils import activate_venv
+activate_venv(".venv")
 from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
 from accelerate.utils import (
     PrepareForLaunch,
@@ -5,13 +10,13 @@ from accelerate.utils import (
     is_torch_version,
     patch_environment,
 )
+from pathlib import Path
 from peft import prepare_model_for_kbit_training
 import torch
 import argparse
 import sys
 import json
 import os
-
 import datasets
 from accelerate import Accelerator, notebook_launcher
 from ft.utils import attempt_hf_login
@@ -20,7 +25,10 @@ from ft.api import *
 from ft.consts import (
     TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
     TRAINING_DEFAULT_DATASET_FRACTION,
-    TRAINING_DATA_TEXT_FIELD
+    TRAINING_DATA_TEXT_FIELD,
+    DEFAULT_BNB_CONFIG,
+    DEFAULT_LORA_CONFIG,
+    DEFAULT_TRAINING_ARGUMENTS
 )
 from ft.datasets import load_dataset_into_memory
 from ft.training.utils import (
@@ -55,9 +63,11 @@ parser.add_argument("--train_test_split", type=float, default=TRAINING_DEFAULT_T
                     help="Split of the existing dataset between training and testing.")
 parser.add_argument("--dataset_fraction", type=float, default=TRAINING_DEFAULT_DATASET_FRACTION,
                     help="Fraction of the dataset to downsample to.")
-parser.add_argument("--bnb_config_id", default=None, help="ID of the BnB config in FT Studio's config store.")
-parser.add_argument("--lora_config_id", default=None, help="ID of the Lora config in FT Studio's config store.")
-parser.add_argument("--training_arguments_config_id", default=None,
+parser.add_argument("--bnb_config", default=json.dumps(DEFAULT_BNB_CONFIG),
+                    help="ID of the BnB config in FT Studio's config store.")
+parser.add_argument("--lora_config", default=json.dumps(DEFAULT_LORA_CONFIG),
+                    help="ID of the Lora config in FT Studio's config store.")
+parser.add_argument("--training_arguments_config", default=json.dumps(DEFAULT_TRAINING_ARGUMENTS),
                     help="ID of the training arguments in FT Studio's config store.")
 parser.add_argument("--hf_token", help="Huggingface access token to use for gated models", default=None)
 parser.add_argument("--adapter_name", help="Human friendly name of the adapter to train", default=None)
@@ -114,29 +124,9 @@ fts: FineTuningStudioClient = FineTuningStudioClient()
 attempt_hf_login(args.hf_token)
 
 # Get the configurations.
-lora_config_dict = json.loads(
-    fts.GetConfig(
-        GetConfigRequest(
-            id=args.lora_config_id
-        )
-    ).config.config
-)
-
-bnb_config_dict = json.loads(
-    fts.GetConfig(
-        GetConfigRequest(
-            id=args.bnb_config_id
-        )
-    ).config.config
-)
-
-training_args_dict = json.loads(
-    fts.GetConfig(
-        GetConfigRequest(
-            id=args.training_arguments_config_id
-        )
-    ).config.config
-)
+lora_config_dict = json.loads(args.lora_config)
+bnb_config_dict = json.loads(args.bnb_config)
+training_args_dict = json.loads(args.training_arguments_config)
 
 
 # Call the FTS server
@@ -377,19 +367,19 @@ if IS_MASTER:
             worker_envs['CML_FTS_JOB_MASTER_IP'] = JOB_MASTER_IP
             worker_envs['JOB_ARGUMENTS'] = os.environ.get('JOB_ARGUMENTS', '')
             worker_envs['CML_FTS_JOB_NODE_RANK'] = str(i)
-
+            cur_path = Path.cwd()
             # This is to support compatibility with old workspaces without heterogeneous gpu support
             if args.gpu_label_id != -1:
                 launch_workers(n=1, cpu=args.dist_cpu, memory=args.dist_mem,
                                nvidia_gpu=args.dist_gpu,
-                               script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
+                               script=f"{cur_path}/ft/scripts/accel_fine_tune_base_script.py",
                                env=worker_envs,
                                accelerator_label_id=args.gpu_label_id
                                )
             else:
                 launch_workers(n=1, cpu=args.dist_cpu, memory=args.dist_mem,
                                nvidia_gpu=args.dist_gpu,
-                               script="/home/cdsw/ft/scripts/accel_fine_tune_base_script.py",
+                               script=f"{cur_path}/ft/scripts/accel_fine_tune_base_script.py",
                                env=worker_envs,
                                )
             print("Launched woker for rank %d" % i)

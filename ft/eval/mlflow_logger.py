@@ -8,7 +8,7 @@ class ModelLogger():
 
     def __init__(self, job_id) -> None:
 
-        mlflow.set_experiment(f"Run: {job_id}")
+        self.experiment_artifacts = mlflow.set_experiment(f"Run: {job_id}")
         # Paramterize them
         self.default_config = GenerationConfig(
             do_sample=True,
@@ -44,11 +44,13 @@ class ModelLogger():
             # and truncation under the hood
             gen_config["max_length"] = None
             gen_config = GenerationConfig(**gen_config)
-        full_name = f"{base_model_name}&{adapter_name}"
+        full_name = f"{base_model_name}-{adapter_name}"
+        full_name = full_name.replace("/", "-")
         # truncate artifact path to last 49 charactere
         artifact_path = full_name[-49:]
         registered_model = "ft-model-" + str(artifact_path[-40:])
-        with mlflow.start_run():
+
+        with mlflow.start_run(run_name=full_name):
             model_info = mlflow.transformers.log_model(
                 transformers_model=pipeline,
                 torch_dtype='float16',
@@ -58,7 +60,11 @@ class ModelLogger():
                 model_config=gen_config.to_dict(),
                 metadata={"model_full_name": full_name}
             )
-        return model_info
+        run_id = mlflow.search_runs(
+            experiment_ids=[
+                self.experiment_artifacts.experiment_id],
+            filter_string=f"tags.mlflow.runName = '{full_name}'").run_id[0]
+        return model_info, self.experiment_artifacts.experiment_id, run_id
 
     def log_model_multi_gpu(
             self,
@@ -78,11 +84,12 @@ class ModelLogger():
             # and truncation under the hood
             gen_config["max_length"] = None
             gen_config = GenerationConfig(**gen_config)
-        full_name = f"{base_model_name}&{adapter_name}"
+        full_name = f"{base_model_name}-{adapter_name}"
+        full_name = full_name.replace("/", "-")
         # truncate artifact path to last 49 charactere
         artifact_path = full_name[-49:]
         registered_model = "ft-model-" + str(artifact_path[-40:])
-        with mlflow.start_run():
+        with mlflow.start_run(run_name=full_name):
             model_info = mlflow.transformers.log_model(
                 transformers_model={"model": transformer_model, "tokenizer": tokenizer_no_pad},
                 torch_dtype='float16',
@@ -92,8 +99,11 @@ class ModelLogger():
                 model_config=gen_config.to_dict(),
                 metadata={"model_full_name": full_name}
             )
-
-        return model_info
+        run_id = mlflow.search_runs(
+            experiment_ids=[
+                self.experiment_artifacts.experiment_id],
+            filter_string=f"tags.mlflow.runName = '{full_name}'").run_id[0]
+        return model_info, self.experiment_artifacts.experiment_id, run_id
 
 
 if __name__ == "__main__":

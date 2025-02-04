@@ -59,6 +59,10 @@ from ft.configs import (
     add_config,
     remove_config
 )
+from ft.databse_ops import (
+    export_database,
+    import_database,
+)
 
 
 class FineTuningStudioApp(FineTuningStudioServicer):
@@ -184,3 +188,9 @@ class FineTuningStudioApp(FineTuningStudioServicer):
 
     def RemoveConfig(self, request, context):
         return remove_config(request, dao=self.dao)
+
+    def ExportDatabase(self, request, context):
+        return export_database(request, dao=self.dao)
+
+    def ImportDatabase(self, request, context):
+        return import_database(request, dao=self.dao)

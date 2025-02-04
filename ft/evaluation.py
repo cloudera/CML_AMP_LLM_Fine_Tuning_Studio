@@ -3,13 +3,14 @@ import pathlib
 import cmlapi
 from cmlapi import CMLServiceApi
 from ft.api import *
+import json
 import os
 from typing import List
 
 from sqlalchemy import delete
 
 from ft.db.dao import FineTuningStudioDao
-from ft.db.model import EvaluationJob, Prompt, Config, Adapter, Model, Dataset
+from ft.db.model import EvaluationJob, Prompt, Adapter, Model, Dataset
 
 
 def list_evaluation_jobs(request: ListEvaluationJobsRequest,
@@ -44,8 +45,7 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
     # Check for required fields in StartEvaluationJobRequest
     required_fields = [
         "model_adapter_combinations", "dataset_id",
-        "prompt_id", "adapter_bnb_config_id",
-        "model_bnb_config_id", "generation_config_id",
+        "prompt_id",
         "cpu", "gpu", "memory"
     ]
 
@@ -56,8 +56,7 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
     # Ensure certain string fields are not empty after stripping out spaces
     string_fields = [
         "model_adapter_combinations", "dataset_id",
-        "prompt_id", "adapter_bnb_config_id",
-        "model_bnb_config_id", "generation_config_id"
+        "prompt_id",
     ]
 
     for field in string_fields:
@@ -88,18 +87,6 @@ def _validate_start_evaluation_job_request(request: StartEvaluationJobRequest, d
         # Check if the referenced prompt_id exists in the database
         if not session.query(Prompt).filter_by(id=request.prompt_id.strip()).first():
             raise ValueError(f"Prompt with ID '{request.prompt_id}' does not exist.")
-
-        # Check if the referenced adapter_bnb_config_id exists in the database
-        if not session.query(Config).filter_by(id=request.adapter_bnb_config_id.strip()).first():
-            raise ValueError(f"Adapter BnB Config with ID '{request.adapter_bnb_config_id}' does not exist.")
-
-        # Check if the referenced model_bnb_config_id exists in the database
-        if not session.query(Config).filter_by(id=request.model_bnb_config_id.strip()).first():
-            raise ValueError(f"Model BnB Config with ID '{request.model_bnb_config_id}' does not exist.")
-
-        # Check if the referenced generation_config_id exists in the database
-        if not session.query(Config).filter_by(id=request.generation_config_id.strip()).first():
-            raise ValueError(f"Generation Config with ID '{request.generation_config_id}' does not exist.")
 
 
 def get_comparison_adapter_id(model_adapter_combinations):
@@ -169,14 +156,17 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
         arg_list.append(result_dir)
 
         # Pass in configurations.
-        arg_list.append("--adapter_bnb_config_id")
-        arg_list.append(request.adapter_bnb_config_id)
+        if request.adapter_bnb_config:
+            arg_list.append("--adapter_bnb_config")
+            arg_list.append(json.dumps(json.loads(request.adapter_bnb_config)))
 
-        arg_list.append("--model_bnb_config_id")
-        arg_list.append(request.model_bnb_config_id)
+        if request.model_bnb_config:
+            arg_list.append("--model_bnb_config")
+            arg_list.append(json.dumps(json.loads(request.model_bnb_config)))
 
-        arg_list.append("--generation_config_id")
-        arg_list.append(request.generation_config_id)
+        if request.generation_config:
+            arg_list.append("--generation_config")
+            arg_list.append(json.dumps(json.loads(request.generation_config)))
 
         arg_list.append("--selected_features")
         arg_list.append(request.selected_features)
@@ -247,9 +237,15 @@ def start_evaluation_job(request: StartEvaluationJobRequest,
                 cml_job_id=created_job.id,
                 parent_job_id=parent_job_id,
                 evaluation_dir=result_dir,
-                model_bnb_config_id=request.model_bnb_config_id,
-                adapter_bnb_config_id=request.adapter_bnb_config_id,
-                generation_config_id=request.generation_config_id,
+                model_bnb_config=json.dumps(
+                    json.loads(
+                        request.model_bnb_config)) if request.model_bnb_config else None,
+                adapter_bnb_config=json.dumps(
+                    json.loads(
+                        request.adapter_bnb_config)) if request.adapter_bnb_config else None,
+                generation_config=json.dumps(
+                    json.loads(
+                        request.generation_config)) if request.generation_config else None,
             )
             session.add(eval_job)
 

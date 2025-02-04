@@ -4,12 +4,15 @@ from typing import List
 import pandas as pd
 import requests
 from ft.api import *
+import time
 from google.protobuf.json_format import MessageToDict
 from pgs.streamlit_utils import get_fine_tuning_studio_client
 from ft.utils import format_status_with_icon, get_current_git_hash, get_latest_git_hash, check_if_ahead_or_behind
 import json
 from ft.consts import IconPaths, DIVIDER_COLOR
 import subprocess
+from ft.upgrade.upgrader import run_git_pull, run_alembic_upgrade
+from ft.upgrade.restarter import restart_application_function
 
 # Instantiate the client to the FTS gRPC app server.
 fts = get_fine_tuning_studio_client()
@@ -38,6 +41,7 @@ def create_tile(container, image_path: str, button_text: str, page_path: str, de
         c2.caption(description)
 
 
+
 def check_amp_update_status():
     """Check if the AMP is up-to-date."""
     try:
@@ -48,21 +52,46 @@ def check_amp_update_status():
         current_hash = get_current_git_hash()
         latest_hash = get_latest_git_hash(current_branch)
 
-        if current_hash and latest_hash:
-            if current_hash != latest_hash:
-                _, behind = check_if_ahead_or_behind(current_hash, current_branch)
-                if behind > 0:
-                    st.toast(
-                        f"Your AMP is out of date. Please update to the latest version.",
-                        icon=":material/error:")
-                    st.warning(
-                        f"Your AMP is out of date. Please update Studio following these guidelines: "
-                        "[Upgrading Fine Tuning Studio](https://github.com/cloudera/CML_AMP_LLM_Fine_Tuning_Studio/docs/upgrading_finetuning_studio.md).",
-                        icon=":material/error:")
-        else:
-            st.toast("Unable to check AMP update status.", icon=":material/error:")
-    except ValueError as e:
-        st.toast(f"Unable to check AMP update status: {e}", icon=":material/error:")
+        with st.container():
+            st.subheader("🔄 AMP Update Status")
+            if current_hash and latest_hash:
+                if current_hash != latest_hash:
+                    _, behind = check_if_ahead_or_behind(current_hash, current_branch)
+                    if behind > 0:
+                        st.warning("Your AMP is out of date. Please update to the latest version.")
+                        if st.button("Perform Upgrade"):
+                            execute_upgrade_steps()
+                else:
+                    st.success("🎉 Your AMP is up-to-date!")
+            else:
+                st.error("Unable to check AMP update status.")
+    except Exception as e:
+        st.error(f"Error checking AMP status: {e}")
+
+
+def execute_upgrade_steps():
+    """Perform upgrade steps with feedback"""
+    with st.spinner("🚀 Starting Upgrade..."):
+        st.markdown('<p style="font-size:18px; color:#00BFFF; text-align:center;">We are upgrading your AMP to the latest version...</p>', unsafe_allow_html=True)
+
+        upgrade_steps = [
+            ("Git Pull", run_git_pull),
+            ("Database Migration", run_alembic_upgrade),
+            ("Restarting Application", restart_application_function)
+        ]
+        progress_bar_column, step_message_column = st.columns([3, 7])
+        progress_bar = progress_bar_column.progress(0)
+        total_steps = len(upgrade_steps)
+
+        for idx, (step_name, step_func) in enumerate(upgrade_steps):
+            with step_message_column:
+                st.markdown(f"🚀 **{step_name}**")
+            step_percent = int(((idx + 1) / total_steps) * 100)
+            if not step_func():
+                st.error(f"❌ {step_name} failed!")
+                return
+            progress_bar.progress(step_percent)
+            time.sleep(1)
 
 
 project_owner = get_env_variable('PROJECT_OWNER', 'User')
