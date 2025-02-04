@@ -41,7 +41,7 @@ tasks:
 
   - type: create_job
     name: Install Dependencies
-    script: bin/install-dependencies.py
+    script: bin/install-dependencies-uv.py
     entity_label: install_deps
     arguments: None
     short_summary: Install Dependencies
