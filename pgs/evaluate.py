@@ -3,6 +3,7 @@ from ft.api import *
 from typing import *
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from ft.datasets import load_dataset_into_memory
+from ft.upgrade.restarter import update_app_with_gpu, is_gpu_present
 import random
 import os
 import torch
@@ -317,99 +318,110 @@ with st.container(border=True):
 
 st.write("\n")
 
-col1, _, col2 = st.columns([30, 1, 30])
+if not is_gpu_present():
+    col1, col2 = st.columns([0.8, 0.2])
+    with col1:
+        st.warning("⚠️ GPU is required for this functionality to work, clicking on the button will enable GPU and may require App Restart.")
+    with col2:
+        if st.button("Enable GPU"):
+            update_app_with_gpu()
+            print("GPU is enabled now")
 
-with col1:
-    st.subheader("**Configure Models & Prompts**", divider=DIVIDER_COLOR)
-    model_idx = None
-    with st.container(border=True):
-        try:
-            current_models = fts.get_models()
-            if current_models:
-                model_idx = st.selectbox(
-                    "Base Models",
-                    range(len(current_models)),
-                    format_func=lambda x: current_models[x].name,
-                    index=st.session_state.model_idx,
-                    key='selected_model_idx',
-                    on_change=on_model_change
-                )
+else:
 
-                if model_idx is not None:
-                    st.session_state.current_model_metadata = current_models[model_idx]
+    col1, _, col2 = st.columns([30, 1, 30])
 
-                    model_adapters = fts.get_adapters()
-                    model_adapters = list(filter(lambda x: x.model_id == current_models[model_idx].id, model_adapters))
+    with col1:
+        st.subheader("**Configure Models & Prompts**", divider=DIVIDER_COLOR)
+        model_idx = None
+        with st.container(border=True):
+            try:
+                current_models = fts.get_models()
+                if current_models:
+                    model_idx = st.selectbox(
+                        "Base Models",
+                        range(len(current_models)),
+                        format_func=lambda x: current_models[x].name,
+                        index=st.session_state.model_idx,
+                        key='selected_model_idx',
+                        on_change=on_model_change
+                    )
 
-                    st.session_state.model_adapters = model_adapters
+                    if model_idx is not None:
+                        st.session_state.current_model_metadata = current_models[model_idx]
 
-                    if model_adapters:
-                        # Apply initial filtering based on locked prompt_id
-                        filtered_adapters = model_adapters
-                        if st.session_state.locked_prompt_id:
-                            filtered_adapters = [
-                                adapter for adapter in model_adapters
-                                if adapter.prompt_id == st.session_state.locked_prompt_id
-                            ]
+                        model_adapters = fts.get_adapters()
+                        model_adapters = list(filter(lambda x: x.model_id == current_models[model_idx].id, model_adapters))
 
-                        selected_adapters = st.multiselect(
-                            "Choose Adapters",
-                            filtered_adapters,
-                            format_func=lambda x: x.name,
-                            key="selected_adapters_key_name",
-                            default=st.session_state.selected_adapters,
-                            on_change=on_adapters_change
-                        )
+                        st.session_state.model_adapters = model_adapters
 
-                        # Update session state to ensure consistency
-                        st.session_state.selected_adapters = selected_adapters or []
+                        if model_adapters:
+                            # Apply initial filtering based on locked prompt_id
+                            filtered_adapters = model_adapters
+                            if st.session_state.locked_prompt_id:
+                                filtered_adapters = [
+                                    adapter for adapter in model_adapters
+                                    if adapter.prompt_id == st.session_state.locked_prompt_id
+                                ]
+
+                            selected_adapters = st.multiselect(
+                                "Choose Adapters",
+                                filtered_adapters,
+                                format_func=lambda x: x.name,
+                                key="selected_adapters_key_name",
+                                default=st.session_state.selected_adapters,
+                                on_change=on_adapters_change
+                            )
+
+                            # Update session state to ensure consistency
+                            st.session_state.selected_adapters = selected_adapters or []
+                        else:
+                            st.warning(
+                                "No adapters available for the selected model. Please fine-tune this model to generate adapters.",
+                                icon=":material/error:")
+                            st.session_state.selected_adapters = []
+
                     else:
-                        st.warning(
-                            "No adapters available for the selected model. Please fine-tune this model to generate adapters.",
-                            icon=":material/error:")
-                        st.session_state.selected_adapters = []
-
+                        st.session_state.base_output = ""
+                        st.session_state.adapter_outputs = {}
                 else:
-                    st.session_state.base_output = ""
-                    st.session_state.adapter_outputs = {}
-            else:
-                st.error("No models available. Please ensure models are loaded correctly.", icon=":material/error:")
-        except Exception as e:
-            st.error(f"Error loading models: {str(e)}", icon=":material/error:")
+                    st.error("No models available. Please ensure models are loaded correctly.", icon=":material/error:")
+            except Exception as e:
+                st.error(f"Error loading models: {str(e)}", icon=":material/error:")
 
-        if model_idx is not None and st.session_state.current_model_metadata and st.session_state.selected_adapters:
-            prompt_fragment()
-            evaluate_fragment()
+            if model_idx is not None and st.session_state.current_model_metadata and st.session_state.selected_adapters:
+                prompt_fragment()
+                evaluate_fragment()
 
-with col2:
-    st.subheader("**Inference Results**", divider=DIVIDER_COLOR)
-    cont = st.container(border=True)
-    if st.session_state.base_output != "":
-        cont.markdown(f"**Base Model: {st.session_state.current_model_metadata.name}**")
-        cont.code(st.session_state.base_output)
-    else:
-        cont.markdown(f"**Base Model Response:**")
-        cont.text_area(
-            "Base Model Response Empty",
-            value="",
-            disabled=True,
-            key="base_output_empty",
-            label_visibility="collapsed",
-            height=200)
+    with col2:
+        st.subheader("**Inference Results**", divider=DIVIDER_COLOR)
+        cont = st.container(border=True)
+        if st.session_state.base_output != "":
+            cont.markdown(f"**Base Model: {st.session_state.current_model_metadata.name}**")
+            cont.code(st.session_state.base_output)
+        else:
+            cont.markdown(f"**Base Model Response:**")
+            cont.text_area(
+                "Base Model Response Empty",
+                value="",
+                disabled=True,
+                key="base_output_empty",
+                label_visibility="collapsed",
+                height=200)
 
-    cont.write("\n")
+        cont.write("\n")
 
-    if st.session_state.selected_adapters:
-        for adapter_name, output in st.session_state.adapter_outputs.items():
-            cont = st.container(border=True)
-            cont.markdown(f"**Adapter: {adapter_name}**")
-            if output:
-                cont.code(output)
-            else:
-                cont.text_area(
-                    f"Base+Adapter Response Empty",
-                    value="",
-                    disabled=True,
-                    key=f"{adapter_name}_output_empty",
-                    label_visibility="collapsed",
-                    height=200)
+        if st.session_state.selected_adapters:
+            for adapter_name, output in st.session_state.adapter_outputs.items():
+                cont = st.container(border=True)
+                cont.markdown(f"**Adapter: {adapter_name}**")
+                if output:
+                    cont.code(output)
+                else:
+                    cont.text_area(
+                        f"Base+Adapter Response Empty",
+                        value="",
+                        disabled=True,
+                        key=f"{adapter_name}_output_empty",
+                        label_visibility="collapsed",
+                        height=200)

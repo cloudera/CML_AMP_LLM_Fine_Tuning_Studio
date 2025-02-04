@@ -162,7 +162,6 @@ tasks:
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
     memory: 8
-    gpu: 1
     is_embedded: true
     environment_variables:
       TASK_TYPE: START_APPLICATION
