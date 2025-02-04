@@ -151,7 +151,8 @@ def deploy_cml_model(request: ExportModelRequest,
     project: cmlapi.Project = client.get_project(project_id)
     model_body = cmlapi.CreateModelRequest(project_id=project.id,
                                            name=request.model_name,
-                                           description=request.model_description)
+                                           description=request.model_description,
+                                           disable_authentication=True)
     model = client.create_model(model_body, project.id)
     short_model_deployment = cmlapi.ShortCreateModelDeployment(
         cpu=2,
