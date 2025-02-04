@@ -4213,6 +4213,7 @@ requires-dist = [
     { name = "setuptools", specifier = "==74.1.0" },
     { name = "streamlit", specifier = "==1.37.0" },
     { name = "streamlit-aggrid", specifier = "==1.0.5" },
+    { name = "streamlit-navigation-bar", specifier = "==3.3.0" },
     { name = "textstat", specifier = "==0.7.4" },
     { name = "tiktoken", specifier = "==0.7.0" },
     { name = "torch", specifier = "==2.3.1" },
@@ -6948,6 +6949,18 @@ wheels = [
 ]
 
 [[package]]
+name = "st-theme"
+version = "1.2.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/31/84/3e2fd95f5acaf6c92a51e7f038f1120235c65bb0b8be9bf43aa9fb4267e5/st-theme-1.2.3.tar.gz", hash = "sha256:ca97aece1a48ded6e83fd742c27cb0851e1bce2100ab4b6c37c7b6e003b65b42", size = 73873 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/30/09/cd7134f1ed5074a7d456640e7ba9a8c8e68a831837b4e7bfd9f29e5700a4/st_theme-1.2.3-py3-none-any.whl", hash = "sha256:0a54d9817dd5f8a6d7b0d071b25ae72eacf536c63a5fb97374923938021b1389", size = 75205 },
+]
+
+[[package]]
 name = "starlette"
 version = "0.41.3"
 source = { registry = "https://pypi.org/simple" }
@@ -7002,6 +7015,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9c/6a/1d400578115fea4b8926fe60566d54399409baadaf448ed0bc07e0130312/streamlit_aggrid-1.0.5.tar.gz", hash = "sha256:12e17f88d66e110e5d68504614a4b933f7dca31e40448396252d889a10e761b6", size = 7819216 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6f/49/892f841d7eb689fb67d83c310c1846423bb14c7fc9976b83b0d0ede1ed24/streamlit_aggrid-1.0.5-py3-none-any.whl", hash = "sha256:ac0a58c1d39418d139da5623c4c8a0a3aa86463c217a41c837e2ef52c8537a34", size = 7903624 },
+]
+
+[[package]]
+name = "streamlit-navigation-bar"
+version = "3.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "st-theme" },
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/33/f5/5f950940d4e729bfb441245ca1a979be6a2feb862162af07c799575fc4d1/streamlit-navigation-bar-3.3.0.tar.gz", hash = "sha256:f458c3f9bbb72a3fa07a28c1db98eceabdd49b19f71fafb44dc36042e0d4b4c4", size = 83477 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/2f/44010a5393faf2c6f5506096f3cff6bc618bc010f412a56c30a99398f52c/streamlit_navigation_bar-3.3.0-py3-none-any.whl", hash = "sha256:25be9657d7f44c0d4f2759a12bd75de7bb0829ed1dc69d9a5e91a77bc69924d8", size = 84888 },
 ]
 
 [[package]]
@@ -7319,7 +7345,7 @@ name = "triton"
 version = "2.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "filelock", marker = "sys_platform != 'win32'" },
+    { name = "filelock", marker = "python_full_version < '3.12' and sys_platform != 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d7/69/8a9fde07d2d27a90e16488cdfe9878e985a247b2496a4b5b1a2126042528/triton-2.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3c84595cbe5e546b1b290d2a58b1494df5a2ef066dd890655e5b8a8a92205c33", size = 168055249 },
