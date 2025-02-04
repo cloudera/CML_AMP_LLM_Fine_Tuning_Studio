@@ -36,3 +36,4 @@ rouge_score==0.1.2
 nltk==3.9.1
 exceptiongroup==1.2.2
 alembic==1.14.0
+streamlit-navigation-bar==3.3.0
