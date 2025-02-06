@@ -46,12 +46,11 @@ tasks:
     arguments: None
     short_summary: Install Dependencies
     kernel: python3
-    cpu: 4
-    memory: 16
+    cpu: 2
+    memory: 8
     environment:
       TASK_TYPE: CREATE/RUN_JOB
       
-
   - type: run_job
     entity_label: install_deps
     arguments: None
@@ -105,44 +104,7 @@ tasks:
     kernel: python3
     cpu: 2
     memory: 8
-  
-  - type: create_model
-    name: Ticketing Agent Model
-    entity_label: ticket_agent_adapter_model
-    description: This sample model API endpoint is used to generate support ticket intent
-    short_summary: Create the sample support ticket intent model api endpoint
-    access_key_environment_variable: TICKETING_MODEL_ACCESS_KEY
-    default_resources:
-      cpu: 2
-      memory: 4
-      gpu: 1
-    default_replication_policy:
-      type: fixed
-      num_replicas: 1
 
-  - type: build_model
-    name: Build Sample Ticketing Agent Adapter Model
-    short_summary: Build Sample Ticketing Agent Adapter Model
-    entity_label: ticket_agent_adapter_model
-    comment: Build Sample Ticketing Agent Adapter Model
-    examples:
-      - request:
-          prompt: "You are an event ticketing customer LLM chatbot responsible for generating a one-word, snake_case action, based on a customer input. Please provide the action below based on the input from the customer.\\n\\n### CUSTOMER: I want to cancel my concert tickets\\n### ACTION:"
-        response: ""
-    target_file_path: ft/scripts/cml_model_predict_script.py
-    target_function_name: api_wrapper
-
-  - type: deploy_model
-    name: ticket_agent_adapter_model
-    short_summary: Deploy Sample Ticketing Agent Adapter Model
-    entity_label: ticket_agent_adapter_model
-    cpu: 2
-    memory: 4
-    gpu: 1
-    environment_variables:
-      FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME: bigscience/bloom-1b1
-      FINE_TUNING_STUDIO_ADAPTER_LOCATION: data/adapters/bloom-1b-ticketing
-  
   - type: start_application
     name: Sample-Ticketing-Agent-Application
     short_summary: Start Sample Ticketing Agent Application
@@ -163,7 +125,6 @@ tasks:
     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
     memory: 8
-    gpu: 1
     is_embedded: true
     environment_variables:
       TASK_TYPE: START_APPLICATION
