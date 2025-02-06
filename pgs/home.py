@@ -53,16 +53,16 @@ def check_amp_update_status():
         latest_hash = get_latest_git_hash(current_branch)
 
         with st.container():
-            st.subheader("🔄 AMP Update Status")
+            #st.subheader("🔄 AMP Update Status")
             if current_hash and latest_hash:
                 if current_hash != latest_hash:
                     _, behind = check_if_ahead_or_behind(current_hash, current_branch)
                     if behind > 0:
-                        st.warning("Your AMP is out of date. Please update to the latest version.")
+                        st.warning("Fine Tuning Studio is out of date. Please update to the latest version.")
                         if st.button("Perform Upgrade"):
                             execute_upgrade_steps()
                 else:
-                    st.success("🎉 Your AMP is up-to-date!")
+                    st.success("🎉 Fine Tuning Studio is up-to-date!")
             else:
                 st.error("Unable to check AMP update status.")
     except Exception as e:
@@ -122,8 +122,8 @@ create_tile(col3, IconPaths.Experiments.TRAIN_NEW_ADAPTER,
             'Finetune your model, leveraging advanced techniques to improve performance.')
 
 create_tile(col4, IconPaths.CML.EXPORT_TO_CML_MODEL_REGISTRY,
-            "Export to CML Model Registry", "pgs/export.py",
-            'Export your fine-tuned models and adapters to the Cloudera Model Registry for easy access and deployment.')
+            "Deploy", "pgs/export.py",
+            'Export your fine-tuned models and adapters to the AI Model Registry for easy access and deployment.')
 
 st.write("\n")
 

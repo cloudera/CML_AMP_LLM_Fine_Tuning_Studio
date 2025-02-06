@@ -41,12 +41,12 @@ def create_header():
         with col2:
             col2.subheader('Export/Deploy Model', divider=DIVIDER_COLOR)
             st.caption(
-                "Export your fine-tuned models and adapters to Cloudera Model Registry or deploy to CML Models for use in production.")
+                "Export your fine-tuned models and adapters to AI Model Registry or deploy to CAI Models for use in production.")
 
 
 def handle_export_or_deploy():
     with st.container():
-        deploy_cml_models_tab, export_mr_tab = st.tabs(["**CML Model Deployment**", "**CML Model Registry**"])
+        deploy_cml_models_tab, export_mr_tab = st.tabs(["**CAI Model Deployment**", "**CAI Model Registry**"])
 
         with deploy_cml_models_tab:
             display_model_deployment_tab()

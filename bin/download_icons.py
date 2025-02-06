@@ -10,7 +10,7 @@ pages_icons = {
     "Navigation": {
         "Home": "home",
     },
-    "AI Toolkit": {
+    "Resources": {
         "Import Datasets": "publish",
         "View Datasets": "data_object",
         "Import Base Models": "neurology",
