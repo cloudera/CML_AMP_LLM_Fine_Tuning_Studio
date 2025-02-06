@@ -153,7 +153,7 @@ if os.getenv("IS_COMPOSABLE", "") != "":
         </div>
     </div>
     <div class="dropdown">
-        <a class="dropbtn" href="#" target="_self"><span class="material-icons">build</span> AI Toolkit</a>
+        <a class="dropbtn" href="#" target="_self"><span class="material-icons">build</span> Resources</a>
         <div class="dropdown-content">
         <a href="/datasets" target="_self"><span class="material-icons">publish</span> Import Datasets</a>
         <a href="/view_datasets" target="_self"><span class="material-icons">data_object</span> View Datasets</a>
@@ -174,7 +174,7 @@ if os.getenv("IS_COMPOSABLE", "") != "":
         </div>
     </div>
     <div class="dropdown">
-        <a class="dropbtn" href="#" target="_self"><span class="material-icons">cloud</span> CML</a>
+        <a class="dropbtn" href="#" target="_self"><span class="material-icons">cloud</span> AI Workbench</a>
         <div class="dropdown-content">
         <a href="/export" target="_self"><span class="material-icons">upgrade</span> Export And Deploy Model</a>
         </div>
@@ -262,7 +262,7 @@ else:
             st.page_link("pgs/database.py", label="Database Import and Export", icon=":material/database:")
             st.write("\n")
 
-            st.markdown("AI Toolkit")
+            st.markdown("Resources")
             st.page_link("pgs/datasets.py", label="Import Datasets", icon=":material/publish:")
             st.page_link("pgs/view_datasets.py", label="View Datasets", icon=":material/data_object:")
             st.page_link("pgs/models.py", label="Import Base Models", icon=":material/neurology:")
@@ -279,7 +279,7 @@ else:
             st.page_link("pgs/mlflow_jobs.py", label="View MLflow Runs", icon=":material/monitoring:")
             st.write("\n")
 
-            st.markdown("CML")
+            st.markdown("AI Workbench")
             st.page_link("pgs/export.py", label="Export And Deploy Model", icon=":material/move_group:")
             st.write("\n")
 
