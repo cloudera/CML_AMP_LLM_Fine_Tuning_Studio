@@ -41,7 +41,6 @@ def create_tile(container, image_path: str, button_text: str, page_path: str, de
         c2.caption(description)
 
 
-
 def check_amp_update_status():
     """Check if the AMP is up-to-date."""
     try:
@@ -72,7 +71,9 @@ def check_amp_update_status():
 def execute_upgrade_steps():
     """Perform upgrade steps with feedback"""
     with st.spinner("🚀 Starting Upgrade..."):
-        st.markdown('<p style="font-size:18px; color:#00BFFF; text-align:center;">We are upgrading your AMP to the latest version...</p>', unsafe_allow_html=True)
+        st.markdown(
+            '<p style="font-size:18px; color:#00BFFF; text-align:center;">We are upgrading your AMP to the latest version...</p>',
+            unsafe_allow_html=True)
 
         upgrade_steps = [
             ("Git Pull", run_git_pull),

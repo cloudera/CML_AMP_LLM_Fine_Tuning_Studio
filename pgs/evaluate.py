@@ -321,7 +321,8 @@ st.write("\n")
 if not is_gpu_present():
     col1, col2 = st.columns([0.8, 0.2])
     with col1:
-        st.warning("⚠️ GPU is required for this functionality to work, clicking on the button will enable GPU and may require App Restart.")
+        st.warning(
+            "⚠️ GPU is required for this functionality to work, clicking on the button will enable GPU and may require App Restart.")
     with col2:
         if st.button("Enable GPU"):
             update_app_with_gpu()
@@ -351,7 +352,10 @@ else:
                         st.session_state.current_model_metadata = current_models[model_idx]
 
                         model_adapters = fts.get_adapters()
-                        model_adapters = list(filter(lambda x: x.model_id == current_models[model_idx].id, model_adapters))
+                        model_adapters = list(
+                            filter(
+                                lambda x: x.model_id == current_models[model_idx].id,
+                                model_adapters))
 
                         st.session_state.model_adapters = model_adapters
 
