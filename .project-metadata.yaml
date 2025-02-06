@@ -125,6 +125,5 @@ tasks:
     long_summary: This application launcher launches the sample ticketing streamlit application.
     cpu: 2
     memory: 8
-    is_embedded: true
     environment_variables:
       TASK_TYPE: START_APPLICATION
