@@ -106,11 +106,11 @@ tasks:
     memory: 8
 
   - type: start_application
-    name: Sample-Ticketing-Agent-Application
-    short_summary: Start Sample Ticketing Agent Application
-    subdomain: sample-ticketing-agent
-    script: examples/ticketing-agent-app/ticketing-agent-launch.py
-    long_summary: This application launcher launches the sample ticketing streamlit application.
+    name: Fine Tuning Studio
+    short_summary: Start Fine Tuning Studio
+    subdomain: fine-tuning-studio
+    script: bin/run-app.py
+    long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
     cpu: 2
     memory: 8
     is_embedded: true
@@ -118,11 +118,11 @@ tasks:
       TASK_TYPE: START_APPLICATION
 
   - type: start_application
-    name: Fine Tuning Studio
-    short_summary: Start Fine Tuning Studio
-    subdomain: fine-tuning-studio
-    script: bin/run-app.py
-    long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
+    name: Sample-Ticketing-Agent-Application
+    short_summary: Start Sample Ticketing Agent Application
+    subdomain: sample-ticketing-agent
+    script: examples/ticketing-agent-app/ticketing-agent-launch.py
+    long_summary: This application launcher launches the sample ticketing streamlit application.
     cpu: 2
     memory: 8
     is_embedded: true
