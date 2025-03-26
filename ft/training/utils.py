@@ -122,7 +122,7 @@ def configure_tokenizer_padding(tokenizer: PreTrainedTokenizerBase, pad_token: s
 
     # If there is a unique UNK token available, default to using this token.
     if tokenizer.unk_token is not None and tokenizer.unk_token != tokenizer.eos_token:
-        tokenizer.add_special_tokens({'pad_token', tokenizer.unk_token})
+        tokenizer.add_special_tokens({'pad_token' : tokenizer.unk_token})
         return tokenizer
 
     # If there are any available reserved special tokens that may suit the needs of
