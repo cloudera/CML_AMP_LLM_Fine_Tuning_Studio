@@ -1,4 +1,5 @@
 import streamlit as st
+from bin.check_gpu_resources import check_gpu_enabled
 from ft.api import *
 import json
 from ft.utils import get_env_variable, fetch_resource_usage_data, process_resource_usage_data, get_axolotl_training_config_template_yaml_str, fetch_cml_site_config
@@ -69,6 +70,11 @@ def create_header():
 
 
 def create_train_adapter_page_with_proprietary():
+    gpu_available = check_gpu_enabled()
+    
+    if not gpu_available:
+        st.error(" GPU is required for fine-tuning. Please enable GPU for the AI workbench to proceed.", icon="⚠️")
+        return
     ccol1, ccol2 = st.columns([4, 2])
     with ccol1:
         with st.container(border=True):
@@ -185,6 +191,7 @@ def create_train_adapter_page_with_proprietary():
                         tc_descrip = "**Distributed Finetuning Units** may be provisioned across multiple physical nodes in the CML Workspace."
                         st.info("%s" % (tc_descrip))
                 c1, c2 = st.columns([1, 1])
+
                 with c1:
                     resource_label_suffix = ""
                     if st.session_state['ft_multi_node']:
