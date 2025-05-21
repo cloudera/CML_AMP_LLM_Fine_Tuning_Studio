@@ -253,6 +253,8 @@ def generate_page_for_evaluation():
             try:
                 accelerator_labels = cml.list_all_accelerator_node_labels().accelerator_node_label
                 accelerator_labels_dict = {x.label_value: vars(x) for x in accelerator_labels}
+                if len(accelerator_labels_dict) == 1:
+                    st.session_state['ft_resource_gpu_label'] = 0
             except Exception as e:
                 site_conf = fetch_cml_site_config(cdsw_api_url, project_owner, cdsw_api_key)
                 site_max_gpu = site_conf.get("max_gpu_per_engine")
