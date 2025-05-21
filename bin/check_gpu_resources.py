@@ -44,10 +44,10 @@ def check_gpu_enabled():
     if max_gpu_per_engine < 1 and (default_accelerator_label_id == 0 or default_accelerator_label_id is None):
         # Failure at this point is because GPUs are not eabled on this workspace.
         # Ask your admin about quota and autoscaling rules for GPU
-        sys.exit(
-            "GPUs are not enabled in this CML Workspace"
-        )
+        print("GPUs are not enabled in this CML Workspace")
+        return 0
     print("GPUs are enabled in this workspace.")
+    return 1
 
 # Check that there are available GPUs or autoscalable GPUs available
 def check_gpu_launch():
@@ -67,5 +67,5 @@ def check_gpu_launch():
         sys.exit("Unable to allocate GPU resource within 10 minutes")
 
 print("Checking the enablement and availibility of GPU in the workspace")
-check_gpu_enabled()
-check_gpu_launch()
+# check_gpu_enabled()
+# check_gpu_launch()

@@ -72,12 +72,15 @@ def find_padding_token_candidate(tokenizer: PreTrainedTokenizerBase) -> Union[st
     and should be expanded in the future to handle more models that have
     undefined padding tokens, yet available special reserved tokens.
     """
+    reserved_token = None
 
     for token in list(tokenizer.added_tokens_encoder.keys()):
         if "pad" in token:
             return token
+        if "reserved" in token and reserved_token is None:
+            reserved_token = token
 
-    return None
+    return reserved_token
 
 
 def configure_tokenizer_padding(tokenizer: PreTrainedTokenizerBase, pad_token: str = None) -> PreTrainedTokenizerBase:
