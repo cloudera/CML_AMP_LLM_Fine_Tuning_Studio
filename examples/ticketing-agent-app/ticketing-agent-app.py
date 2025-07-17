@@ -67,6 +67,7 @@ def call_cml_model(customer_input, fts: FineTuningStudioClient, cml: CMLServiceA
     # Create the input prompt
     input_features_dict = {"instruction": customer_input}
     ticketing_model_input = prompt.input_template.format(**input_features_dict)
+    ticketing_model_input = ticketing_model_input.replace('\n', '\\n').replace('\t', '\\t')
     response = requests.post(MODEL_SERVICE_URL + f"?accessKey={get_ticketing_model(cml).access_key}",
                       data=json.dumps({"request":{"prompt":ticketing_model_input}}),
                       headers={'Content-Type': 'application/json', 'Authorization': 'Bearer %s' % os.getenv('CDSW_APIV2_KEY')})
