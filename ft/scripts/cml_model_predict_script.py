@@ -4,6 +4,7 @@ import os
 import json
 from ft.consts import DEFAULT_GENERATIONAL_CONFIG
 mlt = MLFlowTransformers()
+import cml.models_v1 as models
 
 # Main script used as the prediction/generation base of a deployed CML Model. This script
 # globally loads a model and an adapter onto a CUDA-compatible GPU. The model exposes
@@ -105,7 +106,7 @@ def generate(prompt, max_new_tokens=128, temperature=0.7, repetition_penalty=1.0
     prompt_length = len(prompt)
     return tokenizer.decode(output_tokens[0], skip_special_tokens=True)[prompt_length:]
 
-
+@models.cml_model
 def api_wrapper(args):
     # Pick up args from model api
     prompt = args["prompt"]
