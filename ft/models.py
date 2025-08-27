@@ -68,7 +68,7 @@ def _validate_add_model_request(request: AddModelRequest, dao: FineTuningStudioD
         local_path = request.local_path.strip() if request.local_path else ""
         if not local_path:
             raise ValueError("Local model path cannot be an empty string or only spaces.")
-        
+
         # Check if a model with this path already exists
         with dao.get_session() as session:
             existing_models: List[Model] = session.query(Model).all()
@@ -133,17 +133,17 @@ def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuni
                 )
         except Exception as e:
             raise ValueError(f"ERROR: Failed to load model registry model. {e}")
-            
+
     elif request.type == ModelType.PROJECT:
         try:
             import os
             if not os.path.exists(request.local_path):
                 raise ValueError(f"Path does not exist: {request.local_path}")
-                
+
             with dao.get_session() as session:
                 # Use the directory name as the model name
                 model_name = os.path.basename(os.path.normpath(request.local_path))
-                
+
                 model: Model = Model(
                     id=str(uuid4()),
                     type=ModelType.PROJECT,

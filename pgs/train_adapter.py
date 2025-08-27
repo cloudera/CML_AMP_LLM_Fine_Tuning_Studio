@@ -71,7 +71,7 @@ def create_header():
 
 def create_train_adapter_page_with_proprietary():
     gpu_available = check_gpu_enabled()
-    
+
     if not gpu_available:
         st.error(" GPU is required for fine-tuning. Please enable GPU for the AI workbench to proceed.", icon="⚠️")
         return

@@ -1,3 +1,4 @@
+import os
 HF_LOGO = "https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.png"
 DEFAULT_FTS_GRPC_PORT = "50051"
 AXOLOTL_DATASET_FORMAT_CONFIGS_FOLDER_PATH = "ft/config/axolotl/dataset_formats"
@@ -35,12 +36,10 @@ project defaults JSON when initializing the AMP.
 """
 
 
-import os
-
 if os.getenv("IS_COMPOSABLE", "") != "":
-  CML_MODEL_PREDICT_SCRIPT_FILEPATH = "fine-tuning-studio/ft/scripts/cml_model_predict_script.py"
+    CML_MODEL_PREDICT_SCRIPT_FILEPATH = "fine-tuning-studio/ft/scripts/cml_model_predict_script.py"
 else:
-  CML_MODEL_PREDICT_SCRIPT_FILEPATH = "ft/scripts/cml_model_predict_script.py"
+    CML_MODEL_PREDICT_SCRIPT_FILEPATH = "ft/scripts/cml_model_predict_script.py"
 """
 Filepath for the main predict functionality and generation loop of a
 deployed model+adapter as a CML Model.

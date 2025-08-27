@@ -146,15 +146,22 @@ class GetModelResponse(_message.Message):
 
 
 class AddModelRequest(_message.Message):
-    __slots__ = ("type", "huggingface_name", "model_registry_id")
+    __slots__ = ("type", "huggingface_name", "model_registry_id", "local_path")
     TYPE_FIELD_NUMBER: _ClassVar[int]
     HUGGINGFACE_NAME_FIELD_NUMBER: _ClassVar[int]
     MODEL_REGISTRY_ID_FIELD_NUMBER: _ClassVar[int]
+    LOCAL_PATH_FIELD_NUMBER: _ClassVar[int]
     type: str
     huggingface_name: str
     model_registry_id: str
-    def __init__(self, type: _Optional[str] = ..., huggingface_name: _Optional[str]
-                 = ..., model_registry_id: _Optional[str] = ...) -> None: ...
+    local_path: str
+
+    def __init__(
+        self,
+        type: _Optional[str] = ...,
+        huggingface_name: _Optional[str] = ...,
+        model_registry_id: _Optional[str] = ...,
+        local_path: _Optional[str] = ...) -> None: ...
 
 
 class AddModelResponse(_message.Message):

@@ -1,27 +1,10 @@
-import os
-if os.getenv("IS_COMPOSABLE", "") != "":
-  os.chdir("/home/cdsw/fine-tuning-studio")
-from ft.venv_utils import activate_venv
-activate_venv(".venv")
-from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
-from accelerate.utils import (
-    PrepareForLaunch,
-    check_cuda_p2p_ib_support,
-    is_torch_version,
-    patch_environment,
+from ft.training.utils import (
+    map_dataset_with_prompt_template,
+    sample_and_split_dataset,
+    get_model_parameters,
+    configure_tokenizer_padding
 )
-from pathlib import Path
-from peft import prepare_model_for_kbit_training
-import torch
-import argparse
-import sys
-import json
-import os
-import datasets
-from accelerate import Accelerator, notebook_launcher
-from ft.utils import attempt_hf_login
-from ft.client import FineTuningStudioClient
-from ft.api import *
+from ft.datasets import load_dataset_into_memory
 from ft.consts import (
     TRAINING_DEFAULT_TRAIN_TEST_SPLIT,
     TRAINING_DEFAULT_DATASET_FRACTION,
@@ -30,13 +13,29 @@ from ft.consts import (
     DEFAULT_LORA_CONFIG,
     DEFAULT_TRAINING_ARGUMENTS
 )
-from ft.datasets import load_dataset_into_memory
-from ft.training.utils import (
-    map_dataset_with_prompt_template,
-    sample_and_split_dataset,
-    get_model_parameters,
-    configure_tokenizer_padding
+from ft.api import *
+from ft.client import FineTuningStudioClient
+from ft.utils import attempt_hf_login
+from accelerate import Accelerator, notebook_launcher
+import datasets
+import json
+import sys
+import argparse
+import torch
+from peft import prepare_model_for_kbit_training
+from pathlib import Path
+from accelerate.utils import (
+    PrepareForLaunch,
+    check_cuda_p2p_ib_support,
+    is_torch_version,
+    patch_environment,
 )
+from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
+import os
+if os.getenv("IS_COMPOSABLE", "") != "":
+    os.chdir("/home/cdsw/fine-tuning-studio")
+from ft.venv_utils import activate_venv
+activate_venv(".venv")
 
 # TODO: Make all FTS configs/settings loading come from an imported module
 #       so scripts like this focus on fine-tuning loop only

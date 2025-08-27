@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 from ft.db.dao import get_sqlite_db_location
 
+
 class DatabaseJsonConverter:
     """
     A utility class for converting SQLite databases to JSON and vice versa.
@@ -80,7 +81,7 @@ class DatabaseJsonConverter:
                     }
 
                 # # Write to JSON file
-                if output_path != None:
+                if output_path is not None:
                     with open(output_path, 'w') as f:
                         json.dump(database_dict, f, indent=2)
 

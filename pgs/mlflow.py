@@ -53,6 +53,7 @@ if 'bnb_config' not in st.session_state:
 if 'generation_config' not in st.session_state:
     st.session_state['generation_config'] = DEFAULT_GENERATIONAL_CONFIG
 
+
 def generate_page_for_evaluation():
     # Container for header
     with st.container(border=True):
@@ -62,19 +63,19 @@ def generate_page_for_evaluation():
         with col2:
             col2.subheader('Run MLFlow Evaluation', divider=DIVIDER_COLOR)
             st.caption("Execute comprehensive MLFlow evaluations on your fine-tuned model to ensure accuracy, performance, and reliability, gaining valuable insights.")
-    
+
     st.write("\n")
     gpu_available = check_gpu_enabled()
-    
+
     if not gpu_available:
         st.error(" GPU is required for running evaluation. Please enable GPU for the AI workbench to proceed.", icon="⚠️")
         return
-    
+
     # Container for model and adapter selection
     ccol1, ccol2 = st.columns([3, 2])
     with ccol1:
         with st.container(border=True):
-    
+
             # Container for dataset and prompt selection
             col1, col2 = st.columns(2)
             current_datasets = fts.get_datasets()
@@ -92,9 +93,9 @@ def generate_page_for_evaluation():
                 st.session_state['mlflow_model_idx'] = None
                 st.session_state['model_adapter'] = None
                 st.session_state['prev_dataset_idx'] = mlflow_dataset_idx
-    
+
             st.session_state['mlflow_dataset_idx'] = mlflow_dataset_idx
-    
+
             if mlflow_dataset_idx is not None:
                 st.session_state['mlflow_dataset_idx'] = mlflow_dataset_idx
                 dataset = current_datasets[mlflow_dataset_idx]
@@ -104,7 +105,7 @@ def generate_page_for_evaluation():
                     valid_index = 0
                     if st.session_state['mlflow_prompt_idx'] is not None:
                         valid_index = min(len(current_prompts) - 1, max(0, st.session_state['mlflow_prompt_idx']))
-    
+
                     mlflow_prompt_idx = st.selectbox(
                         "Prompts",
                         range(len(current_prompts)),
@@ -123,7 +124,7 @@ def generate_page_for_evaluation():
                     st.error(
                         "No prompts available. Please create a prompt template for the selected dataset to proceed with training.",
                         icon=":material/error:")
-    
+
                 eval_dataset_fraction = st.slider(
                     "Evaluation Dataset Fraction",
                     min_value=0.0,
@@ -135,7 +136,7 @@ def generate_page_for_evaluation():
                     " For full dataset evaluation, keep it to 1. "
                     " Please note, dataset here refers to evaluation dataset. The training rows will not be used for evaluation")
                 st.session_state['eval_dataset_fraction'] = eval_dataset_fraction
-    
+
                 dataset_features = json.loads(fts.GetDataset(
                     GetDatasetRequest(
                         id=dataset.id
@@ -148,20 +149,20 @@ def generate_page_for_evaluation():
                     key="selected_dataset_features",
                     default=st.session_state['selected_features'],
                 )
-    
+
                 st.session_state['selected_features'] = selected_dataset_features or []
-    
+
             st.divider()
             st.caption("**Choose Models for Evaluation**")
             all_model_adapter_combinations = []
             # For every item in the session state for list of model adapter combos, see
             # what is selected and allow for changes dynamically.
             for i in range(len(st.session_state.mlflow_model_adapters)):
-    
+
                 with st.container(border=True):
                     current_models = fts.get_models()
                     current_model_id = st.session_state.mlflow_model_adapters[i].get("base_model_id", None)
-    
+
                     # Get the index from the list of models based on the model ID that is in
                     # the session state for this model adapter pair.
                     def get_model_index_based_on_id(id: str, models: List[ModelMetadata]) -> int:
@@ -169,7 +170,7 @@ def generate_page_for_evaluation():
                             if model.id == id:
                                 return idx
                         return None
-    
+
                     # Define a callback function to update the session state accordingly. Note that
                     # this code runs *before* a streamlit refresh.
                     def update_model_selection():
@@ -178,7 +179,7 @@ def generate_page_for_evaluation():
                         if not selected_model.id == st.session_state.mlflow_model_adapters[i]["base_model_id"]:
                             st.session_state.mlflow_model_adapters[i]["adapter_id"] = None
                         st.session_state.mlflow_model_adapters[i]["base_model_id"] = selected_model.id
-    
+
                     # Get a list of all of the models
                     # link the current selection based on the model ID if it's not none on this current pair
                     mlflow_model_idx = st.selectbox(
@@ -191,19 +192,19 @@ def generate_page_for_evaluation():
                             current_models) if current_model_id is not None else None,
                         key=f"current_model_index_{i}",
                         on_change=update_model_selection)
-    
+
                     current_adapters = list(
                         filter(
                             lambda x: x.model_id == current_model_id,
                             fts.get_adapters())) if current_model_id is not None else []
                     current_adapter_id = st.session_state.mlflow_model_adapters[i].get("adapter_id", None)
-    
+
                     def get_adapter_index_based_on_id(id: str, adapters: List[AdapterMetadata]) -> int:
                         for idx, adapter in enumerate(adapters):
                             if adapter.id == id:
                                 return idx
                         return None
-    
+
                     model_adapter_idx = st.selectbox(
                         "(optional) Choose an Adapter",
                         range(
@@ -216,7 +217,7 @@ def generate_page_for_evaluation():
                     if model_adapter_idx is not None:
                         selected_adapter: AdapterMetadata = current_adapters[model_adapter_idx]
                         st.session_state.mlflow_model_adapters[i]["adapter_id"] = selected_adapter.id
-    
+
                     # Add a remove button per combo button
                     def remove_model_adapter_pair(idx: int):
                         del st.session_state.mlflow_model_adapters[idx]
@@ -225,7 +226,7 @@ def generate_page_for_evaluation():
                             i == 0 and st.session_state.mlflow_model_adapters[i]["base_model_id"] is None and st.session_state.mlflow_model_adapters[i]["adapter_id"] is None) or len(
                             st.session_state.mlflow_model_adapters) <= 1, on_click=remove_model_adapter_pair, args=(
                             i,))
-    
+
             # Add a model adapter pair
             def add_model_adapter_pair():
                 st.session_state.mlflow_model_adapters.append(
@@ -239,7 +240,7 @@ def generate_page_for_evaluation():
                 on_click=add_model_adapter_pair,
                 disabled=st.session_state.mlflow_model_adapters[-1]["base_model_id"] is None and st.session_state.mlflow_model_adapters[-1]["adapter_id"] is None
             )
-    
+
             # Advanced options
             st.caption("**Advanced Options**")
             c1, c2 = st.columns([1, 1])
@@ -247,7 +248,7 @@ def generate_page_for_evaluation():
                 mlflow_cpu = st.text_input("CPU(vCPU)", value="2", key="mlflow_cpu")
             with c2:
                 mlflow_memory = st.text_input("Memory(GiB)", value="8", key="mlflow_memory")
-    
+
             gpu = st.selectbox("GPU(NVIDIA)", options=[1], index=0)
             accelerator_labels = []
             try:
@@ -272,10 +273,10 @@ def generate_page_for_evaluation():
                                      index=st.session_state['ft_resource_gpu_label'])
             st.session_state['ft_resource_gpu_label'] = gpu_label_text_list.index(gpu_label)
             gpu_label_id = int(accelerator_labels_dict[gpu_label]['_id'])
-    
+
             with st.expander("Configs"):
                 cc1, cc2 = st.columns([1, 1])
-    
+
                 bnb_config_text = cc1.text_area(
                     "Quantization Config",
                     value=json.dumps(
@@ -294,33 +295,33 @@ def generate_page_for_evaluation():
                 )
                 st.session_state.bnb_config = json.loads(bnb_config_text)
                 st.session_state.generation_config = json.loads(generation_config_text)
-    
+
             start_job_button = st.button(
                 "Start MLflow Evaluation Job",
                 type="primary",
                 use_container_width=True)
-    
+
             if start_job_button:
-    
+
                 def empty_model_field_present():
                     for pair in st.session_state.mlflow_model_adapters:
                         if pair["base_model_id"] is None and pair["adapter_id"] is None:
                             return True
                     return False
-    
+
                 def repeated_model_adapter_pair():
                     for i, pair1 in enumerate(st.session_state.mlflow_model_adapters):
                         for j, pair2 in enumerate(st.session_state.mlflow_model_adapters):
                             if (not i == j) and (pair1 == pair2):
                                 return True
                     return False
-    
+
                 def missing_dataset_selection():
                     return mlflow_dataset_idx is None
-    
+
                 def missing_prompt_selection():
                     return mlflow_prompt_idx is None
-    
+
                 if empty_model_field_present():
                     st.warning(
                         "One of the selected model/adapter pairs is missing a base model. Make sure there is at least a base model in all model/adapter pairs to evaluate.",
@@ -344,7 +345,7 @@ def generate_page_for_evaluation():
                         dataset = current_datasets[mlflow_dataset_idx]
                         for combo in st.session_state.mlflow_model_adapters:
                             model_adapter_combo.append(EvaluationJobModelCombination(**combo))
-    
+
                         fts.StartEvaluationJob(
                             StartEvaluationJobRequest(
                                 type=EvaluationJobType.MFLOW,
@@ -362,12 +363,14 @@ def generate_page_for_evaluation():
                                 eval_dataset_fraction=st.session_state['eval_dataset_fraction']
                             )
                         )
-                        st.success("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
+                        st.success(
+                            "Created MLflow Job. Please go to **View MLflow Runs** tab!",
+                            icon=":material/check:")
                         st.toast("Created MLflow Job. Please go to **View MLflow Runs** tab!", icon=":material/check:")
                     except Exception as e:
                         st.error(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
                         st.toast(f"Failed to create MLflow Job: **{str(e)}**", icon=":material/error:")
-    
+
     with ccol2:
         st.info(
             """
@@ -398,4 +401,6 @@ def generate_page_for_evaluation():
                 hide_index=True,
                 use_container_width=True
             )
+
+
 generate_page_for_evaluation()

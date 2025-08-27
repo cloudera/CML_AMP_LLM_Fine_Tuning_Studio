@@ -2,6 +2,7 @@ import os
 import cmlapi
 import streamlit as st
 
+
 def restart_application_function():
     cml = cmlapi.default_client()
     project_id = os.getenv("CDSW_PROJECT_ID")
@@ -20,7 +21,8 @@ def restart_application_function():
         else:
             st.error(f"Application {app.name} is not running.")
             return False
-        
+
+
 def is_gpu_present():
     cml = cmlapi.default_client()
     project_id = os.getenv("CDSW_PROJECT_ID")
@@ -31,7 +33,7 @@ def is_gpu_present():
         if app.status == "APPLICATION_RUNNING":
             return app.nvidia_gpu
     return 0
-    
+
 
 def update_app_with_gpu():
     cml = cmlapi.default_client()
@@ -43,7 +45,7 @@ def update_app_with_gpu():
         if app.status == "APPLICATION_RUNNING":
             try:
                 body = {"nvidia_gpu": 1}
-                #body = {"gpu": 1}
+                # body = {"gpu": 1}
                 cml.update_application(body, project_id, app.id)
                 cml.restart_application(project_id, app.id)
                 st.success(f"Application {app.name} Updated with a GPU successfully!")
