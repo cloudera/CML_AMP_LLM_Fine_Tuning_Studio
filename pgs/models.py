@@ -32,7 +32,7 @@ def display_import_section():
         with registry_tab:
             st.info("Coming soon !", icon=":material/info:")
         with upload_tab:
-            st.info("Coming soon !", icon=":material/info:")
+            display_local_model_upload()
 
 
 def display_model_registry_import():
@@ -131,6 +131,52 @@ def display_huggingface_import():
         - This approach is efficient and enables rapid deployment of specialized models.
 
 
+    """, icon=":material/info:")
+
+
+def display_local_model_upload():
+    col1, col2 = st.columns([4, 1])
+    local_model_path = col1.text_input(
+        'Model Path',
+        placeholder="/path/to/model",
+        label_visibility='collapsed')
+    import_local_model = col2.button("Import", type="primary", use_container_width=True, key="local_import")
+
+    if import_local_model:
+        if local_model_path:
+            with st.spinner("Loading Model..."):
+                try:
+                    fts.AddModel(
+                        AddModelRequest(
+                            type=ModelType.PROJECT,
+                            local_path=local_model_path
+                        )
+                    )
+                    st.success(
+                        "Model imported successfully. Please check **View Models** page!",
+                        icon=":material/check:")
+                except Exception as e:
+                    st.error(f"Error importing model: {str(e)}", icon=":material/error:")
+        else:
+            st.error("Please enter a model path.", icon=":material/info:")
+
+    st.write("\n")
+
+    st.info("""
+        **Local Transformer Models:**
+
+        Users can import transformer models from local project files or mounted directories.
+
+        **How to Import Local Models:**
+        - Enter the absolute path to the model directory in the input field provided.
+        - The model directory should contain the necessary files for a transformer model.
+        - Click the "Import" button to load the model.
+        - Once imported, the model will be available for use in your application.
+
+        **Important Notes:**
+        - Ensure the path is accessible by the application.
+        - The model should follow the standard transformer model structure.
+        - For best results, use models that are compatible with the Hugging Face Transformers library.
     """, icon=":material/info:")
 
 

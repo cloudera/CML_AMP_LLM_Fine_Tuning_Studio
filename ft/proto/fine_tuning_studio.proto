@@ -182,6 +182,9 @@ message AddModelRequest {
   // Model ID of the model in the model registry of the workspace.
   // Used when importing models from model registries.
   string model_registry_id = 3;
+  
+  // Local path to the model directory for local model imports.
+  string local_path = 4;
 }
 message AddModelResponse {
   ModelMetadata model = 1;

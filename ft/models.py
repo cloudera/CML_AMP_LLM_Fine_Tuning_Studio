@@ -51,16 +51,29 @@ def _validate_add_model_request(request: AddModelRequest, dao: FineTuningStudioD
         if not getattr(request, field):
             raise ValueError(f"Field '{field}' is required in AddModelRequest.")
 
-    # Ensure the huggingface_name is not an empty string after stripping out spaces
-    huggingface_name = request.huggingface_name.strip()
-    if huggingface_name:
-        # Check if the model already exists
+    # Validate based on model type
+    if request.type == ModelType.HUGGINGFACE:
+        # Ensure the huggingface_name is not an empty string after stripping out spaces
+        huggingface_name = request.huggingface_name.strip()
+        if huggingface_name:
+            # Check if the model already exists
+            with dao.get_session() as session:
+                existing_models: List[Model] = session.query(Model).all()
+                if any(model.huggingface_model_name == huggingface_name for model in existing_models):
+                    raise ValueError(f"Model with name '{huggingface_name}' already exists.")
+        else:
+            raise ValueError("Hugging Face model name cannot be an empty string or only spaces.")
+    elif request.type == ModelType.PROJECT:
+        # Validate local path
+        local_path = request.local_path.strip() if request.local_path else ""
+        if not local_path:
+            raise ValueError("Local model path cannot be an empty string or only spaces.")
+        
+        # Check if a model with this path already exists
         with dao.get_session() as session:
             existing_models: List[Model] = session.query(Model).all()
-            if any(model.huggingface_model_name == huggingface_name for model in existing_models):
-                raise ValueError(f"Model with name '{huggingface_name}' already exists.")
-    else:
-        raise ValueError("Hugging Face model name cannot be an empty string or only spaces.")
+            if any(model.location == local_path for model in existing_models):
+                raise ValueError(f"Model with path '{local_path}' already exists.")
 
 
 def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuningStudioDao = None) -> AddModelResponse:
@@ -120,6 +133,30 @@ def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuni
                 )
         except Exception as e:
             raise ValueError(f"ERROR: Failed to load model registry model. {e}")
+            
+    elif request.type == ModelType.PROJECT:
+        try:
+            import os
+            if not os.path.exists(request.local_path):
+                raise ValueError(f"Path does not exist: {request.local_path}")
+                
+            with dao.get_session() as session:
+                # Use the directory name as the model name
+                model_name = os.path.basename(os.path.normpath(request.local_path))
+                
+                model: Model = Model(
+                    id=str(uuid4()),
+                    type=ModelType.PROJECT,
+                    name=model_name,
+                    location=request.local_path
+                )
+                session.add(model)
+
+                response = AddModelResponse(
+                    model=model.to_protobuf(ModelMetadata)
+                )
+        except Exception as e:
+            raise ValueError(f"ERROR: Failed to load local model. {e}")
 
     else:
         raise ValueError("ERROR: Cannot import model of this type.")
