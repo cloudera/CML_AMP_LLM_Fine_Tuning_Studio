@@ -1,3 +1,8 @@
+import os
+if os.getenv("IS_COMPOSABLE", "") != "":
+    os.chdir("/home/cdsw/fine-tuning-studio")
+from ft.venv_utils import activate_venv
+activate_venv(".venv")
 from ft.consts import EVAL_DATASET_DEFAULT_FRACTION, USER_DEFINED_IDENTIFIER, DEFAULT_BNB_CONFIG, DEFAULT_GENERATIONAL_CONFIG
 import json
 from copy import deepcopy
@@ -6,11 +11,7 @@ from ft.client import FineTuningStudioClient
 import ast
 import argparse
 from ft.eval.mlflow_driver import driver
-import os
-if os.getenv("IS_COMPOSABLE", "") != "":
-    os.chdir("/home/cdsw/fine-tuning-studio")
-from ft.venv_utils import activate_venv
-activate_venv(".venv")
+
 
 
 # Parse arguments from environment variable

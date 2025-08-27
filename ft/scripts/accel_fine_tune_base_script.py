@@ -1,3 +1,8 @@
+import os
+if os.getenv("IS_COMPOSABLE", "") != "":
+    os.chdir("/home/cdsw/fine-tuning-studio")
+from ft.venv_utils import activate_venv
+activate_venv(".venv")
 from ft.training.utils import (
     map_dataset_with_prompt_template,
     sample_and_split_dataset,
@@ -31,11 +36,6 @@ from accelerate.utils import (
     patch_environment,
 )
 from accelerate.utils.constants import ELASTIC_LOG_LINE_PREFIX_TEMPLATE_PYTORCH_VERSION
-import os
-if os.getenv("IS_COMPOSABLE", "") != "":
-    os.chdir("/home/cdsw/fine-tuning-studio")
-from ft.venv_utils import activate_venv
-activate_venv(".venv")
 
 # TODO: Make all FTS configs/settings loading come from an imported module
 #       so scripts like this focus on fine-tuning loop only
