@@ -148,7 +148,8 @@ def add_model(request: AddModelRequest, cml: CMLServiceApi = None, dao: FineTuni
                     id=str(uuid4()),
                     type=ModelType.PROJECT,
                     name=model_name,
-                    location=request.local_path
+                    location=request.local_path,
+                    huggingface_model_name=request.local_path  # This might not be ideal, but our entire codebase is based on this field.
                 )
                 session.add(model)
 

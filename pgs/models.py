@@ -149,7 +149,8 @@ def display_local_model_upload():
                     fts.AddModel(
                         AddModelRequest(
                             type=ModelType.PROJECT,
-                            local_path=local_model_path
+                            local_path=local_model_path,
+                            huggingface_name=local_model_path  # This might not be ideal, but our entire codebase is based on this field.
                         )
                     )
                     st.success(
