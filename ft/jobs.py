@@ -7,6 +7,8 @@ import os
 import pathlib
 from cmlapi import CMLServiceApi
 import json
+import logging
+import traceback
 
 from ft.db.dao import FineTuningStudioDao
 from ft.db.model import FineTuningJob, Config
@@ -17,6 +19,9 @@ from typing import List
 from ft.db.model import Dataset, Prompt, Model
 
 import yaml
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 def list_fine_tuning_jobs(request: ListFineTuningJobsRequest,
@@ -165,8 +170,6 @@ def _build_argument_list(request: StartFineTuningJobRequest, job_id: str) -> Lis
             arg_list.extend(["--dist_mem", request.memory])
         if request.gpu:
             arg_list.extend(["--dist_gpu", request.gpu])
-        if request.gpu_label_id:
-            arg_list.extend(["--gpu_label_id", request.gpu_label_id])
 
     return arg_list
 
@@ -318,7 +321,6 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
     cpu = request.cpu
     gpu = request.gpu
     memory = request.memory
-    gpu_label_id = request.gpu_label_id
 
     # TODO: Support more args here: output-dir, bnb config, trainerconfig,
     # loraconfig, model, dataset, prompt_config, cpu, mem, gpu
@@ -334,14 +336,40 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         arguments=" ".join([str(i).replace(" ", "") for i in arg_list])
     )
 
-    # If provided, set accelerator label id for targeting gpu
-    if gpu_label_id != -1:
-        job_instance.accelerator_label_id = gpu_label_id
-
-    created_job = cml.create_job(
-        body=job_instance,
-        project_id=project_id
-    )
+    logger.info("=" * 80)
+    logger.info("CREATING CML JOB")
+    logger.info("=" * 80)
+    logger.info(f"Job ID/Name: {job_id}")
+    logger.info(f"Project ID: {project_id}")
+    logger.info(f"Script: {fine_tuning_script}")
+    logger.info(f"Runtime Identifier: {template_job.runtime_identifier}")
+    logger.info(f"Resources: CPU={cpu}, Memory={memory}, GPU={gpu}")
+    logger.info(f"Arguments (first 200 chars): {' '.join([str(i).replace(' ', '') for i in arg_list])[:200]}...")
+    
+    try:
+        logger.info("Calling cml.create_job()...")
+        created_job = cml.create_job(
+            body=job_instance,
+            project_id=project_id
+        )
+        logger.info(f"SUCCESS: CML Job created with ID: {created_job.id}")
+    except Exception as e:
+        logger.error("=" * 80)
+        logger.error("CML JOB CREATION FAILED")
+        logger.error("=" * 80)
+        logger.error(f"Error Type: {type(e).__name__}")
+        logger.error(f"Error: {str(e)}")
+        logger.error(f"Error Details: {repr(e)}")
+        if hasattr(e, 'status'):
+            logger.error(f"HTTP Status: {e.status}")
+        if hasattr(e, 'reason'):
+            logger.error(f"Reason: {e.reason}")
+        if hasattr(e, 'body'):
+            logger.error(f"Response Body: {e.body}")
+        logger.error("Full Traceback:")
+        logger.error(traceback.format_exc())
+        logger.error("=" * 80)
+        raise
 
     job_run = cmlapi.models.create_job_run_request.CreateJobRunRequest(
         project_id=project_id,
@@ -385,7 +413,6 @@ def start_fine_tuning_job(request: StartFineTuningJobRequest,
         user_script=request.user_script,
         user_config_id=user_config_id,
         axolotl_config_id=request.axolotl_config_id,
-        gpu_label_id=request.gpu_label_id,
         adapter_name=request.adapter_name)
 
     response = StartFineTuningJobResponse()
